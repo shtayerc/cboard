@@ -15,29 +15,13 @@ mode_filename_edit(WindowData *data)
     data->draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, data->filename,
+                    data->conf.status_max_len);
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
-            case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop = 0;
-                    snprintf(data->status.mode, data->conf.status_max_len,
-                            "%s", data->conf.normal_status);
-                    textedit_escape(&pos, data->filename);
                     f = fopen(data->filename, "r");
                     if(f == NULL)
                         snprintf(data->filename, data->conf.status_max_len,
@@ -46,36 +30,7 @@ mode_filename_edit(WindowData *data)
                         fclose(f);
                     data->draw_render(data);
                     break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, data->filename,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_DELETE:
-                    textedit_delete(&pos, data->filename);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_LEFT:
-                    textedit_left(&pos, data->filename,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_RIGHT:
-                    textedit_right(&pos, data->filename,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
                 }
-                break;
-
-            case SDL_TEXTINPUT:
-                textedit_input(&pos, data->filename, data->conf.status_max_len,
-                        data, event.text.text);
-                data->draw_render(data);
                 break;
             }
         }
@@ -97,58 +52,22 @@ mode_number_edit(WindowData *data)
     data->draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            //textinput event needs special treatment
+            if(event.type != SDL_TEXTINPUT){
+                handle_input_events(&event, data, &loop, &pos, data->number,
+                        data->conf.number_len);
+            }
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
-            case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop = 0;
-                    textedit_escape(&pos, data->number);
                     strtol(data->number, &non_int, 10);
                     if((strcmp(non_int, "") && strcmp(data->number, "a"))
                             || U8_strlen(data->number) == 0){
                         snprintf(data->number, data->conf.number_len, "%s",
                                 last);
                     }
-                    snprintf(data->status.mode, data->conf.status_max_len,
-                            "%s", data->conf.normal_status);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, data->number,
-                            data->conf.number_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_DELETE:
-                    textedit_delete(&pos, data->number);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_LEFT:
-                    textedit_left(&pos, data->number,
-                            data->conf.number_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_RIGHT:
-                    textedit_right(&pos, data->number,
-                            data->conf.number_len, data);
                     data->draw_render(data);
                     break;
                 }

@@ -2,7 +2,7 @@
 #define _STATUS_H_
 
 #include "window_data.h"
-#include "textedit.h"
+#include "event.h"
 
 void mode_filename_edit(WindowData *data);
 void mode_number_edit(WindowData *data);

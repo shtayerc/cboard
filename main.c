@@ -11,6 +11,7 @@
 #include "machine.h"
 #include "nag.h"
 #include "game_list.h"
+#include "event.h"
 
 #define CHESS_UTILS_IMPLEMENTATION
 #include "chess_utils.h"
@@ -201,19 +202,9 @@ main(int argc, char *argv[])
     while (data.loop) {
         //WaitEvent is using way less CPU (on PoolEvent was 100%)
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, &data, NULL, 1);
             switch (event.type) {
-            case SDL_QUIT:
-                data.loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(&data, &event);
-                draw_render(&data);
-                break;
-
             case SDL_MOUSEMOTION:
-                data.mouse.x = event.button.x;
-                data.mouse.y = event.button.y;
                 if (cb_drag)
                     drag_draw(&data, piece);
                 break;

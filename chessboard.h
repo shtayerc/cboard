@@ -4,6 +4,7 @@
 #include "window_data.h"
 #include "machine.h"
 #include "notation.h"
+#include "event.h"
 
 enum { TextureBlackPawn, TextureBlackKnight, TextureBlackBishop,
     TextureBlackRook, TextureBlackQueen, TextureBlackKing, TextureWhitePawn,

@@ -1,5 +1,4 @@
 #include "chessboard.h"
-#include "textedit.h"
 
 int cb_rotation = RotationWhite;
 Square cb_hidden = none;
@@ -191,29 +190,22 @@ int
 mode_promotion(WindowData *data, Color color)
 {
     int piece;
-    int loop_promotion = 1;
+    int loop = 1;
     int dst = filerank2square(
             rotation_convert(data->mouse.x / data->layout.square.w),
             rotation_convert(data->mouse.y / data->layout.square.w));
     promotion_draw(data, dst, color);
     SDL_Event event;
 
-    while (loop_promotion) {
+    while (loop) {
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 0);
             switch (event.type) {
-            case SDL_QUIT:
-                loop_promotion = 0;
-                data->loop = 0;
-                break;
-
             case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
                 promotion_draw(data, dst, color);
                 break;
 
             case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
                 promotion_selection_draw(data, dst, color);
                 break;
 
@@ -221,7 +213,7 @@ mode_promotion(WindowData *data, Color color)
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     piece = promotion_selected_piece(data, dst, color);
                     if (piece != -1) {
-                        loop_promotion = 0;
+                        loop = 0;
                         return piece;
                     }
                 }
@@ -230,7 +222,7 @@ mode_promotion(WindowData *data, Color color)
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop_promotion = 0;
+                    loop = 0;
                     cb_hidden = none;
                     break;
                 }
@@ -263,22 +255,14 @@ mode_editor(WindowData *data)
     data->draw_render(data);
     editor_draw(data, piece);
     while (loop) {
+        handle_global_events(&event, data, &loop, 0);
         if (SDL_WaitEvent(&event)) {
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
             case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
                 editor_draw(data, piece);
                 break;
 
             case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
                 editor_draw(data, piece);
                 break;
 
@@ -420,30 +404,14 @@ mode_san(WindowData *data)
     data->draw_render(data);
     while(loop){
         if(SDL_WaitEvent(&event)){
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, data->status.info,
+                    data->conf.status_max_len);
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
-            case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop = 0;
-                    textedit_escape(&pos, data->status.info);
                     data->status.info[0] = '\0';
-                    snprintf(data->status.mode, data->conf.status_max_len,
-                            "%s", data->conf.normal_status);
                     data->draw_render(data);
                     break;
 
@@ -463,36 +431,7 @@ mode_san(WindowData *data)
                             data->conf.status_max_len, data);
                     data->draw_render(data);
                     break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_DELETE:
-                    textedit_delete(&pos, data->status.info);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_LEFT:
-                    textedit_left(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_RIGHT:
-                    textedit_right(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
                 }
-                break;
-
-            case SDL_TEXTINPUT:
-                textedit_input(&pos, data->status.info,
-                        data->conf.status_max_len, data, event.text.text);
-                data->draw_render(data);
                 break;
 
             case SDL_USEREVENT:
@@ -523,20 +462,11 @@ mode_training(WindowData *data)
     data->draw_render(data);
     while(loop){
         if(SDL_WaitEvent(&event)){
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, data->status.info,
+                    data->conf.status_max_len);
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
             case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
                 if(cb_drag)
                     drag_draw(data, piece);
                 break;
@@ -582,11 +512,7 @@ mode_training(WindowData *data)
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop = 0;
-                    textedit_escape(&pos, data->status.info);
                     data->status.info[0] = '\0';
-                    snprintf(data->status.mode, data->conf.status_max_len,
-                            "%s", data->conf.normal_status);
                     data->notation_hidden = 0;
                     data->draw_render(data);
                     break;
@@ -625,36 +551,7 @@ mode_training(WindowData *data)
                             data->conf.status_max_len, data);
                     data->draw_render(data);
                     break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_DELETE:
-                    textedit_delete(&pos, data->status.info);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_LEFT:
-                    textedit_left(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_RIGHT:
-                    textedit_right(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
                 }
-                break;
-
-            case SDL_TEXTINPUT:
-                textedit_input(&pos, data->status.info,
-                        data->conf.status_max_len, data, event.text.text);
-                data->draw_render(data);
                 break;
 
             case SDL_USEREVENT:

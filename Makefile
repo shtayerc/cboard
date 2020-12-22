@@ -3,7 +3,7 @@ BINDIR?=$(PREFIX)/bin
 SHAREDIR?=$(PREFIX)/share/cboard
 
 CC=cc
-FILES=SDL_FontCache.c window_data.c chessboard.c notation.c nag.c status.c machine.c textedit.c game_list.c main.c
+FILES=*.c
 EXE=cboard
 LIBS=-lSDL2 -lSDL2_image -lSDL2_ttf
 FLAGS=-Wextra -Wall -Wformat-security -Wno-format-truncation

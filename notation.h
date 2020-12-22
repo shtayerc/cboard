@@ -4,7 +4,7 @@
 #include "window_data.h"
 #include "chess_utils.h"
 #include "nag.h"
-#include "textedit.h"
+#include "event.h"
 
 typedef struct {
     int x;

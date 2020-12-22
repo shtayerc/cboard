@@ -11,50 +11,17 @@ mode_game_search(WindowData *data)
     data->draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            if(event.key.keysym.sym != SDLK_ESCAPE){
+                handle_input_events(&event, data, &loop, &pos,
+                        data->status.info, data->conf.status_max_len);
+            }
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
-            case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     loop = 0;
                     data->status.info[0] = '\0';
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_DELETE:
-                    textedit_delete(&pos, data->status.info);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_LEFT:
-                    textedit_left(&pos, data->status.info,
-                            data->conf.status_max_len, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_RIGHT:
-                    textedit_right(&pos, data->status.info,
-                            data->conf.status_max_len, data);
                     data->draw_render(data);
                     break;
 
@@ -69,12 +36,6 @@ mode_game_search(WindowData *data)
                     data->draw_render(data);
                     break;
                 }
-                break;
-
-            case SDL_TEXTINPUT:
-                textedit_input(&pos, data->status.info,
-                        data->conf.status_max_len, data, event.text.text);
-                data->draw_render(data);
                 break;
             }
         }
@@ -96,27 +57,13 @@ mode_game_list(WindowData *data)
     data->draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
-            case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_q:
-                    loop = 0;
                     data->loop = 0;
+                    loop = 0;
                     break;
 
                 case SDLK_ESCAPE:

@@ -214,7 +214,7 @@ notation_scroll_down(WindowData *data)
 void
 mode_annotate(WindowData *data, Move *move)
 {
-    int loop_annotate = 1;
+    int loop = 1;
     SDL_Event event;
     int pos;
     if(move->comment == NULL){
@@ -227,64 +227,22 @@ mode_annotate(WindowData *data, Move *move)
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.annotate_status);
     data->draw_render(data);
-    while (loop_annotate) {
+    while (loop) {
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, move->comment,
+                    COMMENT_LEN);
             switch (event.type) {
-            case SDL_QUIT:
-                loop_annotate = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
-            case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop_annotate = 0;
-                    textedit_escape(&pos, move->comment);
-                    snprintf(data->status.mode, data->conf.status_max_len,
-                            "%s", data->conf.normal_status);
                     if(U8_strlen(move->comment) == 0){
                         free(move->comment);
                         move->comment = NULL;
                     }
                     data->draw_render(data);
                     break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, move->comment, COMMENT_LEN, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_DELETE:
-                    textedit_delete(&pos, move->comment);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_LEFT:
-                    textedit_left(&pos, move->comment, COMMENT_LEN, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_RIGHT:
-                    textedit_right(&pos, move->comment, COMMENT_LEN, data);
-                    data->draw_render(data);
-                    break;
                 }
-                break;
-
-            case SDL_TEXTINPUT:
-                textedit_input(&pos, move->comment, COMMENT_LEN, data,
-                        event.text.text);
-                data->draw_render(data);
                 break;
             }
         }
@@ -294,28 +252,19 @@ mode_annotate(WindowData *data, Move *move)
 void
 mode_move(WindowData *data)
 {
-    int loop_move = 1;
+    int loop = 1;
     SDL_Event event;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.move_annotation_status);
     data->draw_render(data);
-    while(loop_move){
+    while(loop){
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
             switch (event.type) {
-            case SDL_QUIT:
-                loop_move = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop_move = 0;
+                    loop = 0;
                     break;
 
                 case SDLK_j:
@@ -333,7 +282,7 @@ mode_move(WindowData *data)
                 case SDLK_x:
                 case SDLK_BACKSPACE:
                     notation_move_get(&data->notation)->nag_move = 0;
-                    loop_move = 0;
+                    loop = 0;
                     break;
                 }
             }
@@ -347,28 +296,19 @@ mode_move(WindowData *data)
 void
 mode_position(WindowData *data)
 {
-    int loop_position = 1;
+    int loop = 1;
     SDL_Event event;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.position_annotation_status);
     data->draw_render(data);
-    while(loop_position){
+    while(loop){
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
             switch (event.type) {
-            case SDL_QUIT:
-                loop_position = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop_position = 0;
+                    loop = 0;
                     break;
 
                 case SDLK_j:
@@ -386,7 +326,7 @@ mode_position(WindowData *data)
                 case SDLK_x:
                 case SDLK_BACKSPACE:
                     notation_move_get(&data->notation)->nag_position = 0;
-                    loop_position = 0;
+                    loop = 0;
                     break;
                 }
             }
@@ -400,34 +340,20 @@ mode_position(WindowData *data)
 void
 mode_tag_edit(WindowData *data, Tag *tag)
 {
-    int loop_tag_edit = 1;
+    int loop = 1;
     SDL_Event event;
     int pos = U8_strlen(tag->value);
     cursor_add(&pos, tag->value, TAG_LEN, data);
     data->draw_render(data);
-    while (loop_tag_edit) {
+    while (loop) {
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, tag->value,
+                    TAG_LEN);
             switch (event.type) {
-            case SDL_QUIT:
-                loop_tag_edit = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
-            case SDL_MOUSEMOTION:
-                data->mouse.x = event.button.x;
-                data->mouse.y = event.button.y;
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    loop_tag_edit = 0;
-                    textedit_escape(&pos, tag->value);
                     if(U8_strlen(tag->value) == 0 && strcmp(tag->key, "Event")
                             && strcmp(tag->key, "Site")
                             && strcmp(tag->key, "Date")
@@ -437,37 +363,9 @@ mode_tag_edit(WindowData *data, Tag *tag)
                             && strcmp(tag->key, "Result"))
                         notation_tag_remove(&data->notation, tag->key);
                     data->status.info[0] = '\0';
-                    snprintf(data->status.mode, data->conf.status_max_len,
-                            "%s", data->conf.normal_status);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, tag->value, TAG_LEN, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_DELETE:
-                    textedit_delete(&pos, tag->value);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_LEFT:
-                    textedit_left(&pos, tag->value, TAG_LEN, data);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_RIGHT:
-                    textedit_right(&pos, tag->value, TAG_LEN, data);
                     data->draw_render(data);
                     break;
                 }
-                break;
-
-            case SDL_TEXTINPUT:
-                textedit_input(&pos, tag->value, TAG_LEN, data,
-                        event.text.text);
-                data->draw_render(data);
                 break;
             }
         }
@@ -477,7 +375,7 @@ mode_tag_edit(WindowData *data, Tag *tag)
 void
 mode_tag(WindowData *data)
 {
-    int loop_tag = 1;
+    int loop = 1;
     int pos = 0;
     SDL_Event event;
     Tag *tag;
@@ -485,33 +383,16 @@ mode_tag(WindowData *data)
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.tag_status);
     data->draw_render(data);
-    while(loop_tag){
+    while(loop){
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, data->status.info,
+                    data->conf.status_max_len);
             switch (event.type) {
-            case SDL_QUIT:
-                loop_tag = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    textedit_escape(&pos, data->status.info);
                     data->status.info[0] = '\0';
-                    loop_tag = 0;
-                    snprintf(data->status.mode, data->conf.status_max_len,
-                            "%s", data->conf.normal_status);
-                    data->draw_render(data);
-                    break;
-
-                case SDLK_BACKSPACE:
-                    textedit_backspace(&pos, data->status.info,
-                            data->conf.status_max_len, data);
                     data->draw_render(data);
                     break;
 
@@ -525,16 +406,10 @@ mode_tag(WindowData *data)
                                 data->status.info);
                     }
                     mode_tag_edit(data, tag);
-                    loop_tag = 0;
+                    loop = 0;
                     data->status.info[0] = '\0';
                     break;
                 }
-                break;
-
-            case SDL_TEXTINPUT:
-                textedit_input(&pos, data->status.info,
-                        data->conf.status_max_len, data, event.text.text);
-                data->draw_render(data);
                 break;
             }
         }
@@ -552,17 +427,8 @@ mode_clipboard(WindowData *data)
     data->draw_render(data);
     while(loop){
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
             switch (event.type) {
-            case SDL_QUIT:
-                loop = 0;
-                data->loop = 0;
-                break;
-
-            case SDL_WINDOWEVENT:
-                handle_resize(data, &event);
-                data->draw_render(data);
-                break;
-
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_q:
