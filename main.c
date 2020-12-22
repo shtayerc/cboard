@@ -452,7 +452,11 @@ main(int argc, char *argv[])
 
                 case SDLK_d:
                     undo_add(&data);
-                    notation_variation_delete(&data.notation);
+                    if(event.key.keysym.mod & KMOD_SHIFT){
+                        variation_delete_next_moves(data.notation.line_current);
+                    }else{
+                        notation_variation_delete(&data.notation);
+                    }
                     data.board = notation_move_get(&data.notation)->board;
                     machine_position(&data.board);
                     cb_hidden = none;
