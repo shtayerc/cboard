@@ -11,9 +11,6 @@ enum { TextureBlackPawn, TextureBlackKnight, TextureBlackBishop,
     TextureWhiteKnight, TextureWhiteBishop, TextureWhiteRook,
     TextureWhiteQueen, TextureWhiteKing };
 
-enum { RotationWhite = 0, RotationBlack = 7 };
-
-extern int cb_rotation;
 extern Square cb_hidden;
 extern int cb_drag;
 
@@ -22,8 +19,8 @@ void piece_load(WindowData *data);
 void piece_unload();
 void piece_draw(WindowData *data, int file, int rank,
         SDL_Texture *texture);
-void rotation_toggle();
-int rotation_convert(int n); //rank or file
+void rotation_toggle(WindowData *data);
+int rotation_convert(WindowData *data, int n); //rank or file
 void position_draw(WindowData *data);
 void background_draw(WindowData *data);
 void foreground_draw(WindowData *data);

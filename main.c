@@ -154,7 +154,7 @@ main(int argc, char *argv[])
         file = fopen(data.filename, "r");
     }
     if(isubstr(data.filename, data.conf.rotate_str))
-        cb_rotation = RotationBlack;
+        data.rotation = RotationBlack;
     if(strcmp(data.number, "a") || !strcmp(data.filename, "-")){
         number = strtol(data.number, NULL, 10);
         if(file != NULL && !pgn_read_file(file, &data.notation, number)){
@@ -212,9 +212,10 @@ main(int argc, char *argv[])
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     cb_hidden = filerank2square(
-                            rotation_convert(data.mouse.x /
-                                data.layout.square.w), rotation_convert(
-                                    data.mouse.y / data.layout.square.w));
+                            rotation_convert(&data, (data.mouse.x /
+                                data.layout.square.w)),
+                            rotation_convert(&data, (data.mouse.y /
+                                    data.layout.square.w)));
                     piece = cb_hidden & 0x88 ? 0
                         : data.board.position[cb_hidden];
                     if (piece) {
@@ -228,9 +229,10 @@ main(int argc, char *argv[])
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     if (cb_drag) {
                         square_dst = filerank2square(
-                                rotation_convert(data.mouse.x /
-                                    data.layout.square.w), rotation_convert(
-                                        data.mouse.y / data.layout.square.w));
+                                rotation_convert(&data, (data.mouse.x /
+                                    data.layout.square.w)),
+                                rotation_convert(&data, (data.mouse.y /
+                                        data.layout.square.w)));
                         valid = board_move_status(&data.board, cb_hidden,
                                 square_dst, data.board.turn == White
                                 ? WhiteQueen : BlackQueen);
@@ -318,7 +320,7 @@ main(int argc, char *argv[])
                     if(event.key.keysym.mod & KMOD_CTRL)
                         redo_do(&data);
                     else
-                        rotation_toggle();
+                        rotation_toggle(&data);
                     draw_render(&data);
                     if (cb_drag) {
                         drag_draw(&data, piece);

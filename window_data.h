@@ -61,6 +61,10 @@ typedef struct {
     char *info;
 } StatusLine;
 
+typedef enum {
+    RotationWhite = 0, RotationBlack = 7
+} Rotation;
+
 typedef struct WindowData WindowData;
 
 struct WindowData {
@@ -89,6 +93,7 @@ struct WindowData {
     int undo_current;
     Notation *redo_list[UNDO_COUNT];
     int redo_current;
+    Rotation rotation;
     void (*draw)(WindowData *);
     void (*draw_render)(WindowData *);
 };

@@ -1,6 +1,5 @@
 #include "chessboard.h"
 
-int cb_rotation = RotationWhite;
 Square cb_hidden = none;
 int cb_drag = 0;
 SDL_Texture *cb_piece_texture[12];
@@ -51,16 +50,16 @@ piece_draw(WindowData *data, int file, int rank, SDL_Texture *texture)
 }
 
 void
-rotation_toggle()
+rotation_toggle(WindowData *data)
 {
-    cb_rotation = cb_rotation == RotationWhite
+    data->rotation = data->rotation == RotationWhite
         ? RotationBlack : RotationWhite;
 }
 
 int
-rotation_convert(int n) //rank or file
+rotation_convert(WindowData *data, int n) //rank or file
 {
-    return abs(n - cb_rotation);
+    return abs(n - (int)data->rotation);
 }
 
 void
@@ -71,8 +70,10 @@ position_draw(WindowData *data)
     int file = 0;
     for (i=0; i<128; i++) {
         if (data->board.position[i] > 0 && i != cb_hidden) {
-            file = rotation_convert(square2file(i)) * data->layout.square.w;
-            rank = rotation_convert(square2rank(i)) * data->layout.square.w;
+            file = rotation_convert(data, square2file(i)) *
+                data->layout.square.w;
+            rank = rotation_convert(data, square2rank(i)) *
+                data->layout.square.w;
             piece_draw(data, file, rank,
                     cb_piece_texture[data->board.position[i]-1]);
         }
@@ -120,8 +121,8 @@ int
 promotion_hover_position(WindowData *data, Square sq)
 {
     int i, m_x, m_y;
-    int x = rotation_convert(square2file(sq)) * data->layout.square.w;
-    int y = rotation_convert(square2rank(sq)) * data->layout.square.w;
+    int x = rotation_convert(data, square2file(sq)) * data->layout.square.w;
+    int y = rotation_convert(data, square2rank(sq)) * data->layout.square.w;
     int diff = (y == 0) ? data->layout.square.w : -data->layout.square.w;
 
     for (i=0; i<4; i++) {
@@ -143,8 +144,8 @@ promotion_selection_draw(WindowData *data, Square sq, Color color)
         ((color == White) ? TextureWhiteRook : TextureBlackRook),
         (color == White) ? TextureWhiteBishop : TextureBlackBishop,
     };
-    int x = rotation_convert(square2file(sq)) * data->layout.square.w;
-    int y = rotation_convert(square2rank(sq)) * data->layout.square.w;
+    int x = rotation_convert(data, square2file(sq)) * data->layout.square.w;
+    int y = rotation_convert(data, square2rank(sq)) * data->layout.square.w;
     int diff = (y == 0) ? data->layout.square.w : -data->layout.square.w;
     int hover = promotion_hover_position(data, sq);
     data->layout.square.x = x;
@@ -192,8 +193,8 @@ mode_promotion(WindowData *data, Color color)
     int piece;
     int loop = 1;
     int dst = filerank2square(
-            rotation_convert(data->mouse.x / data->layout.square.w),
-            rotation_convert(data->mouse.y / data->layout.square.w));
+            rotation_convert(data, (data->mouse.x / data->layout.square.w)),
+            rotation_convert(data, (data->mouse.y / data->layout.square.w)));
     promotion_draw(data, dst, color);
     SDL_Event event;
 
@@ -269,8 +270,10 @@ mode_editor(WindowData *data)
             case SDL_MOUSEBUTTONUP:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     sq = filerank2square(
-                            rotation_convert(data->mouse.x/data->layout.square.w),
-                            rotation_convert(data->mouse.y/data->layout.square.w));
+                            rotation_convert(data, (data->mouse.x /
+                                    data->layout.square.w)),
+                            rotation_convert(data, (data->mouse.y /
+                                    data->layout.square.w)));
                     if(!(sq & 0x88)){
                         board_square_set(&data->board, sq, piece);
                         replace = 1;
@@ -280,8 +283,10 @@ mode_editor(WindowData *data)
 
                 if (event.button.button == SDL_BUTTON_RIGHT) {
                     sq = filerank2square(
-                            rotation_convert(data->mouse.x/data->layout.square.w),
-                            rotation_convert(data->mouse.y/data->layout.square.w));
+                            rotation_convert(data, (data->mouse.x /
+                                    data->layout.square.w)),
+                            rotation_convert(data, (data->mouse.y /
+                                    data->layout.square.w)));
                     if(!(sq & 0x88)){
                         board_square_set(&data->board, sq, Empty);
                         replace = 1;
@@ -325,7 +330,7 @@ mode_editor(WindowData *data)
                     break;
 
                 case SDLK_r:
-                    rotation_toggle();
+                    rotation_toggle(data);
                     editor_draw(data, piece);
                     break;
 
@@ -474,9 +479,10 @@ mode_training(WindowData *data)
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     cb_hidden = filerank2square(
-                            rotation_convert(data->mouse.x /
-                                data->layout.square.w), rotation_convert(
-                                    data->mouse.y / data->layout.square.w));
+                            rotation_convert(data, (data->mouse.x /
+                                data->layout.square.w)),
+                            rotation_convert(data, (data->mouse.y /
+                                    data->layout.square.w)));
                     piece = cb_hidden & 0x88 ? 0
                         : data->board.position[cb_hidden];
                     if (piece) {
@@ -490,9 +496,10 @@ mode_training(WindowData *data)
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     if (cb_drag) {
                         dst = filerank2square(
-                                rotation_convert(data->mouse.x /
-                                    data->layout.square.w), rotation_convert(
-                                        data->mouse.y / data->layout.square.w));
+                                rotation_convert(data, (data->mouse.x /
+                                    data->layout.square.w)),
+                                rotation_convert(data, (data->mouse.y /
+                                        data->layout.square.w)));
 
                         if(notation_move_is_present(&data->notation, cb_hidden,
                                     dst, Empty)){

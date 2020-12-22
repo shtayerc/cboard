@@ -23,11 +23,16 @@ mode_filename_edit(WindowData *data)
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     f = fopen(data->filename, "r");
-                    if(f == NULL)
+                    if(f == NULL){
                         snprintf(data->filename, data->conf.status_max_len,
                                 "%s", last);
-                    else
+                    }else{
                         fclose(f);
+                        if(isubstr(data->filename, data->conf.rotate_str))
+                            data->rotation = RotationBlack;
+                        else
+                            data->rotation = RotationWhite;
+                    }
                     data->draw_render(data);
                     break;
                 }

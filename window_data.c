@@ -79,6 +79,7 @@ window_data_init(WindowData *data)
     data->undo_current = -1;
     undo_init(data->redo_list);
     data->redo_current = -1;
+    data->rotation = RotationWhite;
 }
 
 void
