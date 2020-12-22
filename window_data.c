@@ -44,6 +44,7 @@ config_init()
         .config_path = "~/.config/cboard/config",
         .rotate_str = "black",
         .font_size = 16,
+        .message_duration = 2000, //miliseconds
         .machine_cmd_list = {NULL, NULL},
         .machine_uci_list = {NULL, NULL},
         .status_font_color = {255, 255, 255, 255},
@@ -80,6 +81,8 @@ window_data_init(WindowData *data)
     undo_init(data->redo_list);
     data->redo_current = -1;
     data->rotation = RotationWhite;
+    data->message = 0;
+    data->message_timestamp = 0;
 }
 
 void

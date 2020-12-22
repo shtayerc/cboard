@@ -398,11 +398,12 @@ mode_san(WindowData *data)
     int loop = 1;
     int pos = 0;
     int old_pos;
-    data->status.info[0] = '\0';
     Square src, dst;
     Piece prom_piece;
     Status status;
     SDL_Event event;
+    data->message = 0;
+    data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.san_status);
@@ -450,17 +451,19 @@ mode_san(WindowData *data)
 void
 mode_training(WindowData *data)
 {
+    Square src, dst;
+    Piece prom_piece, piece;
+    Status status;
+    SDL_Event event;
+
     data->notation_hidden = 1;
     Variation *v = data->notation.line_current;
     int move_number = data->notation.line_current->move_current;
     int loop = 1;
     int pos = 0;
     int old_pos;
+    data->message = 0;
     data->status.info[0] = '\0';
-    Square src, dst;
-    Piece prom_piece, piece;
-    Status status;
-    SDL_Event event;
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.training_status);

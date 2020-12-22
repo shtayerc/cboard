@@ -46,6 +46,7 @@ typedef struct {
     char *config_path;
     char *rotate_str;
     int font_size;
+    int message_duration;
     char **machine_cmd_list[2];
     char **machine_uci_list[2];
     SDL_Color status_font_color;
@@ -94,6 +95,8 @@ struct WindowData {
     Notation *redo_list[UNDO_COUNT];
     int redo_current;
     Rotation rotation;
+    int message;
+    unsigned int message_timestamp;
     void (*draw)(WindowData *);
     void (*draw_render)(WindowData *);
 };

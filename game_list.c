@@ -7,6 +7,8 @@ mode_game_search(WindowData *data)
     SDL_Event event;
     GameList new_gl;
     int pos = 0;
+    data->message = 0;
+    data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
     data->draw_render(data);
     while (loop) {

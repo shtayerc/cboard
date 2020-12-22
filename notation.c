@@ -379,6 +379,8 @@ mode_tag(WindowData *data)
     int pos = 0;
     SDL_Event event;
     Tag *tag;
+    data->message = 0;
+    data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.tag_status);
@@ -439,9 +441,7 @@ mode_clipboard(WindowData *data)
                 case SDLK_f:
                     board_fen_export(&data->board, fen);
                     SDL_SetClipboardText(fen);
-                    snprintf(data->status.info, data->conf.status_max_len,
-                            "FEN copied to clipboard");
-                    data->draw_render(data);
+                    message_add(data, &event, "FEN copied to clipboard");
                     break;
 
                 case SDLK_ESCAPE:

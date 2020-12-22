@@ -523,6 +523,7 @@ main(int argc, char *argv[])
 
                 case 'W':
                     write_game(&data);
+                    message_add(&data, &event, "Game written");
                     break;
                 }
                 break;
