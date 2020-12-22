@@ -56,6 +56,13 @@ handle_input_events(SDL_Event *event, WindowData *data, int *loop, int *pos,
             textedit_right(pos, str, len, data);
             data->draw_render(data);
             break;
+
+        case SDLK_u:
+            if(event->key.keysym.mod & KMOD_CTRL){
+                textedit_delete_all(pos, str, len, data);
+                data->draw_render(data);
+            }
+            break;
         }
         break;
 

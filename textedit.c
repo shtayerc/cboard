@@ -67,3 +67,11 @@ textedit_input(int *pos, char *str, int len, WindowData *data, char *val)
     (*pos)++;
     cursor_add(pos, str, len, data);
 }
+
+void
+textedit_delete_all(int *pos, char *str, int len, WindowData *data)
+{
+    str[0] = '\0';
+    *pos = 0;
+    cursor_add(pos, str, len, data);
+}

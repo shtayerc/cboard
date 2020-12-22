@@ -11,5 +11,6 @@ void textedit_backspace(int *pos, char *str, int len, WindowData *data);
 void textedit_left(int *pos, char *str, int len, WindowData *data);
 void textedit_right(int *pos, char *str, int len, WindowData *data);
 void textedit_input(int *pos, char *str, int len, WindowData *data, char *val);
+void textedit_delete_all(int *pos, char *str, int len, WindowData *data);
 
 #endif
