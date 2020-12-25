@@ -1,5 +1,5 @@
 /*
-chess_utils v0.6.0
+chess_utils v0.6.1
 
 Copyright (c) 2020 David Murko
 
@@ -495,6 +495,9 @@ void pgn_write_file(FILE *f, Notation *n);
 
 //replace game at given index in file with given filename
 void pgn_replace_game(const char *filename, Notation *n, int index);
+
+//returns number of games in given FILE, if PGN is incorrect returns -1
+int pgn_count_games(FILE *f);
 
 //
 //UCI FUNCTIONS
@@ -2734,6 +2737,29 @@ pgn_replace_game(const char *filename, Notation *n, int index)
     fclose(f);
     free(before_str);
     free(after_str);
+}
+
+int
+pgn_count_games(FILE *f)
+{
+    char buffer[BUFFER_LEN];
+    int count = 0;
+    int tags = 0;
+    Tag tag;
+
+    while(fgets(buffer, BUFFER_LEN, f)){
+        trimendl(buffer);
+        if(tag_extract(buffer, &tag)){
+            tags++;
+        }else{
+            if(tags < 7)
+                return -1;
+            tags = 0;
+            count++;
+            pgn_read_next(f, 0);
+        }
+    }
+    return count;
 }
 
 void

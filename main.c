@@ -50,10 +50,18 @@ output_game(WindowData *data, char *type){
 
 void
 write_game(WindowData *data){
+    FILE *f;
+    int number;
+
     if(!strcmp(data->number, "a")){
-        FILE *f = fopen(data->filename, "a");
+        f = fopen(data->filename, "a");
         pgn_write_file(f, &data->notation);
         fclose(f);
+
+        f = fopen(data->filename, "r");
+        number = pgn_count_games(f) -1;
+        if(number >= 0)
+            snprintf(data->number, data->conf.number_len, "%d", number);
         return;
     }
     pgn_replace_game(data->filename, &data->notation,
