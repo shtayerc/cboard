@@ -109,6 +109,10 @@ mode_game_list(WindowData *data)
 
                 case SDLK_r:
                     f = fopen(data->filename, "r");
+                    if(f == NULL){
+                        message_add(data, &event, "Error reading file");
+                        break;
+                    }
                     game_list_read_pgn(&data->game_list, f);
                     if(!(event.key.keysym.mod & KMOD_SHIFT))
                         game_list_reverse(&data->game_list);
@@ -178,6 +182,11 @@ game_list_draw(WindowData *data)
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     y = data->layout.notation.y + NOTATION_PADDING_TOP
         + data->game_list_scroll;
+    if(data->game_list.count == 0){
+        FC_DrawColor(data->font, data->renderer, x, y,
+                data->conf.notation_font_color, "No games");
+        return;
+    }
     for(i = 0; i < data->game_list.count; i++){
         word_height = FC_GetHeight(data->font, data->game_list.list[i].title);
         if(i == data->game_list_current){

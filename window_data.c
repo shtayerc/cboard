@@ -83,6 +83,7 @@ window_data_init(WindowData *data)
     data->rotation = RotationWhite;
     data->message = 0;
     data->message_timestamp = 0;
+    game_list_init(&data->game_list);
 }
 
 void
