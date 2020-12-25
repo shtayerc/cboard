@@ -43,7 +43,7 @@ output_game(WindowData *data, char *type){
     if(!strcmp(type, "pgn")){
         pgn_write_file(stdout, &data->notation);
     }else if(!strcmp(type, "fen")){
-        board_fen_export(&data->board, fen);
+        board_fen_export(&notation_move_get(&data->notation)->board, fen);
         fprintf(stdout, "%s\n", fen);
     }
 }
@@ -83,6 +83,7 @@ main(int argc, char *argv[])
     snprintf(fen, FEN_LEN, "%s", FEN_DEFAULT);
     WindowData data;
     window_data_init(&data);
+    Board board;
     FILE *file = NULL;
     char output_type[4] = "";
     int i, number;
@@ -147,8 +148,8 @@ main(int argc, char *argv[])
         }
     }
 
-    board_fen_import(&data.board, fen);
-    game_init(&data.notation, &data.board);
+    board_fen_import(&board, fen);
+    game_init(&data.notation, &board);
 
     if(file == NULL){
         file = fopen(data.filename, "r");
@@ -187,16 +188,16 @@ main(int argc, char *argv[])
     int tmp;
     Square square_dst;
     Piece piece, prom_piece;
-    Status valid;
+    Status status;
 
     SDL_Event event;
-    window_open(&data, fen);
+    window_open(&data);
     data.draw = &draw;
     data.draw_render = &draw_render;
     window_resize(&data, data.conf.default_width, data.conf.default_height);
     snprintf(data.status.mode, data.conf.status_max_len, "%s",
             data.conf.normal_status);
-    machine_position(&data.board);
+    machine_position(&data.notation);
     piece_load(&data);
 
     while (data.loop) {
@@ -217,7 +218,8 @@ main(int argc, char *argv[])
                             rotation_convert(&data, (data.mouse.y /
                                     data.layout.square.w)));
                     piece = cb_hidden & 0x88 ? 0
-                        : data.board.position[cb_hidden];
+                        : notation_move_get(
+                                &data.notation)->board.position[cb_hidden];
                     if (piece) {
                         if (!cb_drag)
                             cb_drag = 1;
@@ -233,10 +235,9 @@ main(int argc, char *argv[])
                                     data.layout.square.w)),
                                 rotation_convert(&data, (data.mouse.y /
                                         data.layout.square.w)));
-                        valid = board_move_status(&data.board, cb_hidden,
-                                square_dst, data.board.turn == White
-                                ? WhiteQueen : BlackQueen);
-                        switch(valid) {
+                        status = notation_move_status(&data.notation, cb_hidden,
+                                square_dst, Empty);
+                        switch(status) {
                         case Invalid:
                             cb_hidden = none;
                             break;
@@ -245,24 +246,25 @@ main(int argc, char *argv[])
                             snprintf(data.status.mode, data.conf.status_max_len,
                                     "%s", data.conf.promotion_status);
                             prom_piece = mode_promotion(&data,
-                                    data.board.turn);
+                                    notation_move_get(
+                                        &data.notation)->board.turn);
                             if(prom_piece == Empty){
                                 snprintf(data.status.mode, data.conf.status_max_len,
                                         "%s", data.conf.normal_status);
                                 break;
                             }
                             chessboard_move_do(&data, cb_hidden, square_dst,
-                                    prom_piece, valid);
+                                    prom_piece, status);
                             snprintf(data.status.mode, data.conf.status_max_len,
                                     "%s", data.conf.normal_status);
                             break;
 
                         default:
                             chessboard_move_do(&data, cb_hidden, square_dst,
-                                    Empty, valid);
+                                    Empty, status);
                             break;
                         }
-                        machine_position(&data.board);
+                        machine_position(&data.notation);
                         draw_render(&data);
                         cb_drag = 0;
                         piece = 0;
@@ -275,10 +277,8 @@ main(int argc, char *argv[])
                             data.notation.line_current = nt_move_coords[ind].variation;
                             notation_move_index_set(&data.notation,
                                     nt_move_coords[ind].index);
-                            data.board = notation_move_get(
-                                    &data.notation)->board;
                             cb_hidden = none;
-                            machine_position(&data.board);
+                            machine_position(&data.notation);
                             draw_render(&data);
                         }
                     }
@@ -335,8 +335,7 @@ main(int argc, char *argv[])
                     }else{
                         variation_move_next(data.notation.line_current);
                     }
-                    data.board = notation_move_get(&data.notation)->board;
-                    machine_position(&data.board);
+                    machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
                     break;
@@ -360,8 +359,7 @@ main(int argc, char *argv[])
                             variation_move_prev(data.notation.line_current);
                         }
                     }
-                    data.board = notation_move_get(&data.notation)->board;
-                    machine_position(&data.board);
+                    machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
                     break;
@@ -387,8 +385,7 @@ main(int argc, char *argv[])
                         if(tmp != -1)
                             data.notation.line_current->move_current = tmp;
                     }
-                    data.board = notation_move_get(&data.notation)->board;
-                    machine_position(&data.board);
+                    machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
                     break;
@@ -413,8 +410,7 @@ main(int argc, char *argv[])
                                 &data.notation)->variation_list[0];
                         data.notation.line_current->move_current = 1;
                     }
-                    data.board = notation_move_get(&data.notation)->board;
-                    machine_position(&data.board);
+                    machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
                     break;
@@ -457,8 +453,7 @@ main(int argc, char *argv[])
                     }else{
                         notation_variation_delete(&data.notation);
                     }
-                    data.board = notation_move_get(&data.notation)->board;
-                    machine_position(&data.board);
+                    machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
                     break;

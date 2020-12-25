@@ -86,7 +86,7 @@ window_data_init(WindowData *data)
 }
 
 void
-window_open(WindowData *data, const char *fen)
+window_open(WindowData *data)
 {
     data->window = SDL_CreateWindow(data->conf.window_title,
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -103,7 +103,6 @@ window_open(WindowData *data, const char *fen)
     FC_LoadFont(data->font, data->renderer, data->conf.font_path,
             data->conf.font_size, data->conf.status_font_color,
             TTF_STYLE_NORMAL);
-    board_fen_import(&data->board, fen);
 }
 
 void
@@ -206,7 +205,6 @@ undo_do(WindowData *data)
         data->notation = *data->undo_list[i];
         free(data->undo_list[i]);
         data->undo_list[i] = NULL;
-        data->board = notation_move_get(&data->notation)->board;
         i--;
         if(i < 0)
             i = UNDO_COUNT - 1;
@@ -238,7 +236,6 @@ redo_do(WindowData *data)
         data->notation = *data->redo_list[i];
         free(data->redo_list[i]);
         data->redo_list[i] = NULL;
-        data->board = notation_move_get(&data->notation)->board;
         i--;
         if(i < 0)
             i = UNDO_COUNT - 1;

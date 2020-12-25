@@ -439,7 +439,8 @@ mode_clipboard(WindowData *data)
                     break;
 
                 case SDLK_f:
-                    board_fen_export(&data->board, fen);
+                    board_fen_export(&notation_move_get(
+                                &data->notation)->board, fen);
                     SDL_SetClipboardText(fen);
                     message_add(data, &event, "FEN copied to clipboard");
                     break;
@@ -463,12 +464,16 @@ mode_clipboard(WindowData *data)
 void
 game_init(Notation *n, Board *b)
 {
+    char fen[FEN_LEN];
     char date[20];
     time_t rawtime;
     struct tm *timeinfo;
     time(&rawtime);
     timeinfo = localtime(&rawtime);
     strftime(date, 20, "%Y.%m.%d", timeinfo);
+    board_fen_export(b, fen);
     notation_init(n, b);
+    if(strcmp(fen, FEN_DEFAULT))
+        notation_tag_set(n, "FEN", fen);
     notation_tag_set(n, "Date", date);
 }

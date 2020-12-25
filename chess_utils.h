@@ -1,5 +1,5 @@
 /*
-chess_utils v0.4.1
+chess_utils v0.6.0
 
 Copyright (c) 2020 David Murko
 
@@ -356,6 +356,7 @@ int move_variation_find(Move *m, Variation *v);
 //
 
 //initialize variation with 1 Move with given Board
+//if b is NULL then FEN_DEFAULT Board is used
 void variation_init(Variation *v, Board *b);
 
 //free v->move_list and all related Variations recursively
@@ -419,6 +420,7 @@ Tag * notation_tag_get(Notation *n, const char *key);
 void notation_tag_set(Notation *n, const char *key, const char *value);
 
 //initialize notation with 1 Variation with given Board and initialize 7 tags
+//if b is NULL then FEN_DEFAULT Board is used
 void notation_init(Notation *n, Board *b);
 
 //free given Notation and related Variations recursively
@@ -446,9 +448,21 @@ int notation_move_index_get(Notation *n);
 //index of current move is set in current line
 void notation_move_index_set(Notation *n, int index);
 
+//returns Status of given move at current move in Notation
+Status notation_move_status(Notation *n, Square src, Square dst,
+        Piece prom_piece);
+
+//returns Status of given san move at current move in Notation
+Status notation_move_san_status(Notation *n, const char *san, Square *src,
+        Square *dst, Piece *prom_piece);
+
+//given move is added after current move
+void notation_move_add(Notation *n, Square src, Square dst, Piece prom_piece,
+        Status status);
+
 //Variation with given move is created at current move
 void notation_variation_add(Notation *n, Square src, Square dst,
-        Piece prom_piece, Board *b, const char *san);
+        Piece prom_piece, Status status);
 
 //if current line is not main it is deleted
 void notation_variation_delete(Notation *n);
@@ -1942,6 +1956,11 @@ variation_init(Variation *v, Board *b)
     v->move_list[0].src = none;
     v->move_list[0].dst = none;
     v->move_list[0].prom_piece = Empty;
+    if(b == NULL){
+        Board board;
+        board_fen_import(&board, FEN_DEFAULT);
+        b = &board;
+    }
     v->move_list[0].board = *b;
     v->move_list[0].san[0] = '\0';
     v->move_count = 1;
@@ -2223,10 +2242,40 @@ notation_move_index_set(Notation *n, int index)
     n->line_current->move_current = index;
 }
 
+Status
+notation_move_status(Notation *n, Square src, Square dst, Piece prom_piece)
+{
+    return board_move_status(&notation_move_get(n)->board, src, dst,
+            prom_piece);
+}
+
+Status
+notation_move_san_status(Notation *n, const char *san, Square *src,
+        Square *dst, Piece *prom_piece)
+{
+    return board_move_san_status(&notation_move_get(n)->board, san, src, dst,
+            prom_piece);
+}
+
+void
+notation_move_add(Notation *n, Square src, Square dst, Piece prom_piece,
+        Status status)
+{
+    char san[SAN_LEN];
+    Board b = notation_move_get(n)->board;
+    board_move_san_export(&b, src, dst, prom_piece, san, SAN_LEN, status);
+    board_move_do(&b, src, dst, prom_piece, status);
+    variation_move_add(n->line_current, src, dst, prom_piece, &b, san);
+}
+
 void
 notation_variation_add(Notation *n, Square src, Square dst, Piece prom_piece,
-        Board *b, const char *san)
+        Status status)
 {
+    char san[SAN_LEN];
+    Board b = notation_move_get(n)->board;
+    board_move_san_export(&b, src, dst, prom_piece, san, SAN_LEN, status);
+    board_move_do(&b, src, dst, prom_piece, status);
     Variation *v = n->line_current;
     Move *m = &v->move_list[v->move_current];
     m->variation_count++;
@@ -2235,13 +2284,13 @@ notation_variation_add(Notation *n, Square src, Square dst, Piece prom_piece,
     m->variation_list[m->variation_count-1] = (Variation*)malloc(sizeof(
                 Variation));
     Variation * new_v = m->variation_list[m->variation_count-1];
-    variation_init(new_v, b);
+    variation_init(new_v, &b);
     new_v->move_list[0].src = src;
     new_v->move_list[0].dst = dst;
     new_v->move_list[0].prom_piece = prom_piece;
     new_v->prev = v;
     snprintf(new_v->move_list[0].san, SAN_LEN, "%s", san);
-    variation_move_add(new_v, src, dst, prom_piece, b, san);
+    variation_move_add(new_v, src, dst, prom_piece, &b, san);
     n->line_current = new_v;
 }
 
@@ -2429,8 +2478,10 @@ pgn_read_file(FILE *f, Notation *n, int index)
             notation_tag_set(n, tag.key, tag.value);
             if(!strcmp(tag.key, "Result"))
                 snprintf(result, 10, "%s", tag.value);
-            if(!strcmp(tag.key, "FEN"))
+            if(!strcmp(tag.key, "FEN")){
                 board_fen_import(&b, tag.value);
+                n->line_main->move_list[0].board = b;
+            }
         }else{
             //skip lines starting with %
             tmp = buffer[0] != '%' ? strtok_r(buffer, " ", &saveptr) : NULL;

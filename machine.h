@@ -34,7 +34,7 @@ int machine_control(void *data);
 void machine_start(WindowData *data, int index);
 void machine_stop(int index);
 void machine_draw(WindowData *data);
-void machine_position(Board *b);
+void machine_position(Notation *n);
 void machine_line_init(Machine *m, Board *b);
 void machine_line_free(Machine *m);
 void machine_init(Board *b);

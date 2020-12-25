@@ -86,7 +86,6 @@ struct WindowData {
     int loop;
     StatusLine status;
     Config conf;
-    Board board;
     Notation notation;
     GameList game_list;
     int game_list_current;
@@ -104,7 +103,7 @@ struct WindowData {
 int file_exists(const char *filename);
 Config config_init();
 void window_data_init(WindowData *data);
-void window_open(WindowData *data, const char *fen);
+void window_open(WindowData *data);
 void window_data_free(WindowData *data);
 void window_resize(WindowData *data, int width, int height);
 void handle_resize(WindowData *data, SDL_Event *event);

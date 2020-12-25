@@ -120,7 +120,7 @@ mode_game_list(WindowData *data)
                 case SDLK_p:
                     f = fopen(data->filename, "r");
                     game_list_search_board(&data->game_list, &new_gl, f,
-                            &data->board);
+                            &notation_move_get(&data->notation)->board);
                     data->game_list = new_gl;
                     data->game_list_current = 0;
                     fclose(f);
@@ -139,9 +139,8 @@ mode_game_list(WindowData *data)
 
 
                 case SDLK_RETURN:
-                    board_fen_import(&data->board, FEN_DEFAULT);
                     notation_free(&data->notation);
-                    notation_init(&data->notation, &data->board);
+                    notation_init(&data->notation, NULL);
                     index = data->game_list.list[data->game_list_current].index;
                     f = fopen(data->filename, "r");
                     snprintf(data->number, data->conf.number_len, "%d", index);

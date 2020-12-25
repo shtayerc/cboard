@@ -68,14 +68,15 @@ position_draw(WindowData *data)
     int i;
     int rank = 0;
     int file = 0;
+    Board b = notation_move_get(&data->notation)->board;
     for (i=0; i<128; i++) {
-        if (data->board.position[i] > 0 && i != cb_hidden) {
+        if (b.position[i] > 0 && i != cb_hidden){
             file = rotation_convert(data, square2file(i)) *
                 data->layout.square.w;
             rank = rotation_convert(data, square2rank(i)) *
                 data->layout.square.w;
             piece_draw(data, file, rank,
-                    cb_piece_texture[data->board.position[i]-1]);
+                    cb_piece_texture[b.position[i]-1]);
         }
     }
 }
@@ -251,6 +252,7 @@ mode_editor(WindowData *data)
     Square sq;
     int replace = 0;
     SDL_Event event;
+    Board b;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.edit_status);
     data->draw_render(data);
@@ -275,7 +277,9 @@ mode_editor(WindowData *data)
                             rotation_convert(data, (data->mouse.y /
                                     data->layout.square.w)));
                     if(!(sq & 0x88)){
-                        board_square_set(&data->board, sq, piece);
+                        board_square_set(
+                                &notation_move_get(&data->notation)->board, sq,
+                                piece);
                         replace = 1;
                         editor_draw(data, piece);
                     }
@@ -288,7 +292,9 @@ mode_editor(WindowData *data)
                             rotation_convert(data, (data->mouse.y /
                                     data->layout.square.w)));
                     if(!(sq & 0x88)){
-                        board_square_set(&data->board, sq, Empty);
+                        board_square_set(
+                                &notation_move_get(&data->notation)->board, sq,
+                                Empty);
                         replace = 1;
                         editor_draw(data, piece);
                     }
@@ -303,13 +309,14 @@ mode_editor(WindowData *data)
                     break;
 
                 case SDLK_s:
-                    board_fen_import(&data->board, FEN_DEFAULT);
+                    board_fen_import(&notation_move_get(&data->notation)->board,
+                            FEN_DEFAULT);
                     editor_draw(data, piece);
                     replace = 1;
                     break;
 
                 case SDLK_c:
-                    board_clear(&data->board);
+                    board_clear(&notation_move_get(&data->notation)->board);
                     editor_draw(data, piece);
                     replace = 1;
                     break;
@@ -317,7 +324,8 @@ mode_editor(WindowData *data)
                 case SDLK_f:
                     clipboard = SDL_GetClipboardText();
                     if(str_is_fen(clipboard)){
-                        board_fen_import(&data->board, clipboard);
+                        board_fen_import(&notation_move_get(
+                                    &data->notation)->board, clipboard);
                         editor_draw(data, piece);
                         replace = 1;
                     }
@@ -375,11 +383,11 @@ mode_editor(WindowData *data)
         }
     }
     if (replace) {
-        machine_position(&data->board);
+        b = notation_move_get(&data->notation)->board;
         notation_free(&data->notation);
-        game_init(&data->notation, &data->board);
+        game_init(&data->notation, &b);
+        machine_position(&data->notation);
         snprintf(data->number, data->conf.number_len, "a");
-        //notation_init(&data->notation, &data->board);
     }
     data->draw_render(data);
 }
@@ -424,11 +432,11 @@ mode_san(WindowData *data)
                 case SDLK_RETURN:
                     old_pos = pos;
                     cursor_remove(&pos, data->status.info);
-                    status = board_move_san_status(&data->board,
+                    status = notation_move_san_status(&data->notation,
                             data->status.info, &src, &dst, &prom_piece);
                     if(status != Invalid){
                         chessboard_move_do(data, src, dst, prom_piece, status);
-                        machine_position(&data->board);
+                        machine_position(&data->notation);
                         data->status.info[0] = '\0';
                         old_pos = 0;
                     }
@@ -487,7 +495,8 @@ mode_training(WindowData *data)
                             rotation_convert(data, (data->mouse.y /
                                     data->layout.square.w)));
                     piece = cb_hidden & 0x88 ? 0
-                        : data->board.position[cb_hidden];
+                        : notation_move_get(
+                                &data->notation)->board.position[cb_hidden];
                     if (piece) {
                         if (!cb_drag)
                             cb_drag = 1;
@@ -536,14 +545,12 @@ mode_training(WindowData *data)
                         data->status.info[0] = '\0';
                         pos = 0;
                         cb_hidden = none;
-                        data->board = notation_move_get(
-                                &data->notation)->board;
                         cursor_add(&pos, data->status.info,
                                 data->conf.status_max_len, data);
                         data->draw_render(data);
                         break;
                     }
-                    status = board_move_san_status(&data->board,
+                    status = notation_move_san_status(&data->notation,
                             data->status.info, &src, &dst, &prom_piece);
                     if(status == Invalid)
                         break;
@@ -597,7 +604,6 @@ chessboard_focus_present(WindowData *data, Square src, Square dst,
             data->notation.line_current->move_current = 1;
         }
     }
-    data->board = notation_move_get(&data->notation)->board;
 }
 
 void
@@ -616,28 +622,21 @@ chessboard_focus_random(WindowData *data)
         data->notation.line_current = m->variation_list[i];
         data->notation.line_current->move_current = 1;
     }
-    data->board = notation_move_get(&data->notation)->board;
 }
 
 void
 chessboard_move_do(WindowData *data, Square src, Square dst,
         Piece prom_piece, Status status)
 {
-    char san[SAN_LEN];
     if(notation_move_is_present(&data->notation, src, dst, prom_piece)){
         chessboard_focus_present(data, src, dst, prom_piece);
         return;
     }
 
-    board_move_san_export(&data->board, src, dst, prom_piece, san, SAN_LEN,
-            status);
-    board_move_do(&data->board, src, dst, prom_piece, status);
     if(notation_move_is_last(&data->notation)){
-        variation_move_add(data->notation.line_current, src, dst, prom_piece,
-                &data->board, san);
+        notation_move_add(&data->notation, src, dst, prom_piece, status);
     }else{
-        notation_variation_add(&data->notation, src, dst, prom_piece,
-                &data->board, san);
+        notation_variation_add(&data->notation, src, dst, prom_piece, status);
     }
 }
 
