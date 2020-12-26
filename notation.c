@@ -461,3 +461,84 @@ game_init(Notation *n, Board *b)
         notation_tag_set(n, "FEN", fen);
     notation_tag_set(n, "Date", date);
 }
+
+void
+undo_init(Notation *list[])
+{
+    memset(list, 0, sizeof(Notation*)*UNDO_COUNT);
+}
+
+void
+undo_add(WindowData *data)
+{
+    int i = (data->undo_current + 1) % UNDO_COUNT;
+    if(data->undo_list[i] != NULL
+            && data->undo_list[i]->line_main != data->notation.line_main){
+        notation_free(data->undo_list[i]);
+        free(data->undo_list[i]);
+    }
+    data->undo_list[i] = notation_clone(&data->notation);
+    data->undo_current = i;
+}
+
+void
+undo_do(WindowData *data)
+{
+    int i = data->undo_current;
+    if(i < 0)
+        return;
+    if(data->undo_list[i] != NULL){
+        redo_add(data);
+        notation_free(&data->notation);
+        data->notation = *data->undo_list[i];
+        free(data->undo_list[i]);
+        data->undo_list[i] = NULL;
+        i--;
+        if(i < 0)
+            i = UNDO_COUNT - 1;
+        data->undo_current = i;
+    }
+}
+
+void
+redo_add(WindowData *data)
+{
+    int i = (data->redo_current + 1) % UNDO_COUNT;
+    if(data->redo_list[i] != NULL
+            && data->redo_list[i]->line_main != data->notation.line_main){
+        notation_free(data->redo_list[i]);
+        free(data->redo_list[i]);
+    }
+    data->redo_list[i] = notation_clone(&data->notation);
+    data->redo_current = i;
+}
+
+void
+redo_do(WindowData *data)
+{
+    int i = data->redo_current;
+    if(i < 0)
+        return;
+    if(data->redo_list[i] != NULL){
+        notation_free(&data->notation);
+        data->notation = *data->redo_list[i];
+        free(data->redo_list[i]);
+        data->redo_list[i] = NULL;
+        i--;
+        if(i < 0)
+            i = UNDO_COUNT - 1;
+        data->redo_current = i;
+    }
+}
+
+void
+undo_free(Notation *list[])
+{
+    int i;
+    for(i = 0; i < UNDO_COUNT; i++){
+        if(list[i] != NULL){
+            notation_free(list[i]);
+            free(list[i]);
+        }
+    }
+}

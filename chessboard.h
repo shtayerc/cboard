@@ -1,7 +1,7 @@
 #ifndef _CHESSBOARD_H_
 #define _CHESSBOARD_H_
 
-#include "window_data.h"
+#include "window.h"
 #include "machine.h"
 #include "notation.h"
 #include "event.h"

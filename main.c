@@ -4,7 +4,7 @@
 #include <time.h>
 
 #include "SDL_FontCache.h"
-#include "window_data.h"
+#include "window.h"
 #include "chessboard.h"
 #include "notation.h"
 #include "status.h"
@@ -12,6 +12,7 @@
 #include "nag.h"
 #include "game_list.h"
 #include "event.h"
+#include "message.h"
 
 #define CHESS_UTILS_IMPLEMENTATION
 #include "chess_utils.h"

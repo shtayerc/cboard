@@ -1,7 +1,7 @@
 #ifndef _STATUS_H_
 #define _STATUS_H_
 
-#include "window_data.h"
+#include "window.h"
 #include "event.h"
 
 void mode_filename_edit(WindowData *data);

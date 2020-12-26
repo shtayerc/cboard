@@ -85,8 +85,8 @@ machine_start(WindowData *data, int index)
     Machine *mc = &machine_list[index];
     if(mc->running)
         return;
-    free_machine_config(data);
-    load_machine_config(data);
+    machine_config_free(data);
+    machine_config_load(data);
     pipe(mc->fd_input);
     pipe(mc->fd_output);
     signal(SIGCHLD, SIG_IGN); //kernel will clear child process after its exit
@@ -252,5 +252,160 @@ machine_line_parse(int index)
                         &mc->line[pv]);
         }
         tmp = strtok_r(NULL, "\n", &saveptr);
+    }
+}
+
+void
+machine_config_load(WindowData *data)
+{
+    char line[1024];
+    char path[1024];
+    path[0] = '\0';
+    if(data->conf.config_path[0] == '~'){
+        snprintf(path, 1024, "%s%s", getenv("HOME"),
+                data->conf.config_path+1);
+    }else{
+        snprintf(path, 1024, "%s", data->conf.config_path);
+    }
+    char *key, *value, *saveptr;
+    FILE *f = fopen(path, "r");
+    if(f == NULL)
+        return;
+
+    int machine_1_arg_count = 0;
+    int machine_2_arg_count = 0;
+    int machine_1_uci_count = 0;
+    int machine_2_uci_count = 0;
+    int machine_1_uci = 0;
+    int machine_2_uci = 0;
+    int tmp;
+    while(fgets(line, sizeof(line), f)){
+        trimendl(line);
+        if(!machine_1_uci && !machine_2_uci){
+            if(!strcmp(line, "machine_1_uci_option_start")){
+                data->conf.machine_uci_list[0] = malloc(sizeof(char**));
+                data->conf.machine_uci_list[0][0] = NULL;
+                machine_1_uci_count = 1;
+                machine_1_uci = 1;
+                continue;
+            }
+            if(!strcmp(line, "machine_2_uci_option_start")){
+                data->conf.machine_uci_list[1] = malloc(sizeof(char**));
+                data->conf.machine_uci_list[1][0] = NULL;
+                machine_2_uci_count = 1;
+                machine_2_uci = 1;
+                continue;
+            }
+            key = strtok_r(line, "=", &saveptr);
+            value = saveptr;
+            if(!strcmp(key, "machine_1_exe")){
+                if(machine_1_arg_count < 2){
+                    machine_1_arg_count = 2;
+                    data->conf.machine_cmd_list[0] = realloc(
+                            data->conf.machine_cmd_list[0], sizeof(char**)
+                            * machine_1_arg_count);
+                }
+                data->conf.machine_cmd_list[0][0] = strdup(value);
+                data->conf.machine_cmd_list[0][1] = NULL;
+            }
+            if(!strcmp(key, "machine_1_param")){
+                if(machine_1_arg_count < 2){
+                    machine_1_arg_count = 2;
+                    data->conf.machine_cmd_list[0] = realloc(
+                            data->conf.machine_cmd_list[0], sizeof(char**)
+                            * machine_1_arg_count);
+                }
+                machine_1_arg_count++;
+                data->conf.machine_cmd_list[0] = realloc(
+                        data->conf.machine_cmd_list[0], sizeof(char**)
+                        * machine_2_arg_count);
+                data->conf.machine_cmd_list[0][machine_1_arg_count-2] = strdup(
+                        value);
+                data->conf.machine_cmd_list[0][machine_1_arg_count-1] = NULL;
+            }
+            if(!strcmp(key, "machine_2_exe")){
+                if(machine_2_arg_count < 2){
+                    machine_2_arg_count = 2;
+                    data->conf.machine_cmd_list[1] = realloc(
+                            data->conf.machine_cmd_list[1], sizeof(char**)
+                            * machine_2_arg_count);
+                }
+                data->conf.machine_cmd_list[1][0] = strdup(value);
+                data->conf.machine_cmd_list[1][1] = NULL;
+            }
+            if(!strcmp(key, "machine_2_param")){
+                if(machine_2_arg_count < 2){
+                    machine_2_arg_count = 2;
+                    data->conf.machine_cmd_list[1] = realloc(
+                            data->conf.machine_cmd_list[1], sizeof(char**)
+                            * machine_2_arg_count);
+                }
+                machine_2_arg_count++;
+                data->conf.machine_cmd_list[1] = realloc(
+                        data->conf.machine_cmd_list[1], sizeof(char**)
+                        * machine_2_arg_count);
+                data->conf.machine_cmd_list[1][machine_2_arg_count-2] = strdup(
+                        value);
+                data->conf.machine_cmd_list[1][machine_2_arg_count-1] = NULL;
+            }
+        }
+
+        if(machine_1_uci){
+            if(!strcmp(line, "machine_1_uci_option_end")){
+                machine_1_uci = 0;
+                continue;
+            }else{
+                machine_1_uci_count++;
+                data->conf.machine_uci_list[0] = realloc(
+                        data->conf.machine_uci_list[0], sizeof(char**)
+                        * machine_1_uci_count);
+                data->conf.machine_uci_list[0][machine_1_uci_count-2] = strdup(
+                        line);
+                tmp = strlen(line);
+                data->conf.machine_uci_list[0][machine_1_uci_count-2][tmp] = '\n';
+                data->conf.machine_uci_list[0][machine_1_uci_count-1] = NULL;
+            }
+        }
+        if(machine_2_uci){
+            if(!strcmp(line, "machine_2_uci_option_end")){
+                machine_2_uci = 0;
+                continue;
+            }else{
+                machine_2_uci_count++;
+                data->conf.machine_uci_list[1] = realloc(
+                        data->conf.machine_uci_list[1], sizeof(char**)
+                        * machine_2_uci_count);
+                data->conf.machine_uci_list[1][machine_2_uci_count-2] = strdup(
+                        line);
+                tmp = strlen(line);
+                data->conf.machine_uci_list[1][machine_2_uci_count-2][tmp] = '\n';
+                data->conf.machine_uci_list[1][machine_2_uci_count-1] = NULL;
+            }
+        }
+    }
+    fclose(f);
+}
+
+void
+machine_config_free(WindowData *data)
+{
+    int i, j;
+    for(i = 0; i < 2; i++){
+        if(data->conf.machine_cmd_list[i] == NULL)
+            continue;
+        for(j = 0; data->conf.machine_cmd_list[i][j] != NULL; j++){
+            free(data->conf.machine_cmd_list[i][j]);
+        }
+        free(data->conf.machine_cmd_list[i]);
+        data->conf.machine_cmd_list[i] = NULL;
+    }
+    for(i = 0; i < 2; i++){
+        if(data->conf.machine_uci_list[i] == NULL)
+            continue;
+        for(j = 0; data->conf.machine_uci_list[i][j] != NULL; j++){
+            free(data->conf.machine_uci_list[i][j]);
+        }
+        free(data->conf.machine_uci_list[i]);
+        data->conf.machine_uci_list[i] = NULL;
     }
 }

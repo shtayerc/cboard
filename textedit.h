@@ -1,7 +1,9 @@
 #ifndef TEXTEDIT_H_
 #define TEXTEDIT_H_
 #include "SDL_FontCache.h"
-#include "window_data.h"
+#include "window.h"
+
+typedef struct WindowData WindowData;
 
 void cursor_remove(int *pos, char *str);
 void cursor_add(int *pos, char *str, int len, WindowData *data);

@@ -1,11 +1,13 @@
-#ifndef _WINDOW_DATA_H_
-#define _WINDOW_DATA_H_
+#ifndef _WINDOW_H_
+#define _WINDOW_H_
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDL_FontCache.h"
 #include "chess_utils.h"
 #include "config.h"
+#include "machine.h"
+#include "notation.h"
 
 typedef struct {
     SDL_Rect board;
@@ -107,14 +109,5 @@ void window_data_init(WindowData *data);
 void window_open(WindowData *data);
 void window_data_free(WindowData *data);
 void window_resize(WindowData *data, int width, int height);
-void handle_resize(WindowData *data, SDL_Event *event);
-void undo_init(Notation *list[]);
-void undo_add(WindowData *data);
-void undo_do(WindowData *data);
-void redo_add(WindowData *data);
-void redo_do(WindowData *data);
-void undo_free(Notation *list[]);
-void load_machine_config(WindowData *data);
-void free_machine_config(WindowData *data);
 
 #endif

@@ -3,10 +3,12 @@
 
 #include <unistd.h>
 #include <signal.h>
-#include "window_data.h"
+#include "window.h"
 
 #define MACHINE_COUNT 2
 #define LINE_COUNT 3
+
+typedef struct WindowData WindowData;
 
 typedef struct{
     char output[MACHINE_OUTPUT_LEN];
@@ -41,5 +43,7 @@ void machine_line_free(Machine *m);
 void machine_init(Board *b);
 void machine_free();
 void machine_line_parse(int index);
+void machine_config_load(WindowData *data);
+void machine_config_free(WindowData *data);
 
 #endif

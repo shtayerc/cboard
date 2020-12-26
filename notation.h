@@ -1,10 +1,12 @@
 #ifndef _NOTATION_H_
 #define _NOTATION_H_
 
-#include "window_data.h"
 #include "chess_utils.h"
+#include "window.h"
 #include "nag.h"
 #include "event.h"
+
+typedef struct WindowData WindowData;
 
 typedef struct {
     int x;
@@ -38,5 +40,11 @@ void mode_tag_edit(WindowData *data, Tag *tag);
 void mode_tag(WindowData *data);
 void mode_clipboard(WindowData *data);
 void game_init(Notation *n, Board *b);
+void undo_init(Notation *list[]);
+void undo_add(WindowData *data);
+void undo_do(WindowData *data);
+void redo_add(WindowData *data);
+void redo_do(WindowData *data);
+void undo_free(Notation *list[]);
 
 #endif

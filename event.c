@@ -78,51 +78,18 @@ handle_input_events(SDL_Event *event, WindowData *data, int *loop, int *pos,
     }
 }
 
-unsigned int
-SDL_Event_timestamp(SDL_Event *event)
-{
-    switch(event->type){
-    case SDL_WINDOWEVENT:
-        return event->window.timestamp;
-
-    case SDL_KEYDOWN:
-    case SDL_KEYUP:
-        return event->key.timestamp;
-
-    case SDL_TEXTEDITING:
-        return event->edit.timestamp;
-
-    case SDL_TEXTINPUT:
-        return event->text.timestamp;
-
-    case SDL_MOUSEMOTION:
-        return event->motion.timestamp;
-
-    case SDL_MOUSEBUTTONDOWN:
-    case SDL_MOUSEBUTTONUP:
-        return event->button.timestamp;
-
-    default:
-        return 0;
-    }
-}
-
 void
-message_add(WindowData *data, SDL_Event *event, char *msg)
+handle_resize(WindowData *data, SDL_Event *e)
 {
-    snprintf(data->status.info, data->conf.status_max_len, "%s", msg);
-    data->message = 1;
-    data->message_timestamp = SDL_Event_timestamp(event);
-    data->draw_render(data);
-}
+    switch(e->window.event){
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+        window_resize(data, e->window.data1, e->window.data2);
+        break;
 
-void
-message_clear(WindowData*data, SDL_Event *event)
-{
-    int diff = SDL_Event_timestamp(event) - data->message_timestamp;
-    if(data->message == 1 && abs(diff) > data->conf.message_duration){
-        data->status.info[0] = '\0';
-        data->message = 0;
-        data->draw_render(data);
+    case SDL_WINDOWEVENT_EXPOSED:
+        //fix broken font after lid open
+        FC_ResetFontFromRendererReset(data->font, data->renderer, 0);
+        window_resize(data, data->window_width, data->window_height);
+        break;
     }
 }
