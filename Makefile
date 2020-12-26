@@ -23,6 +23,7 @@ check: debug
 check:
 	valgrind -q --leak-check=full --track-origins=yes ./$(EXE)
 
+install: all
 install:
 	mkdir -m 755 -p $(DESTDIR)$(SHAREDIR) $(DESTDIR)$(BINDIR)
 	install -m 755 cboard $(DESTDIR)$(BINDIR)/cboard
