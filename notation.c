@@ -167,7 +167,7 @@ notation_draw_tags(WindowData *data, int *x, int *y, int x_start)
         if(word_height == 0)
             word_height = FC_GetHeight(data->font,
                     data->notation.tag_list[i].key);
-        snprintf(word, TAG_LEN*2+4, "[%s \"%s\"]",
+        snprintf(word, TAG_LEN*2, "[%s \"%s\"]",
                 data->notation.tag_list[i].key,
                 data->notation.tag_list[i].value);
         word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_TITLE;

@@ -1,6 +1,6 @@
 #include "machine.h"
 
-Machine machine_list[2] = { 0 };
+Machine machine_list[2] = {};
 
 void
 push_user_event(int index)
