@@ -3,10 +3,11 @@
 Machine machine_list[2] = { 0 };
 
 void
-push_user_event()
+push_user_event(int index)
 {
     SDL_Event event;
     event.type = SDL_USEREVENT;
+    event.user.code = index;
     SDL_PushEvent(&event);
 }
 
@@ -15,15 +16,11 @@ machine_control(void *data)
 {
     MachineData *md = (MachineData*)data;
     Machine *mc = &machine_list[md->index];
-    char *tmp = NULL;
-    char *saveptr = NULL;
     char backup;
+    char *tmp = NULL;
     char **uci_list = md->data->conf.machine_uci_list[md->index];
-    UciScoreType type;
-    int depth, score, multipv, pv;
     char fen[FEN_LEN];
-    int len, i, j;
-    Board b;
+    int i, j;
     fen[0] = '\0';
 
     write(mc->fd_input[1], "uci\n", 4);
@@ -60,37 +57,25 @@ machine_control(void *data)
             write(mc->fd_input[1], uci_list[i], j+1);
         }
     }
-    board_fen_import(&b, mc->fen);
-    machine_line_init(mc, &b);
+    board_fen_import(&mc->board, mc->fen);
+    machine_line_init(mc, &mc->board);
     write(mc->fd_input[1], "go infinite\n", 12);
+    mc->running = 1;
     while(mc->running){
         if(strcmp(fen, mc->fen)){
             snprintf(fen, FEN_LEN, "%s", mc->fen);
             write(mc->fd_input[1], "stop\n", 5);
-            board_fen_import(&b, mc->fen);
+            board_fen_import(&mc->board, mc->fen);
             write(mc->fd_input[1], "position fen ", 13);
             write(mc->fd_input[1], fen, strlen(fen));
             write(mc->fd_input[1], "\ngo infinite\n", 13);
         }
-        len = read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
-        saveptr = NULL;
+        read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
         if(strstr(mc->output, "multipv") == NULL)
             continue;
-        tmp = strtok_r(mc->output, "\n", &saveptr);
-        while(tmp != NULL){
-            if(strstr(tmp, "multipv") != NULL){
-                multipv = 0;
-                uci_line_parse(tmp, len, NULL, &depth, &multipv,
-                        &type, &score, NULL);
-                pv = multipv -1;
-                if(pv > -1 && pv < mc->line_count && type != NoType)
-                    uci_line_parse(tmp, len, &b, &mc->depth[pv], &multipv,
-                        &mc->type[pv], &mc->score[pv], &mc->line[pv]);
-                push_user_event();
-            }
-            tmp = strtok_r(NULL, "\n", &saveptr);
-        }
+        push_user_event(md->index);
     }
+    free(md);
     return 1;
 }
 
@@ -104,6 +89,7 @@ machine_start(WindowData *data, int index)
     load_machine_config(data);
     pipe(mc->fd_input);
     pipe(mc->fd_output);
+    signal(SIGCHLD, SIG_IGN); //kernel will clear child process after its exit
     mc->pid = fork();
     if(mc->pid == 0){
         close(0);
@@ -114,10 +100,11 @@ machine_start(WindowData *data, int index)
                 data->conf.machine_cmd_list[index]);
         exit(0);
     }else{
-        MachineData md = { index, data};
-        mc->running = 1;
+        MachineData *md = malloc(sizeof(MachineData));
+        md->index = index;
+        md->data = data;
         SDL_Thread * thread = SDL_CreateThread(machine_control, NULL,
-                (void*)&md);
+                (void*)md);
         SDL_DetachThread(thread);
         free(thread);
     }
@@ -129,7 +116,7 @@ machine_stop(int index)
     Machine *mc = &machine_list[index];
     if(mc->running){
         machine_line_free(mc);
-        kill(mc->pid, SIGKILL);
+        kill(mc->pid, SIGTERM);
     }
     mc->running = 0;
 }
@@ -204,6 +191,7 @@ machine_line_init(Machine *m, Board *b)
     m->depth = calloc(sizeof(int), m->line_count);
     m->type = calloc(sizeof(UciScoreType), m->line_count);
     m->score = calloc(sizeof(int), m->line_count);
+    m->board = *b;
     int i;
     for(i = 0; i < m->line_count; i++){
         variation_init(&m->line[i], b);
@@ -240,5 +228,30 @@ machine_free()
     int i;
     for(i = 0; i < MACHINE_COUNT; i++){
         machine_line_free(&machine_list[i]);
+    }
+}
+
+void
+machine_line_parse(int index)
+{
+    Machine *mc = &machine_list[index];
+    char *tmp;
+    char *saveptr;
+    int depth, score, multipv, pv;
+    UciScoreType type;
+
+    tmp = strtok_r(mc->output, "\n", &saveptr);
+    while(tmp != NULL){
+        if(strstr(tmp, "multipv") != NULL){
+            multipv = 0;
+            uci_line_parse(tmp, strlen(tmp), NULL, &depth, &multipv,
+                    &type, &score, NULL);
+            pv = multipv -1;
+            if(pv > -1 && pv < mc->line_count && type != NoType)
+                uci_line_parse(tmp, strlen(tmp), &mc->board, &mc->depth[pv],
+                        &multipv, &mc->type[pv], &mc->score[pv],
+                        &mc->line[pv]);
+        }
+        tmp = strtok_r(NULL, "\n", &saveptr);
     }
 }

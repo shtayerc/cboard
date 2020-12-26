@@ -532,6 +532,7 @@ main(int argc, char *argv[])
                 break;
 
             case SDL_USEREVENT:
+                machine_line_parse(event.user.code);
                 if(cb_drag)
                     drag_draw(&data, piece);
                 else
