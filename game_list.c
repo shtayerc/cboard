@@ -178,7 +178,7 @@ game_list_draw(WindowData *data)
     SDL_Rect game_current;
     SDL_SetRenderDrawColor(data->renderer, NOTATION_BACKGROUND);
     SDL_RenderFillRect(data->renderer, &data->layout.notation);
-    int i, x, y, word_height;
+    int i, x, y;
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     y = data->layout.notation.y + NOTATION_PADDING_TOP
         + data->game_list_scroll;
@@ -188,12 +188,11 @@ game_list_draw(WindowData *data)
         return;
     }
     for(i = 0; i < data->game_list.count; i++){
-        word_height = FC_GetHeight(data->font, data->game_list.list[i].title);
         if(i == data->game_list_current){
             game_current.x = x;
             game_current.y = y;
             game_current.w = data->layout.notation.w;
-            game_current.h = word_height;
+            game_current.h = data->font_height;
             SDL_SetRenderDrawColor(data->renderer,
                     NOTATION_CURRENT_MOVE_BACKGROUND);
             SDL_RenderFillRect(data->renderer, &game_current);
@@ -205,7 +204,7 @@ game_list_draw(WindowData *data)
                     data->conf.notation_font_color,
                     data->game_list.list[i].title);
         }
-        y += word_height;
+        y += data->font_height;
     }
 }
 

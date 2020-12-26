@@ -104,6 +104,7 @@ window_open(WindowData *data)
     FC_LoadFont(data->font, data->renderer, data->conf.font_path,
             data->conf.font_size, data->conf.status_font_color,
             TTF_STYLE_NORMAL);
+    data->font_height = FC_GetLineHeight(data->font);
 }
 
 void

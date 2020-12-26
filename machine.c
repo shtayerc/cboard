@@ -126,14 +126,13 @@ machine_draw(WindowData *data)
 {
     char num[MOVENUM_LEN];
     char move[MOVENUM_LEN+SAN_LEN];
-    int i, j, l, font_width, font_height;
+    int i, j, l, font_width;
     Machine *mc;
     int x = data->layout.machine.x;
     int y = data->layout.machine.y;
     int max_len = data->layout.machine.w + data->layout.machine.x;
     SDL_SetRenderDrawColor(data->renderer, MACHINE_BACKGROUND);
     SDL_RenderFillRect(data->renderer, &data->layout.machine);
-    font_height = FC_GetHeight(data->font, "(0.0)");
     for(j = 0; j < MACHINE_COUNT; j++){
         mc = &machine_list[j];
         if(mc->running){
@@ -168,7 +167,7 @@ machine_draw(WindowData *data)
                             data->conf.comment_font_color, move);
                     x += font_width;
                 }
-                y += font_height;
+                y += data->font_height;
             }
         }
     }

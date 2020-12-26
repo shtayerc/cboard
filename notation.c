@@ -7,11 +7,11 @@ int nt_move_coord_index;
 
 void
 notation_handle_line_break(WindowData *data, int *x, int *y, int word_width,
-        int word_height, int x_start)
+        int x_start)
 {
     if (*x + word_width >= data->layout.notation.x + data->layout.notation.w){
         *x = x_start;
-        *y += word_height;
+        *y += data->font_height;
     }
 }
 
@@ -21,16 +21,14 @@ comment_draw(WindowData *data, Move *m, int *x, int *y, int x_start)
     char comment[COMMENT_LEN];
     char *word = NULL;
     char *saveptr;
-    int word_width, word_height;
+    int word_width;
 
     snprintf(comment, COMMENT_LEN, "%s", m->comment);
     word = strtok_r(comment, " ", &saveptr);
 
-    word_height = FC_GetHeight(data->font, comment);
     while(word != NULL){
         word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_MOVE;
-        notation_handle_line_break(data, x, y, word_width, word_height,
-                x_start);
+        notation_handle_line_break(data, x, y, word_width, x_start);
         FC_DrawColor(data->font, data->renderer, *x, *y,
                 data->conf.comment_font_color, word);
         word = strtok_r(NULL, " ", &saveptr);
@@ -46,26 +44,21 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
     Move *m;
     char san[SAN_LEN+MOVENUM_LEN];
     int movelen = SAN_LEN+MOVENUM_LEN + 2 * NAG_LEN;
-    int word_width, word_height;
+    int word_width;
     nt_move_coord_len += v->move_count - 1;
     nt_move_coords = realloc(nt_move_coords, sizeof(MoveCoord)*nt_move_coord_len);
     if(nt_move_coords == NULL)
         return;
 
-    if(i){
-        word_height = FC_GetHeight(data->font, "Test");
-    }
     for(int j=1; j<v->move_count; j++){
         if(j==1 && i){
             snprintf(san, SAN_LEN+MOVENUM_LEN, "(");
-            word_height = FC_GetHeight(data->font, san);
             word_width = FC_GetWidth(data->font, san);
             if(v->move_count > 10){
-                *y += word_height;
+                *y += data->font_height;
                 *x = x_start;
             }
-            notation_handle_line_break(data, x, y, word_width, word_height,
-                    x_start);
+            notation_handle_line_break(data, x, y, word_width, x_start);
             FC_DrawColor(data->font, data->renderer, *x, *y,
                     data->conf.variation_font_color, san);
             *x += word_width;
@@ -82,14 +75,12 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
         concate(san, movelen, "%s%s%s", m->san, nag_map[m->nag_move],
             nag_map[m->nag_position]);
 
-        word_height = FC_GetHeight(data->font, san);
         word_width = FC_GetWidth(data->font, san) + NOTATION_PADDING_MOVE;
-        notation_handle_line_break(data, x, y, word_width, word_height,
-                x_start);
+        notation_handle_line_break(data, x, y, word_width, x_start);
         nt_move_coords[nt_move_coord_index].x = *x;
         nt_move_coords[nt_move_coord_index].y = *y;
         nt_move_coords[nt_move_coord_index].w = word_width;
-        nt_move_coords[nt_move_coord_index].h = word_height;
+        nt_move_coords[nt_move_coord_index].h = data->font_height;
         nt_move_coords[nt_move_coord_index].index = j;
         nt_move_coords[nt_move_coord_index].move = m;
         nt_move_coords[nt_move_coord_index].variation = v;
@@ -100,7 +91,7 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
             move_current.x = *x - NOTATION_CURRENT_MOVE_PADDING_LEFT;
             move_current.y = *y;
             move_current.w = word_width;
-            move_current.h = word_height;
+            move_current.h = data->font_height;
             SDL_SetRenderDrawColor(data->renderer,
                     NOTATION_CURRENT_MOVE_BACKGROUND);
             SDL_RenderFillRect(data->renderer, &move_current);
@@ -123,10 +114,8 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
 
         if(j+1 == v->move_count && i){
             snprintf(san, SAN_LEN+MOVENUM_LEN, ")");
-            word_height = FC_GetHeight(data->font, san);
             word_width = FC_GetWidth(data->font, san) + NOTATION_PADDING_MOVE;
-            notation_handle_line_break(data, x, y, word_width, word_height,
-                    x_start);
+            notation_handle_line_break(data, x, y, word_width, x_start);
             FC_DrawColor(data->font, data->renderer, *x, *y,
                     data->conf.variation_font_color, san);
             *x += word_width;
@@ -159,25 +148,20 @@ notation_move_find(WindowData *data)
 void
 notation_draw_tags(WindowData *data, int *x, int *y, int x_start)
 {
-    int word_width, word_height;
-    word_height = 0;
+    int word_width;
     char word[TAG_LEN*2];
     int i;
     for(i=0; i < data->notation.tag_count; i++){
-        if(word_height == 0)
-            word_height = FC_GetHeight(data->font,
-                    data->notation.tag_list[i].key);
         snprintf(word, TAG_LEN*2, "[%s \"%s\"]",
                 data->notation.tag_list[i].key,
                 data->notation.tag_list[i].value);
         word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_TITLE;
-        notation_handle_line_break(data, x, y, word_width, word_height,
-                x_start);
+        notation_handle_line_break(data, x, y, word_width, x_start);
         FC_DrawColor(data->font, data->renderer, *x, *y,
                 data->conf.notation_font_color, word);
         *x += word_width;
     }
-    *y += word_height*2;
+    *y += data->font_height * 2;
     *x = x_start;
 }
 

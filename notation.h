@@ -21,7 +21,7 @@ extern int nt_move_coord_len;
 extern int nt_move_coord_index;
 
 void notation_handle_line_break(WindowData *data, int *x, int *y,
-        int word_width, int word_height, int x_start);
+        int word_width, int x_start);
 void comment_draw(WindowData *data, Move *m, int *x, int *y, int x_start);
 void variation_draw(WindowData *data, Variation *v,  int *x, int *y,
         int x_start, int i);

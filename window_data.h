@@ -79,6 +79,7 @@ struct WindowData {
     SDL_Point mouse;
     Layout layout;
     FC_Font *font;
+    int font_height;
     int notation_scroll;
     int notation_hidden;
     int game_list_show;
