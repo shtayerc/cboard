@@ -47,6 +47,7 @@ typedef struct {
     char *font_path;
     char *config_path;
     char *rotate_str;
+    char *default_filename;
     int font_size;
     int message_duration;
     char **machine_cmd_list[2];

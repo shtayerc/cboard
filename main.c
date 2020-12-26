@@ -17,6 +17,8 @@
 #define CHESS_UTILS_IMPLEMENTATION
 #include "chess_utils.h"
 
+#define VERSION "0.1"
+
 char fen[FEN_LEN];
 
 void
@@ -73,9 +75,10 @@ void
 usage()
 {
     fprintf(stdout,
-        "Usage: cboard [OPTIONS] file.pgn\n"
+        "Usage: cboard [OPTIONS] [file.pgn]\n"
         "\nOPTIONS\n"
         " -h --help               Print help\n"
+        " -v --version            Print version\n"
         " -                       Read input from stdin\n"
         " -n --number <number>    Game number\n"
         " -o --output fen|pgn     Output to stdout\n"
@@ -96,21 +99,6 @@ main(int argc, char *argv[])
     FILE *file = NULL;
     char output_type[4] = "";
     int i, number;
-    if(argc > 1){
-        if(argc == 2){
-            if(!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")){
-                usage();
-                return 0;
-            }
-        }
-        snprintf(data.filename, data.conf.status_max_len, "%s", argv[argc -1]);
-        if(!strcmp(data.filename, "-"))
-            file = stdin;
-        argc--;
-    }else{
-        usage();
-        return 1;
-    }
 
     for(i = 1; i < argc; i++){
         if(!strcmp(argv[i], "--number") || !strcmp(argv[i], "-n")){
@@ -149,10 +137,19 @@ main(int argc, char *argv[])
                 return 1;
             }
             data.conf.config_path = argv[i];
+        }else if(!strcmp(argv[i], "-")){
+            snprintf(data.filename, data.conf.status_max_len, "-");
+            file = stdin;
+        }else if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")){
+            fprintf(stdout, "cboard %s\n", VERSION);
+            return 0;
+        }else if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")){
+            usage();
+            return 0;
+        }else if(i == argc - 1){
+            snprintf(data.filename, data.conf.status_max_len, "%s", argv[i]);
         }else{
             usage();
-            if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help"))
-                return 0;
             return 1;
         }
     }

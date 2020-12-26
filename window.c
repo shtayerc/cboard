@@ -43,6 +43,7 @@ config_init()
         .font_path = "/usr/share/cboard/DejaVuSansCondensed.ttf",
         .config_path = "~/.config/cboard/config",
         .rotate_str = "black",
+        .default_filename = "new_games.pgn",
         .font_size = 16,
         .message_duration = 2000, //miliseconds
         .machine_cmd_list = {NULL, NULL},
@@ -63,7 +64,9 @@ window_data_init(WindowData *data)
     data->status.str = calloc(sizeof(char), data->conf.status_max_len);
     data->status.mode = calloc(sizeof(char), data->conf.status_max_len);
     data->status.info = calloc(sizeof(char), data->conf.status_max_len);
-    data->filename = calloc(sizeof(char), data->conf.status_max_len);
+    data->filename = malloc(sizeof(char) * data->conf.status_max_len);
+    snprintf(data->filename, data->conf.status_max_len, "%s",
+            data->conf.default_filename);
     data->number = malloc(sizeof(char) * data->conf.number_len);
     snprintf(data->number, data->conf.number_len, "a");
     data->loop = 1;
