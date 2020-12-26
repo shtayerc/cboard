@@ -2,6 +2,8 @@
 
 Simple pgn editor designed to be controlled by keyboard.
 
+### Usage
+See [Manual](./MANUAL.md)
 ### Build
 
 Required header files: SDL2, SDL2\_image and SDL2\_ttf  

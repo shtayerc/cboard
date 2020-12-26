@@ -77,15 +77,14 @@ usage()
     fprintf(stdout,
         "Usage: cboard [OPTIONS] [file.pgn]\n"
         "\nOPTIONS\n"
+        " -c --config <file>      Config to use (default ~/.config/cboard/config)\n"
+        " -f --font <file>        Font to use\n"
+        "    --FEN <fen string>   Starting position\n"
         " -h --help               Print help\n"
-        " -v --version            Print version\n"
-        " -                       Read input from stdin\n"
         " -n --number <number>    Game number\n"
         " -o --output fen|pgn     Output to stdout\n"
-        "    --FEN <fen string>   Starting position\n"
-        " -f --font <file>        Font to use\n"
         " -p --pieces <dir>       Pieces to use\n"
-        " -c --config <file>      Config to use (default ~/.config/cboard/config)\n");
+        " -v --version            Print version\n");
 }
 
 int
@@ -438,15 +437,6 @@ main(int argc, char *argv[])
                     draw_render(&data);
                     break;
 
-                case SDLK_MINUS:
-                    data.conf.square_size -= 10;
-                    if(data.conf.square_size < data.conf.minimal_square)
-                        data.conf.square_size = data.conf.minimal_square;
-                    window_resize(&data, data.window_width,
-                            data.window_height);
-                    draw_render(&data);
-                    break;
-
                 case SDLK_u:
                     undo_do(&data);
                     draw_render(&data);
@@ -515,8 +505,17 @@ main(int argc, char *argv[])
 
             case SDL_TEXTINPUT:
                 switch(event.text.text[0]){
-                case '+':
+                case 'z':
                     data.conf.square_size += 10;
+                    window_resize(&data, data.window_width,
+                            data.window_height);
+                    draw_render(&data);
+                    break;
+
+                case 'Z':
+                    data.conf.square_size -= 10;
+                    if(data.conf.square_size < data.conf.minimal_square)
+                        data.conf.square_size = data.conf.minimal_square;
                     window_resize(&data, data.window_width,
                             data.window_height);
                     draw_render(&data);

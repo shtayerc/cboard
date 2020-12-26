@@ -1,6 +1,7 @@
 PREFIX?=/usr
 BINDIR?=$(PREFIX)/bin
 SHAREDIR?=$(PREFIX)/share/cboard
+MANDIR?=$(PREFIX)/share/man
 
 CC=cc
 FILES=*.c
@@ -25,8 +26,9 @@ check:
 
 install: all
 install:
-	mkdir -m 755 -p $(DESTDIR)$(SHAREDIR) $(DESTDIR)$(BINDIR)
+	mkdir -m 755 -p $(DESTDIR)$(SHAREDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
 	install -m 755 cboard $(DESTDIR)$(BINDIR)/cboard
+	install -m 644 cboard.1 $(DESTDIR)$(MANDIR)/man1/cboard.1
 	cp -R --preserve=mode resources/* $(DESTDIR)$(SHAREDIR)
 
 uninstall:
