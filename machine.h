@@ -45,5 +45,7 @@ void machine_free();
 void machine_line_parse(int index);
 void machine_config_load(WindowData *data);
 void machine_config_free(WindowData *data);
+void machine_set_line_count(WindowData *data, int index);
+void machine_resize(WindowData *data, int index);
 
 #endif

@@ -83,6 +83,7 @@ handle_resize(WindowData *data, SDL_Event *e)
 {
     switch(e->window.event){
     case SDL_WINDOWEVENT_SIZE_CHANGED:
+        machine_resize(data, -1);
         window_resize(data, e->window.data1, e->window.data2);
         break;
 

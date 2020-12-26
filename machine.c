@@ -16,11 +16,9 @@ machine_control(void *data)
 {
     MachineData *md = (MachineData*)data;
     Machine *mc = &machine_list[md->index];
-    char backup;
-    char *tmp = NULL;
     char **uci_list = md->data->conf.machine_uci_list[md->index];
     char fen[FEN_LEN];
-    int i, j;
+    int i;
     fen[0] = '\0';
 
     write(mc->fd_input[1], "uci\n", 4);
@@ -35,26 +33,10 @@ machine_control(void *data)
         read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
     }
 
-    mc->line_count = 1;
     if(uci_list != NULL){
         for(i = 0; uci_list[i] != NULL; i++){
-            for(j = 0; uci_list[i][j] != '\n'; j++);
-            //some hacks to manipulate non null terminated string
-            if(j > 29){ //setoption name Multipv value
-                backup = uci_list[i][28];
-                uci_list[i][28] = '\0';
-                if(!strcmp("setoption name Multipv value", uci_list[i]) ||
-                        !strcmp("setoption name MultiPV value", uci_list[i])){
-                    tmp = calloc((j - 29 + 1), sizeof(char));
-                    memcpy(tmp, &uci_list[i][29], j - 29);
-                    tmp[j-29] = '\0';
-                    mc->line_count = strtol(tmp, NULL, 10);
-                    free(tmp);
-                    tmp = NULL;
-                }
-                uci_list[i][28] = backup;
-            }
-            write(mc->fd_input[1], uci_list[i], j+1);
+            write(mc->fd_input[1], uci_list[i], strlen(uci_list[i]));
+            write(mc->fd_input[1], "\n", 1);
         }
     }
     board_fen_import(&mc->board, mc->fen);
@@ -87,6 +69,8 @@ machine_start(WindowData *data, int index)
         return;
     machine_config_free(data);
     machine_config_load(data);
+    machine_set_line_count(data, index);
+    machine_resize(data, index);
     pipe(mc->fd_input);
     pipe(mc->fd_output);
     signal(SIGCHLD, SIG_IGN); //kernel will clear child process after its exit
@@ -106,7 +90,6 @@ machine_start(WindowData *data, int index)
         SDL_Thread * thread = SDL_CreateThread(machine_control, NULL,
                 (void*)md);
         SDL_DetachThread(thread);
-        free(thread);
     }
 }
 
@@ -136,6 +119,11 @@ machine_draw(WindowData *data)
     for(j = 0; j < MACHINE_COUNT; j++){
         mc = &machine_list[j];
         if(mc->running){
+            x = data->layout.machine.x;
+            FC_DrawColor(data->font, data->renderer, x, y,
+                    data->conf.comment_font_color,
+                    data->conf.machine_cmd_list[j][0]);
+            y += data->font_height;
             for(l = 0; l < mc->line_count; l++){
                 if(mc->type[l] == NoType)
                         continue;
@@ -177,9 +165,16 @@ void
 machine_position(Notation *n)
 {
     Board b = notation_move_get(n)->board;
-    int i;
+    int i, j;
     for(i = 0; i < MACHINE_COUNT; i++){
         board_fen_export(&b, machine_list[i].fen);
+        for(j = 0; j < machine_list[i].line_count; j++){
+            machine_list[i].line->move_current = 0;
+            variation_delete_next_moves(machine_list[i].line);
+            machine_list[i].depth[j] = 0;
+            machine_list[i].type[j] = Centipawn;
+            machine_list[i].score[j] = 0;
+        }
     }
 }
 
@@ -278,9 +273,11 @@ machine_config_load(WindowData *data)
     int machine_2_uci_count = 0;
     int machine_1_uci = 0;
     int machine_2_uci = 0;
-    int tmp;
     while(fgets(line, sizeof(line), f)){
         trimendl(line);
+        if(line[0] == '#') //skip comments
+            continue;
+
         if(!machine_1_uci && !machine_2_uci){
             if(!strcmp(line, "machine_1_uci_option_start")){
                 data->conf.machine_uci_list[0] = malloc(sizeof(char**));
@@ -361,8 +358,6 @@ machine_config_load(WindowData *data)
                         * machine_1_uci_count);
                 data->conf.machine_uci_list[0][machine_1_uci_count-2] = strdup(
                         line);
-                tmp = strlen(line);
-                data->conf.machine_uci_list[0][machine_1_uci_count-2][tmp] = '\n';
                 data->conf.machine_uci_list[0][machine_1_uci_count-1] = NULL;
             }
         }
@@ -377,8 +372,6 @@ machine_config_load(WindowData *data)
                         * machine_2_uci_count);
                 data->conf.machine_uci_list[1][machine_2_uci_count-2] = strdup(
                         line);
-                tmp = strlen(line);
-                data->conf.machine_uci_list[1][machine_2_uci_count-2][tmp] = '\n';
                 data->conf.machine_uci_list[1][machine_2_uci_count-1] = NULL;
             }
         }
@@ -407,5 +400,38 @@ machine_config_free(WindowData *data)
         }
         free(data->conf.machine_uci_list[i]);
         data->conf.machine_uci_list[i] = NULL;
+    }
+}
+
+void
+machine_set_line_count(WindowData *data, int index)
+{
+    int i;
+    char *num;
+    for(i = 0; data->conf.machine_uci_list[index][i] != NULL; i++){
+        if(isubstr(data->conf.machine_uci_list[index][i], "multipv")){
+            num = strrchr(data->conf.machine_uci_list[index][i], ' ');
+            if(num){
+                num++;
+                machine_list[index].line_count = strtol(num, NULL, 10);
+            }
+        }
+    }
+}
+
+void
+machine_resize(WindowData *data, int index)
+{
+    int i, diff;
+    int height = 0;
+    for(i = 0; i < MACHINE_COUNT; i++){
+        if(machine_list[i].running || i == index){
+            height += (machine_list[i].line_count + 1) * data->font_height;
+        }
+    }
+    if(height > data->layout.machine.h){
+        diff = height - data->layout.machine.h;
+        data->conf.square_size -= (diff + (diff % 8)) / 8;
+        window_resize(data, data->window_width, data->window_height);
     }
 }
