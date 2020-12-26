@@ -1,0 +1,16 @@
+#path to executable
+machine_1_exe=/bin/stockfish
+#literal UCI options
+machine_1_uci_option_start
+setoption name Multipv value 3
+setoption name Threads value 6
+setoption name Hash value 400
+machine_1_uci_option_end
+machine_2_exe=/bin/lc0
+#command line arguments
+machine_2_param=--logfile=/home/user/log
+machine_2_uci_option_start
+setoption name Multipv value 3
+setoption name Threads value 6
+setoption name Hash value 400
+machine_2_uci_option_end
