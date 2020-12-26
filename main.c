@@ -277,7 +277,7 @@ main(int argc, char *argv[])
 
 
                     if (notation_click(&data)) {
-                        int ind = notation_move_find(&data);
+                        int ind = notation_coord_index_click(&data);
                         if(ind != -1){
                             data.notation.line_current = nt_move_coords[ind].variation;
                             notation_move_index_set(&data.notation,
@@ -340,6 +340,7 @@ main(int argc, char *argv[])
                     }else{
                         variation_move_next(data.notation.line_current);
                     }
+                    notation_focus_current_move(&data);
                     machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
@@ -364,6 +365,7 @@ main(int argc, char *argv[])
                             variation_move_prev(data.notation.line_current);
                         }
                     }
+                    notation_focus_current_move(&data);
                     machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
@@ -390,6 +392,7 @@ main(int argc, char *argv[])
                         if(tmp != -1)
                             data.notation.line_current->move_current = tmp;
                     }
+                    notation_focus_current_move(&data);
                     machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
@@ -415,6 +418,7 @@ main(int argc, char *argv[])
                                 &data.notation)->variation_list[0];
                         data.notation.line_current->move_current = 1;
                     }
+                    notation_focus_current_move(&data);
                     machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);

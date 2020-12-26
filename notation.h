@@ -28,7 +28,8 @@ void comment_draw(WindowData *data, Move *m, int *x, int *y, int x_start);
 void variation_draw(WindowData *data, Variation *v,  int *x, int *y,
         int x_start, int i);
 int notation_click(WindowData *data);
-int notation_move_find(WindowData *data);
+int notation_coord_index_click(WindowData *data);
+int notation_coord_index_move(WindowData *data, Move *m);
 void notation_draw_tags(WindowData *data, int *x, int *y, int x_start);
 void notation_draw(WindowData *data);
 void notation_scroll_up(WindowData *data);
@@ -46,5 +47,6 @@ void undo_do(WindowData *data);
 void redo_add(WindowData *data);
 void redo_do(WindowData *data);
 void undo_free(Notation *list[]);
+void notation_focus_current_move(WindowData *data);
 
 #endif

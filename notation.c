@@ -133,13 +133,24 @@ notation_click(WindowData *data)
 }
 
 int
-notation_move_find(WindowData *data)
+notation_coord_index_click(WindowData *data)
 {
     for(int i=0; i<nt_move_coord_len; i++){
         if(nt_move_coords[i].x <= data->mouse.x
                 && nt_move_coords[i].x+nt_move_coords[i].w >= data->mouse.x
                 && nt_move_coords[i].y <= data->mouse.y
                 && nt_move_coords[i].y+nt_move_coords[i].h >= data->mouse.y)
+            return i;
+    }
+    return -1;
+}
+
+int
+notation_coord_index_move(WindowData *data, Move *m)
+{
+    (void)data; //TODO move nt_move_coord data in WindowData
+    for(int i=0; i<nt_move_coord_len; i++){
+        if(nt_move_coords[i].move == m)
             return i;
     }
     return -1;
@@ -327,6 +338,7 @@ mode_tag_edit(WindowData *data, Tag *tag)
     int loop = 1;
     SDL_Event event;
     int pos = U8_strlen(tag->value);
+    data->notation_scroll = 0;
     cursor_add(&pos, tag->value, TAG_LEN, data);
     data->draw_render(data);
     while (loop) {
@@ -540,5 +552,23 @@ undo_free(Notation *list[])
             notation_free(list[i]);
             free(list[i]);
         }
+    }
+}
+
+void
+notation_focus_current_move(WindowData *data)
+{
+    int index = notation_coord_index_move(data,
+            notation_move_get(&data->notation));
+    if(index < 0){
+        data->notation_scroll = 0;
+        return;
+    }
+    int bot = data->layout.notation.y + data->layout.notation.h;
+    if(nt_move_coords[index].y > bot){
+        data->notation_scroll -= nt_move_coords[index].y - bot;
+        data->notation_scroll -= data->font_height;
+    }else if(nt_move_coords[index].y < 0){
+        data->notation_scroll -= nt_move_coords[index].y;
     }
 }
