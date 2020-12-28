@@ -436,7 +436,6 @@ mode_san(WindowData *data)
                             data->status.info, &src, &dst, &prom_piece);
                     if(status != Invalid){
                         chessboard_move_do(data, src, dst, prom_piece, status);
-                        machine_position(&data->notation);
                         data->status.info[0] = '\0';
                         old_pos = 0;
                     }
@@ -638,5 +637,6 @@ chessboard_move_do(WindowData *data, Square src, Square dst,
     }else{
         notation_variation_add(&data->notation, src, dst, prom_piece, status);
     }
+    machine_position(&data->notation);
 }
 

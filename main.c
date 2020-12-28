@@ -269,7 +269,6 @@ main(int argc, char *argv[])
                                     Empty, status);
                             break;
                         }
-                        machine_position(&data.notation);
                         draw_render(&data);
                         cb_drag = 0;
                         piece = 0;
