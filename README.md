@@ -2,6 +2,8 @@
 
 Simple pgn editor designed to be controlled by keyboard.
 
+![](cboard.gif)
+
 ### Usage
 See [Manual](./MANUAL.md)
 ### Build
