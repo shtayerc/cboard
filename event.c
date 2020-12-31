@@ -108,6 +108,13 @@ handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
             if(loop != NULL)
                 *loop = 0;
             break;
+
+        case SDLK_r:
+            if(event->key.keysym.mod == KMOD_NONE){
+                rotation_toggle(data);
+                data->draw_render(data);
+            }
+            break;
         }
         break;
 

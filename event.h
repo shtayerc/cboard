@@ -8,6 +8,7 @@
 #include "window.h"
 #include "textedit.h"
 #include "message.h"
+#include "chessboard.h"
 
 void handle_global_events(SDL_Event *event, WindowData *data, int *loop,
         int draw);

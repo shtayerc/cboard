@@ -311,11 +311,10 @@ main(int argc, char *argv[])
                     break;
 
                 case SDLK_r:
-                    if(event.key.keysym.mod & KMOD_CTRL)
+                    if(event.key.keysym.mod & KMOD_CTRL){
                         redo_do(&data);
-                    else
-                        rotation_toggle(&data);
-                    draw_render(&data);
+                        draw_render(&data);
+                    }
                     break;
 
                 case SDLK_l:

@@ -315,11 +315,6 @@ mode_editor(WindowData *data)
                     loop = 0;
                     break;
 
-                case SDLK_r:
-                    rotation_toggle(data);
-                    data->draw_render(data);
-                    break;
-
                 case SDLK_0:
                     color = !color;
                     data->piece = data->piece + (color ? 6 : -6);

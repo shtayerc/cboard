@@ -60,7 +60,8 @@ mode_game_list(WindowData *data)
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_non_input_events(&event, data, &loop);
+            if(event.key.keysym.sym != SDLK_r)
+                handle_non_input_events(&event, data, &loop);
             switch (event.type) {
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
