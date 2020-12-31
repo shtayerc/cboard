@@ -18,5 +18,7 @@
 #define MACHINE_BACKGROUND 220,220,220,1
 #define MACHINE_OUTPUT_LEN 4096
 #define UNDO_COUNT 5
+#define PIECE_PATH PREFIX "/share/cboard/alpha"
+#define FONT_PATH PREFIX "/share/cboard/DejaVuSansCondensed.ttf"
 
 #endif

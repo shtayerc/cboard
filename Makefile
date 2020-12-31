@@ -11,7 +11,7 @@ FLAGS=-Wextra -Wall -Wformat-security -Wno-format-truncation
 
 OBJECTS=$(FILES:.c=.o)
 all:
-	$(CC) $(FLAGS) -c $(FILES)
+	$(CC) $(FLAGS) -c $(FILES) -DPREFIX=\"$(PREFIX)\"
 	$(CC) -o $(EXE) $(OBJECTS) $(LIBS)
 
 debug: FLAGS += -g
