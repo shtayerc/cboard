@@ -94,3 +94,37 @@ handle_resize(WindowData *data, SDL_Event *e)
         break;
     }
 }
+
+void
+handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
+{
+    switch (event->type) {
+    case SDL_KEYUP:
+        switch(event->key.keysym.sym){
+        case SDLK_q:
+            data->loop = 0;
+            if(loop != NULL)
+                *loop = 0;
+            break;
+        }
+        break;
+
+    case SDL_TEXTINPUT:
+        switch(event->text.text[0]){
+        case 'z':
+            data->conf.square_size += 10;
+            window_resize(data, data->window_width, data->window_height);
+            data->draw_render(data);
+            break;
+
+        case 'Z':
+            data->conf.square_size -= 10;
+            if(data->conf.square_size < data->conf.minimal_square)
+                data->conf.square_size = data->conf.minimal_square;
+            window_resize(data, data->window_width, data->window_height);
+            data->draw_render(data);
+            break;
+        }
+        break;
+    }
+}

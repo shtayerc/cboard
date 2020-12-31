@@ -258,8 +258,9 @@ mode_editor(WindowData *data)
     data->draw_render(data);
     editor_draw(data, piece);
     while (loop) {
-        handle_global_events(&event, data, &loop, 0);
         if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 0);
+            handle_non_input_events(&event, data, &loop);
             switch (event.type) {
             case SDL_WINDOWEVENT:
                 editor_draw(data, piece);
@@ -303,11 +304,6 @@ mode_editor(WindowData *data)
 
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
-                case SDLK_q:
-                    data->loop = 0;
-                    loop = 0;
-                    break;
-
                 case SDLK_s:
                     board_fen_import(&notation_move_get(&data->notation)->board,
                             FEN_DEFAULT);
@@ -375,6 +371,15 @@ mode_editor(WindowData *data)
 
                 case SDLK_6:
                     piece = 6 + color * 6;
+                    editor_draw(data, piece);
+                    break;
+                }
+                break;
+
+            case SDL_TEXTINPUT:
+                switch(event.text.text[0]){
+                case 'z':
+                case 'Z':
                     editor_draw(data, piece);
                     break;
                 }

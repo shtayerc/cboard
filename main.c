@@ -209,6 +209,7 @@ main(int argc, char *argv[])
         //WaitEvent is using way less CPU (on PoolEvent was 100%)
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, &data, NULL, 1);
+            handle_non_input_events(&event, &data, NULL);
             switch (event.type) {
             case SDL_MOUSEMOTION:
                 if (cb_drag)
@@ -292,10 +293,6 @@ main(int argc, char *argv[])
             //TODO better shortcuts
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
-                case SDLK_q:
-                    data.loop = 0;
-                    break;
-
                 case SDLK_e:
                     mode_editor(&data);
                     break;
@@ -508,22 +505,6 @@ main(int argc, char *argv[])
 
             case SDL_TEXTINPUT:
                 switch(event.text.text[0]){
-                case 'z':
-                    data.conf.square_size += 10;
-                    window_resize(&data, data.window_width,
-                            data.window_height);
-                    draw_render(&data);
-                    break;
-
-                case 'Z':
-                    data.conf.square_size -= 10;
-                    if(data.conf.square_size < data.conf.minimal_square)
-                        data.conf.square_size = data.conf.minimal_square;
-                    window_resize(&data, data.window_width,
-                            data.window_height);
-                    draw_render(&data);
-                    break;
-
                 case 'W':
                     write_game(&data);
                     message_add(&data, &event, "Game written");
