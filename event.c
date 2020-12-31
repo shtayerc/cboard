@@ -19,6 +19,8 @@ handle_global_events(SDL_Event *event, WindowData *data, int *loop, int draw)
     case SDL_MOUSEMOTION:
         data->mouse.x = event->button.x;
         data->mouse.y = event->button.y;
+        if(data->piece != Empty)
+            data->draw_render(data);
         break;
 
     case SDL_MOUSEBUTTONUP:

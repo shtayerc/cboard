@@ -30,6 +30,9 @@ draw(WindowData *data)
         game_list_draw(data);
     else
         notation_draw(data);
+    if(data->piece != Empty)
+        piece_mouse_position(data);
+
     status_draw(data);
     machine_draw(data);
 }
@@ -192,7 +195,7 @@ main(int argc, char *argv[])
 
     int tmp;
     Square square_dst;
-    Piece piece, prom_piece;
+    Piece prom_piece;
     Status status;
 
     SDL_Event event;
@@ -211,11 +214,6 @@ main(int argc, char *argv[])
             handle_global_events(&event, &data, NULL, 1);
             handle_non_input_events(&event, &data, NULL);
             switch (event.type) {
-            case SDL_MOUSEMOTION:
-                if (cb_drag)
-                    drag_draw(&data, piece);
-                break;
-
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     cb_hidden = filerank2square(
@@ -223,19 +221,15 @@ main(int argc, char *argv[])
                                 data.layout.square.w)),
                             rotation_convert(&data, (data.mouse.y /
                                     data.layout.square.w)));
-                    piece = cb_hidden & 0x88 ? 0
+                    data.piece = cb_hidden & 0x88 ? 0
                         : notation_move_get(
                                 &data.notation)->board.position[cb_hidden];
-                    if (piece) {
-                        if (!cb_drag)
-                            cb_drag = 1;
-                    }
                 }
                 break;
 
             case SDL_MOUSEBUTTONUP:
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                    if (cb_drag) {
+                    if(data.piece != Empty){
                         square_dst = filerank2square(
                                 rotation_convert(&data, (data.mouse.x /
                                     data.layout.square.w)),
@@ -270,9 +264,8 @@ main(int argc, char *argv[])
                                     Empty, status);
                             break;
                         }
+                        data.piece = Empty;
                         draw_render(&data);
-                        cb_drag = 0;
-                        piece = 0;
                     }
 
 
@@ -323,9 +316,6 @@ main(int argc, char *argv[])
                     else
                         rotation_toggle(&data);
                     draw_render(&data);
-                    if (cb_drag) {
-                        drag_draw(&data, piece);
-                    }
                     break;
 
                 case SDLK_l:
@@ -514,10 +504,7 @@ main(int argc, char *argv[])
 
             case SDL_USEREVENT:
                 machine_line_parse(event.user.code);
-                if(cb_drag)
-                    drag_draw(&data, piece);
-                else
-                    draw_render(&data);
+                draw_render(&data);
                 break;
             }
         }

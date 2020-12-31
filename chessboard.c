@@ -1,7 +1,6 @@
 #include "chessboard.h"
 
 Square cb_hidden = none;
-int cb_drag = 0;
 SDL_Texture *cb_piece_texture[12];
 
 void
@@ -111,11 +110,11 @@ foreground_draw(WindowData *data)
 }
 
 void
-piece_mouse_position(WindowData *data, Piece piece)
+piece_mouse_position(WindowData *data)
 {
     piece_draw(data, data->mouse.x - (data->layout.square.w / 2),
             data->mouse.y - (data->layout.square.w / 2),
-            cb_piece_texture[piece-1]);
+            cb_piece_texture[data->piece-1]);
 }
 
 int
@@ -235,20 +234,12 @@ mode_promotion(WindowData *data, Color color)
 }
 
 void
-editor_draw(WindowData *data, Piece piece)
-{
-    data->draw(data);
-    piece_mouse_position(data, piece);
-    SDL_RenderPresent(data->renderer);
-}
-
-void
 mode_editor(WindowData *data)
 {
     int loop = 1;
     char *clipboard = NULL;
     Color color = Black;
-    Piece piece = BlackPawn;
+    data->piece = BlackPawn;
     Square sq;
     int replace = 0;
     SDL_Event event;
@@ -256,20 +247,11 @@ mode_editor(WindowData *data)
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.edit_status);
     data->draw_render(data);
-    editor_draw(data, piece);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
-            handle_global_events(&event, data, &loop, 0);
+            handle_global_events(&event, data, &loop, 1);
             handle_non_input_events(&event, data, &loop);
             switch (event.type) {
-            case SDL_WINDOWEVENT:
-                editor_draw(data, piece);
-                break;
-
-            case SDL_MOUSEMOTION:
-                editor_draw(data, piece);
-                break;
-
             case SDL_MOUSEBUTTONUP:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     sq = filerank2square(
@@ -280,9 +262,9 @@ mode_editor(WindowData *data)
                     if(!(sq & 0x88)){
                         board_square_set(
                                 &notation_move_get(&data->notation)->board, sq,
-                                piece);
+                                data->piece);
                         replace = 1;
-                        editor_draw(data, piece);
+                        data->draw_render(data);
                     }
                 }
 
@@ -297,7 +279,7 @@ mode_editor(WindowData *data)
                                 &notation_move_get(&data->notation)->board, sq,
                                 Empty);
                         replace = 1;
-                        editor_draw(data, piece);
+                        data->draw_render(data);
                     }
                 }
                 break;
@@ -307,13 +289,13 @@ mode_editor(WindowData *data)
                 case SDLK_s:
                     board_fen_import(&notation_move_get(&data->notation)->board,
                             FEN_DEFAULT);
-                    editor_draw(data, piece);
+                    data->draw_render(data);
                     replace = 1;
                     break;
 
                 case SDLK_c:
                     board_clear(&notation_move_get(&data->notation)->board);
-                    editor_draw(data, piece);
+                    data->draw_render(data);
                     replace = 1;
                     break;
 
@@ -322,7 +304,7 @@ mode_editor(WindowData *data)
                     if(str_is_fen(clipboard)){
                         board_fen_import(&notation_move_get(
                                     &data->notation)->board, clipboard);
-                        editor_draw(data, piece);
+                        data->draw_render(data);
                         replace = 1;
                     }
                     break;
@@ -335,52 +317,43 @@ mode_editor(WindowData *data)
 
                 case SDLK_r:
                     rotation_toggle(data);
-                    editor_draw(data, piece);
+                    data->draw_render(data);
                     break;
 
                 case SDLK_0:
                     color = !color;
-                    piece = piece + (color ? 6 : -6);
-                    editor_draw(data, piece);
+                    data->piece = data->piece + (color ? 6 : -6);
+                    data->draw_render(data);
                     break;
 
                 case SDLK_1:
-                    piece = 1 + color * 6;
-                    editor_draw(data, piece);
+                    data->piece = 1 + color * 6;
+                    data->draw_render(data);
                     break;
 
                 case SDLK_2:
-                    piece = 2 + color * 6;
-                    editor_draw(data, piece);
+                    data->piece = 2 + color * 6;
+                    data->draw_render(data);
                     break;
 
                 case SDLK_3:
-                    piece = 3 + color * 6;
-                    editor_draw(data, piece);
+                    data->piece = 3 + color * 6;
+                    data->draw_render(data);
                     break;
 
                 case SDLK_4:
-                    piece = 4 + color * 6;
-                    editor_draw(data, piece);
+                    data->piece = 4 + color * 6;
+                    data->draw_render(data);
                     break;
 
                 case SDLK_5:
-                    piece = 5 + color * 6;
-                    editor_draw(data, piece);
+                    data->piece = 5 + color * 6;
+                    data->draw_render(data);
                     break;
 
                 case SDLK_6:
-                    piece = 6 + color * 6;
-                    editor_draw(data, piece);
-                    break;
-                }
-                break;
-
-            case SDL_TEXTINPUT:
-                switch(event.text.text[0]){
-                case 'z':
-                case 'Z':
-                    editor_draw(data, piece);
+                    data->piece = 6 + color * 6;
+                    data->draw_render(data);
                     break;
                 }
                 break;
@@ -394,15 +367,8 @@ mode_editor(WindowData *data)
         machine_position(&data->notation);
         snprintf(data->number, data->conf.number_len, "a");
     }
+    data->piece = Empty;
     data->draw_render(data);
-}
-
-void
-drag_draw(WindowData *data, int piece)
-{
-    data->draw(data);
-    piece_mouse_position(data, piece);
-    SDL_RenderPresent(data->renderer);
 }
 
 void
@@ -464,7 +430,7 @@ void
 mode_training(WindowData *data)
 {
     Square src, dst;
-    Piece prom_piece, piece;
+    Piece prom_piece;
     Status status;
     SDL_Event event;
 
@@ -486,11 +452,6 @@ mode_training(WindowData *data)
             handle_input_events(&event, data, &loop, &pos, data->status.info,
                     data->conf.status_max_len);
             switch (event.type) {
-            case SDL_MOUSEMOTION:
-                if(cb_drag)
-                    drag_draw(data, piece);
-                break;
-
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     cb_hidden = filerank2square(
@@ -498,19 +459,15 @@ mode_training(WindowData *data)
                                 data->layout.square.w)),
                             rotation_convert(data, (data->mouse.y /
                                     data->layout.square.w)));
-                    piece = cb_hidden & 0x88 ? 0
+                    data->piece = cb_hidden & 0x88 ? 0
                         : notation_move_get(
                                 &data->notation)->board.position[cb_hidden];
-                    if (piece) {
-                        if (!cb_drag)
-                            cb_drag = 1;
-                    }
                 }
                 break;
 
             case SDL_MOUSEBUTTONUP:
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                    if (cb_drag) {
+                    if(data->piece != Empty){
                         dst = filerank2square(
                                 rotation_convert(data, (data->mouse.x /
                                     data->layout.square.w)),
@@ -526,8 +483,7 @@ mode_training(WindowData *data)
                             cb_hidden = none;
                         }
                     }
-                    cb_drag = 0;
-                    piece = 0;
+                    data->piece = Empty;
                     data->draw_render(data);
                 }
                 break;

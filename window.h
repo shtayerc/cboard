@@ -100,6 +100,7 @@ struct WindowData {
     Rotation rotation;
     int message;
     unsigned int message_timestamp;
+    Piece piece;
     void (*draw)(WindowData *);
     void (*draw_render)(WindowData *);
 };
