@@ -27,6 +27,12 @@ handle_global_events(SDL_Event *event, WindowData *data, int *loop, int draw)
     case SDL_KEYUP:
         message_clear(data, event);
         break;
+
+    case SDL_USEREVENT:
+        machine_line_parse(event->user.code);
+        if(draw)
+            data->draw_render(data);
+        break;
     }
 }
 

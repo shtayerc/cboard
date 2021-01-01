@@ -500,11 +500,6 @@ main(int argc, char *argv[])
                     break;
                 }
                 break;
-
-            case SDL_USEREVENT:
-                machine_line_parse(event.user.code);
-                draw_render(&data);
-                break;
             }
         }
     }

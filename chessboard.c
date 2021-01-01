@@ -190,6 +190,7 @@ promotion_draw(WindowData *data, Square sq, Color color)
 int
 mode_promotion(WindowData *data, Color color)
 {
+    data->piece = Empty;
     int piece;
     int loop = 1;
     int dst = filerank2square(
@@ -227,6 +228,11 @@ mode_promotion(WindowData *data, Color color)
                     cb_hidden = none;
                     break;
                 }
+                break;
+
+            case SDL_USEREVENT:
+                promotion_draw(data, dst, color);
+                break;
             }
         }
     }
@@ -246,6 +252,8 @@ mode_editor(WindowData *data)
     Board b;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.edit_status);
+    machine_stop(0);
+    machine_stop(1);
     data->draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
