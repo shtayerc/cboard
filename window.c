@@ -163,3 +163,27 @@ window_resize(WindowData *data, int width, int height)
     data->layout.notation.w = width - data->layout.notation.x;
     data->layout.notation.h = height - data->layout.status.h;
 }
+
+void
+draw(WindowData *data)
+{
+    background_draw(data);
+    foreground_draw(data);
+    if(data->game_list_show)
+        game_list_draw(data);
+    else
+        notation_draw(data);
+    if(data->piece != Empty)
+        piece_mouse_position(data);
+
+    status_draw(data);
+    machine_draw(data);
+}
+
+void
+draw_render(WindowData *data)
+{
+    draw(data);
+    SDL_RenderPresent(data->renderer);
+}
+

@@ -182,7 +182,7 @@ promotion_selected_piece(WindowData *data, Square sq, Color color)
 void
 promotion_draw(WindowData *data, Square sq, Color color)
 {
-    data->draw(data);
+    draw(data);
     promotion_selection_draw(data, sq, color);
     SDL_RenderPresent(data->renderer);
 }
@@ -254,7 +254,7 @@ mode_editor(WindowData *data)
             data->conf.edit_status);
     machine_stop(0);
     machine_stop(1);
-    data->draw_render(data);
+    draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -272,7 +272,7 @@ mode_editor(WindowData *data)
                                 &notation_move_get(&data->notation)->board, sq,
                                 data->piece);
                         replace = 1;
-                        data->draw_render(data);
+                        draw_render(data);
                     }
                 }
 
@@ -287,7 +287,7 @@ mode_editor(WindowData *data)
                                 &notation_move_get(&data->notation)->board, sq,
                                 Empty);
                         replace = 1;
-                        data->draw_render(data);
+                        draw_render(data);
                     }
                 }
                 break;
@@ -297,13 +297,13 @@ mode_editor(WindowData *data)
                 case SDLK_s:
                     board_fen_import(&notation_move_get(&data->notation)->board,
                             FEN_DEFAULT);
-                    data->draw_render(data);
+                    draw_render(data);
                     replace = 1;
                     break;
 
                 case SDLK_c:
                     board_clear(&notation_move_get(&data->notation)->board);
-                    data->draw_render(data);
+                    draw_render(data);
                     replace = 1;
                     break;
 
@@ -312,7 +312,7 @@ mode_editor(WindowData *data)
                     if(str_is_fen(clipboard)){
                         board_fen_import(&notation_move_get(
                                     &data->notation)->board, clipboard);
-                        data->draw_render(data);
+                        draw_render(data);
                         replace = 1;
                     }
                     break;
@@ -326,37 +326,37 @@ mode_editor(WindowData *data)
                 case SDLK_0:
                     color = !color;
                     data->piece = data->piece + (color ? 6 : -6);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_1:
                     data->piece = 1 + color * 6;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_2:
                     data->piece = 2 + color * 6;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_3:
                     data->piece = 3 + color * 6;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_4:
                     data->piece = 4 + color * 6;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_5:
                     data->piece = 5 + color * 6;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_6:
                     data->piece = 6 + color * 6;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
@@ -371,7 +371,7 @@ mode_editor(WindowData *data)
         snprintf(data->number, data->conf.number_len, "a");
     }
     data->piece = Empty;
-    data->draw_render(data);
+    draw_render(data);
 }
 
 void
@@ -389,7 +389,7 @@ mode_san(WindowData *data)
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.san_status);
-    data->draw_render(data);
+    draw_render(data);
     while(loop){
         if(SDL_WaitEvent(&event)){
             handle_global_events(&event, data, &loop, 1);
@@ -400,7 +400,7 @@ mode_san(WindowData *data)
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     data->status.info[0] = '\0';
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_RETURN:
@@ -416,13 +416,13 @@ mode_san(WindowData *data)
                     pos = old_pos;
                     cursor_add(&pos, data->status.info,
                             data->conf.status_max_len, data);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
 
             case SDL_USEREVENT:
-                data->draw_render(data);
+                draw_render(data);
                 break;
             }
         }
@@ -448,7 +448,7 @@ mode_training(WindowData *data)
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.training_status);
-    data->draw_render(data);
+    draw_render(data);
     while(loop){
         if(SDL_WaitEvent(&event)){
             handle_global_events(&event, data, &loop, 1);
@@ -478,7 +478,7 @@ mode_training(WindowData *data)
                         }
                     }
                     data->piece = Empty;
-                    data->draw_render(data);
+                    draw_render(data);
                 }
                 break;
 
@@ -487,7 +487,7 @@ mode_training(WindowData *data)
                 case SDLK_ESCAPE:
                     data->status.info[0] = '\0';
                     data->notation_hidden = 0;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_RETURN:
@@ -501,7 +501,7 @@ mode_training(WindowData *data)
                         cb_hidden = none;
                         cursor_add(&pos, data->status.info,
                                 data->conf.status_max_len, data);
-                        data->draw_render(data);
+                        draw_render(data);
                         break;
                     }
                     status = notation_move_san_status(&data->notation,
@@ -520,13 +520,13 @@ mode_training(WindowData *data)
                     pos = old_pos;
                     cursor_add(&pos, data->status.info,
                             data->conf.status_max_len, data);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
 
             case SDL_USEREVENT:
-                data->draw_render(data);
+                draw_render(data);
                 break;
             }
         }

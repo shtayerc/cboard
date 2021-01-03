@@ -8,6 +8,8 @@
 #include "config.h"
 #include "machine.h"
 #include "notation.h"
+#include "status.h"
+#include "game_list.h"
 
 typedef struct {
     SDL_Rect board;
@@ -101,8 +103,6 @@ struct WindowData {
     int message;
     unsigned int message_timestamp;
     Piece piece;
-    void (*draw)(WindowData *);
-    void (*draw_render)(WindowData *);
 };
 
 int file_exists(const char *filename);
@@ -111,5 +111,7 @@ void window_data_init(WindowData *data);
 void window_open(WindowData *data);
 void window_data_free(WindowData *data);
 void window_resize(WindowData *data, int width, int height);
+void draw(WindowData *data);
+void draw_render(WindowData *data);
 
 #endif

@@ -22,29 +22,6 @@
 char fen[FEN_LEN];
 
 void
-draw(WindowData *data)
-{
-    background_draw(data);
-    foreground_draw(data);
-    if(data->game_list_show)
-        game_list_draw(data);
-    else
-        notation_draw(data);
-    if(data->piece != Empty)
-        piece_mouse_position(data);
-
-    status_draw(data);
-    machine_draw(data);
-}
-
-void
-draw_render(WindowData *data)
-{
-    draw(data);
-    SDL_RenderPresent(data->renderer);
-}
-
-void
 output_game(WindowData *data, char *type){
     if(!strcmp(type, "pgn")){
         pgn_write_file(stdout, &data->notation);
@@ -200,8 +177,6 @@ main(int argc, char *argv[])
 
     SDL_Event event;
     window_open(&data);
-    data.draw = &draw;
-    data.draw_render = &draw_render;
     window_resize(&data, data.conf.default_width, data.conf.default_height);
     snprintf(data.status.mode, data.conf.status_max_len, "%s",
             data.conf.normal_status);

@@ -13,14 +13,14 @@ handle_global_events(SDL_Event *event, WindowData *data, int *loop, int draw)
     case SDL_WINDOWEVENT:
         handle_resize(data, event);
         if(draw)
-            data->draw_render(data);
+            draw_render(data);
         break;
 
     case SDL_MOUSEMOTION:
         data->mouse.x = event->button.x;
         data->mouse.y = event->button.y;
         if(data->piece != Empty)
-            data->draw_render(data);
+            draw_render(data);
         break;
 
     case SDL_MOUSEBUTTONUP:
@@ -31,7 +31,7 @@ handle_global_events(SDL_Event *event, WindowData *data, int *loop, int draw)
     case SDL_USEREVENT:
         machine_line_parse(event->user.code);
         if(draw)
-            data->draw_render(data);
+            draw_render(data);
         break;
     }
 }
@@ -52,28 +52,28 @@ handle_input_events(SDL_Event *event, WindowData *data, int *loop, int *pos,
 
         case SDLK_BACKSPACE:
             textedit_backspace(pos, str, len, data);
-            data->draw_render(data);
+            draw_render(data);
             break;
 
         case SDLK_DELETE:
             textedit_delete(pos, str);
-            data->draw_render(data);
+            draw_render(data);
             break;
 
         case SDLK_LEFT:
             textedit_left(pos, str, len, data);
-            data->draw_render(data);
+            draw_render(data);
             break;
 
         case SDLK_RIGHT:
             textedit_right(pos, str, len, data);
-            data->draw_render(data);
+            draw_render(data);
             break;
 
         case SDLK_u:
             if(event->key.keysym.mod & KMOD_CTRL){
                 textedit_delete_all(pos, str, len, data);
-                data->draw_render(data);
+                draw_render(data);
             }
             break;
         }
@@ -81,7 +81,7 @@ handle_input_events(SDL_Event *event, WindowData *data, int *loop, int *pos,
 
     case SDL_TEXTINPUT:
         textedit_input(pos, str, len, data, event->text.text);
-        data->draw_render(data);
+        draw_render(data);
         break;
     }
 }
@@ -118,7 +118,7 @@ handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
         case SDLK_r:
             if(event->key.keysym.mod == KMOD_NONE){
                 rotation_toggle(data);
-                data->draw_render(data);
+                draw_render(data);
             }
             break;
         }
@@ -129,7 +129,7 @@ handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
         case 'z':
             data->conf.square_size += 10;
             window_resize(data, data->window_width, data->window_height);
-            data->draw_render(data);
+            draw_render(data);
             break;
 
         case 'Z':
@@ -137,7 +137,7 @@ handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
             if(data->conf.square_size < data->conf.minimal_square)
                 data->conf.square_size = data->conf.minimal_square;
             window_resize(data, data->window_width, data->window_height);
-            data->draw_render(data);
+            draw_render(data);
             break;
         }
         break;

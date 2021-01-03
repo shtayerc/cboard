@@ -12,7 +12,7 @@ mode_filename_edit(WindowData *data)
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.filename_status);
     cursor_add(&pos, data->filename, data->conf.status_max_len, data);
-    data->draw_render(data);
+    draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -33,7 +33,7 @@ mode_filename_edit(WindowData *data)
                         else
                             data->rotation = RotationWhite;
                     }
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
@@ -54,7 +54,7 @@ mode_number_edit(WindowData *data)
     snprintf(data->status.mode, data->conf.status_max_len,
             "%s", data->conf.number_status);
     cursor_add(&pos, data->number, data->conf.number_len, data);
-    data->draw_render(data);
+    draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -73,7 +73,7 @@ mode_number_edit(WindowData *data)
                         snprintf(data->number, data->conf.number_len, "%s",
                                 last);
                     }
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
@@ -84,7 +84,7 @@ mode_number_edit(WindowData *data)
                          && event.text.text[0] == 'a')){
                     textedit_input(&pos, data->number, data->conf.number_len,
                             data, event.text.text);
-                    data->draw_render(data);
+                    draw_render(data);
                 }
                 break;
             }

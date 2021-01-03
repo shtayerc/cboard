@@ -10,7 +10,7 @@ mode_game_search(WindowData *data)
     data->message = 0;
     data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
-    data->draw_render(data);
+    draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -24,7 +24,7 @@ mode_game_search(WindowData *data)
                 case SDLK_ESCAPE:
                     loop = 0;
                     data->status.info[0] = '\0';
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_RETURN:
@@ -35,7 +35,7 @@ mode_game_search(WindowData *data)
                     data->game_list_current = 0;
                     loop = 0;
                     data->status.info[0] = '\0';
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
@@ -58,7 +58,7 @@ mode_game_list(WindowData *data)
             data->conf.game_list_status);
     machine_stop(0);
     machine_stop(1);
-    data->draw_render(data);
+    draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -72,7 +72,7 @@ mode_game_list(WindowData *data)
                     data->game_list_show = 0;
                     snprintf(data->status.mode, data->conf.status_max_len,
                             "%s", data->conf.normal_status);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_DOWN:
@@ -80,17 +80,17 @@ mode_game_list(WindowData *data)
                     if(data->game_list_current+1 < data->game_list.count){
                         data->game_list_current++;
                     }
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_PAGEUP:
                     data->game_list_scroll += data->conf.scroll_step;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_PAGEDOWN:
                     data->game_list_scroll -= data->conf.scroll_step;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_UP:
@@ -98,7 +98,7 @@ mode_game_list(WindowData *data)
                     if(data->game_list_current-1 >= 0){
                         data->game_list_current--;
                     }
-                    data->draw_render(data);
+                    draw_render(data);
 
                 case SDLK_LEFT:
                     break;
@@ -117,7 +117,7 @@ mode_game_list(WindowData *data)
                         game_list_reverse(&data->game_list);
                     fclose(f);
                     data->game_list_current = 0;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_p:
@@ -127,7 +127,7 @@ mode_game_list(WindowData *data)
                     data->game_list = new_gl;
                     data->game_list_current = 0;
                     fclose(f);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_c:
@@ -137,7 +137,7 @@ mode_game_list(WindowData *data)
                     index = data->game_list_current;
                     comment = strdup(data->game_list.list[index].title);
                     notation_move_get(&data->notation)->comment = comment;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
 
@@ -153,7 +153,7 @@ mode_game_list(WindowData *data)
                     data->game_list_show = 0;
                     snprintf(data->status.mode, data->conf.status_max_len,
                             "%s", data->conf.normal_status);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
 

@@ -35,7 +35,7 @@ message_add(WindowData *data, SDL_Event *event, char *msg)
     snprintf(data->status.info, data->conf.status_max_len, "%s", msg);
     data->message = 1;
     data->message_timestamp = SDL_Event_timestamp(event);
-    data->draw_render(data);
+    draw_render(data);
 }
 
 void
@@ -45,6 +45,6 @@ message_clear(WindowData*data, SDL_Event *event)
     if(data->message == 1 && abs(diff) > data->conf.message_duration){
         data->status.info[0] = '\0';
         data->message = 0;
-        data->draw_render(data);
+        draw_render(data);
     }
 }

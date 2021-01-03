@@ -221,7 +221,7 @@ mode_annotate(WindowData *data, Move *move)
     cursor_add(&pos, move->comment, COMMENT_LEN, data);
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.annotate_status);
-    data->draw_render(data);
+    draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -235,7 +235,7 @@ mode_annotate(WindowData *data, Move *move)
                         free(move->comment);
                         move->comment = NULL;
                     }
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
@@ -251,7 +251,7 @@ mode_move(WindowData *data)
     SDL_Event event;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.move_annotation_status);
-    data->draw_render(data);
+    draw_render(data);
     while(loop){
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -266,13 +266,13 @@ mode_move(WindowData *data)
                 case SDLK_j:
                 case SDLK_DOWN:
                     nag_move_next(&data->notation);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_k:
                 case SDLK_UP:
                     nag_move_prev(&data->notation);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_x:
@@ -286,7 +286,7 @@ mode_move(WindowData *data)
     }
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.normal_status);
-    data->draw_render(data);
+    draw_render(data);
 }
 
 void
@@ -296,7 +296,7 @@ mode_position(WindowData *data)
     SDL_Event event;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.position_annotation_status);
-    data->draw_render(data);
+    draw_render(data);
     while(loop){
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -311,13 +311,13 @@ mode_position(WindowData *data)
                 case SDLK_j:
                 case SDLK_DOWN:
                     nag_position_next(&data->notation);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_k:
                 case SDLK_UP:
                     nag_position_prev(&data->notation);
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_x:
@@ -331,7 +331,7 @@ mode_position(WindowData *data)
     }
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.normal_status);
-    data->draw_render(data);
+    draw_render(data);
 }
 
 void
@@ -342,7 +342,7 @@ mode_tag_edit(WindowData *data, Tag *tag)
     int pos = U8_strlen(tag->value);
     data->notation_scroll = 0;
     cursor_add(&pos, tag->value, TAG_LEN, data);
-    data->draw_render(data);
+    draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -361,7 +361,7 @@ mode_tag_edit(WindowData *data, Tag *tag)
                             && strcmp(tag->key, "Result"))
                         notation_tag_remove(&data->notation, tag->key);
                     data->status.info[0] = '\0';
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
                 }
                 break;
@@ -382,7 +382,7 @@ mode_tag(WindowData *data)
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.tag_status);
-    data->draw_render(data);
+    draw_render(data);
     while(loop){
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -393,7 +393,7 @@ mode_tag(WindowData *data)
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     data->status.info[0] = '\0';
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 case SDLK_RETURN:
@@ -424,7 +424,7 @@ mode_clipboard(WindowData *data)
     SDL_Event event;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.clipboard_status);
-    data->draw_render(data);
+    draw_render(data);
     while(loop){
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
@@ -449,7 +449,7 @@ mode_clipboard(WindowData *data)
                     snprintf(data->status.mode, data->conf.status_max_len,
                             "%s", data->conf.normal_status);
                     loop = 0;
-                    data->draw_render(data);
+                    draw_render(data);
                     break;
 
                 }
