@@ -132,6 +132,8 @@ Main mode, other modes are entered from here.
   Read reversed game list from file.
 * **R**  
   Read game list from file.
+* **p**  
+  Search current position.
 * **j, Arrow Down**  
   Move to next game.
 * **k, Arrow Up**  
@@ -173,6 +175,8 @@ Presed keys are inserted as text.
   Insert current piece at clicked square.
 * **Mouse Click Right**  
   Clear piece at clicked square.
+* **q**  
+  Quit.
 * **c**  
   Clear board.
 * **s**  
@@ -245,6 +249,10 @@ Training can be restarted with "Restart" value.
 
 Move annotation.
 
+* **q**  
+  Quit.
+* **r**  
+  Rotate chessboard.
 * **j, Arrow Down**  
   Select next move NAG.
 * **k, Arrow Up**  
@@ -260,6 +268,10 @@ Move annotation.
 
 Position annotation.
 
+* **q**  
+  Quit.
+* **r**  
+  Rotate chessboard.
 * **j, Arrow Down**  
   Select next position NAG.
 * **k, Arrow Up**  
@@ -293,6 +305,7 @@ TEXTINPUT mode. Comment is inserted after/before current move.
 
 Configuration is done by line separated key=value.
 Lines starting with # are skipped.
+Example config is located in /usr/share/cboard/config.
 
 * **machine_1_exe, machine_2_exe**  
   Absolute path to engine executable.
