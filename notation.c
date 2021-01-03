@@ -574,3 +574,11 @@ notation_focus_current_move(WindowData *data)
         data->notation_scroll -= nt_move_coords[index].y;
     }
 }
+
+Square
+chessboard_mouse_square(WindowData *data)
+{
+    return filerank2square(
+            rotation_convert(data, (data->mouse.x / data->layout.square.w)),
+            rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+}

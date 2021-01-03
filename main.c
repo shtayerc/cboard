@@ -216,11 +216,7 @@ main(int argc, char *argv[])
             switch (event.type) {
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                    cb_hidden = filerank2square(
-                            rotation_convert(&data, (data.mouse.x /
-                                data.layout.square.w)),
-                            rotation_convert(&data, (data.mouse.y /
-                                    data.layout.square.w)));
+                    cb_hidden = chessboard_mouse_square(&data);
                     data.piece = cb_hidden & 0x88 ? 0
                         : notation_move_get(
                                 &data.notation)->board.position[cb_hidden];
@@ -230,11 +226,7 @@ main(int argc, char *argv[])
             case SDL_MOUSEBUTTONUP:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     if(data.piece != Empty){
-                        square_dst = filerank2square(
-                                rotation_convert(&data, (data.mouse.x /
-                                    data.layout.square.w)),
-                                rotation_convert(&data, (data.mouse.y /
-                                        data.layout.square.w)));
+                        square_dst = chessboard_mouse_square(&data);
                         status = notation_move_status(&data.notation, cb_hidden,
                                 square_dst, Empty);
                         switch(status) {

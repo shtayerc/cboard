@@ -48,5 +48,6 @@ void redo_add(WindowData *data);
 void redo_do(WindowData *data);
 void undo_free(Notation *list[]);
 void notation_focus_current_move(WindowData *data);
+Square chessboard_mouse_square(WindowData *data);
 
 #endif
