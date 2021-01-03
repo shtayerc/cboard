@@ -1,7 +1,7 @@
 /*
-chess_utils v0.6.1
+chess_utils v0.6.2
 
-Copyright (c) 2020 David Murko
+Copyright (c) 2021 David Murko
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -369,11 +369,11 @@ void variation_delete_next_moves(Variation *v);
 void variation_move_add(Variation *v, Square src, Square dst, Piece prom_piece,
         Board *b, const char *san);
 
-//v->move_current is increased for 1 if lower than v->move_count
-void variation_move_next(Variation *v);
+//returns 1 if v->move_current is increased for 1
+int variation_move_next(Variation *v);
 
-//v->move_current is decreased for 1 if higher than 0
-void variation_move_prev(Variation *v);
+//returns 1 if v->move_current is decreased for 1
+int variation_move_prev(Variation *v);
 
 //returns index of move in prev which is parent of v if not found returns -1
 int variation_index_find(Variation *v, Variation *prev);
@@ -445,8 +445,8 @@ Move * notation_move_get(Notation *n);
 //returns index of current move in current line
 int notation_move_index_get(Notation *n);
 
-//index of current move is set in current line
-void notation_move_index_set(Notation *n, int index);
+//index of current move is set in current line - returns 1 if index is changed
+int notation_move_index_set(Notation *n, int index);
 
 //returns Status of given move at current move in Notation
 Status notation_move_status(Notation *n, Square src, Square dst,
@@ -2005,18 +2005,22 @@ variation_move_add(Variation *v, Square src, Square dst, Piece prom_piece,
     snprintf(v->move_list[v->move_current].san, SAN_LEN, "%s", san);
 }
 
-void
+int
 variation_move_next(Variation *v)
 {
-    if(v->move_current + 1 < v->move_count)
-        v->move_current++;
+    if(v->move_current + 1 >= v->move_count)
+        return 0;
+    v->move_current++;
+    return 1;
 }
 
-void
+int
 variation_move_prev(Variation *v)
 {
-    if(v->move_current > 0)
-        v->move_current--;
+    if(v->move_current <= 0)
+        return 0;
+    v->move_current--;
+    return 1;
 }
 
 int
@@ -2239,10 +2243,12 @@ notation_move_index_get(Notation *n)
     return n->line_current->move_current;
 }
 
-void
+int
 notation_move_index_set(Notation *n, int index)
 {
+    int old = n->line_current->move_current;
     n->line_current->move_current = index;
+    return old != index;
 }
 
 Status

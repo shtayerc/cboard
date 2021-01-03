@@ -287,10 +287,12 @@ main(int argc, char *argv[])
                 case SDLK_l:
                 case SDLK_RIGHT:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        notation_move_index_set(&data.notation,
-                                data.notation.line_current->move_count-1);
+                        if(!notation_move_index_set(&data.notation,
+                                data.notation.line_current->move_count-1))
+                            break;
                     }else{
-                        variation_move_next(data.notation.line_current);
+                        if(!variation_move_next(data.notation.line_current))
+                            break;
                     }
                     notation_focus_current_move(&data);
                     machine_position(&data.notation);
@@ -301,8 +303,9 @@ main(int argc, char *argv[])
                 case SDLK_h:
                 case SDLK_LEFT:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        notation_move_index_set(&data.notation,
-                                !notation_line_is_main(&data.notation));
+                        if(!notation_move_index_set(&data.notation,
+                                !notation_line_is_main(&data.notation)))
+                            break;
                     }else{
                         if(notation_move_index_get(&data.notation) == 1
                                 && !notation_line_is_main(&data.notation)){
@@ -314,7 +317,8 @@ main(int argc, char *argv[])
                                 data.notation.line_current->move_current = tmp;
                         }
                         else{
-                            variation_move_prev(data.notation.line_current);
+                            if(!variation_move_prev(data.notation.line_current))
+                                break;
                         }
                     }
                     notation_focus_current_move(&data);
@@ -331,13 +335,14 @@ main(int argc, char *argv[])
                         tmp = move_variation_find(variation_move_get(
                                     data.notation.line_current->prev),
                                 data.notation.line_current);
-                        if(tmp != -1 && tmp - 1 >= 0){
-                            data.notation.line_current = variation_move_get(
-                                    data.notation.line_current->prev)->variation_list[tmp-1];
-                            data.notation.line_current->move_current = 1;
-                        }
-                    }else if(!notation_line_is_main(&data.notation)){
-
+                        if(tmp == -1 || tmp < 1)
+                            break;
+                        data.notation.line_current = variation_move_get(
+                                data.notation.line_current->prev)->variation_list[tmp-1];
+                        data.notation.line_current->move_current = 1;
+                    }else{
+                        if(notation_line_is_main(&data.notation))
+                            break;
                         tmp = variation_index_find(data.notation.line_current,
                                 data.notation.line_current->prev);
                         data.notation.line_current = data.notation.line_current->prev;
@@ -358,14 +363,17 @@ main(int argc, char *argv[])
                         tmp = move_variation_find(variation_move_get(
                                     data.notation.line_current->prev),
                                 data.notation.line_current);
-                        if(tmp != -1 && tmp +1 < variation_move_get(
+                        if(tmp == -1 || tmp + 1 >= variation_move_get(
                                     data.notation.line_current->prev)->variation_count){
+                            break;
+                        }
                             data.notation.line_current = variation_move_get(
                                     data.notation.line_current->prev)->variation_list[tmp+1];
                             data.notation.line_current->move_current = 1;
-                        }
-                    }else if(notation_move_get(
-                                &data.notation)->variation_count > 0){
+                    }else{
+                        if(notation_move_get(
+                                &data.notation)->variation_count == 0)
+                            break;
                         data.notation.line_current = notation_move_get(
                                 &data.notation)->variation_list[0];
                         data.notation.line_current->move_current = 1;
