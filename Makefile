@@ -10,12 +10,12 @@ LIBS=-lSDL2 -lSDL2_image -lSDL2_ttf
 FLAGS=-Wextra -Wall -Wformat-security -Wno-format-truncation
 
 OBJECTS=$(FILES:.c=.o)
-all:
+cboard: $(FILES) *.h
 	$(CC) $(FLAGS) -c $(FILES) -DPREFIX=\"$(PREFIX)\"
 	$(CC) -o $(EXE) $(OBJECTS) $(LIBS)
 
 debug: FLAGS += -g
-debug: all
+debug: cboard
 
 clean:
 	rm -f $(EXE) $(OBJECTS)
@@ -24,7 +24,7 @@ check: debug
 check:
 	valgrind -q --leak-check=full --track-origins=yes ./$(EXE)
 
-install: all
+install: cboard
 install:
 	mkdir -m 755 -p $(DESTDIR)$(SHAREDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
 	install -m 755 cboard $(DESTDIR)$(BINDIR)/cboard
