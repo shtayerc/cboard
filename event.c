@@ -29,7 +29,6 @@ handle_global_events(SDL_Event *event, WindowData *data, int *loop, int draw)
         break;
 
     case SDL_USEREVENT:
-        machine_line_parse(event->user.code);
         if(draw)
             draw_render(data);
         break;

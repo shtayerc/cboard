@@ -55,6 +55,7 @@ machine_control(void *data)
         read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
         if(strstr(mc->output, "multipv") == NULL)
             continue;
+        machine_line_parse(md->index);
         push_user_event(md->index);
     }
     free(md);
