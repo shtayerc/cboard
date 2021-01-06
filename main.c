@@ -412,8 +412,8 @@ main(int argc, char *argv[])
                         variation_delete_next_moves(data.notation.line_current);
                     }else{
                         notation_variation_delete(&data.notation);
+                        machine_position(&data.notation);
                     }
-                    machine_position(&data.notation);
                     cb_hidden = none;
                     draw_render(&data);
                     break;
