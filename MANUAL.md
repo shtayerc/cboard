@@ -33,7 +33,7 @@ Current mode is shown in lower left corner. See **MODES**
   Output format (default none). Supported formats are: FEN, PGN.
 * **-p, --pieces _dir_**  
   Path to directory containing images of pieces, named with lowercase first
-  character of color and piece. Example: black biship = bb.png
+  character of color and piece. Example: black bishop = bb.png
 * **-v, --version**  
   Prints version.
 
@@ -101,7 +101,7 @@ Main mode, other modes are entered from here.
 * **u**  
   Undo last destructive operation.
 * **Ctrl-r**  
-  Redo last destuctive operation.
+  Redo last destructive operation.
 * **z**  
   Increase size of chessboard.
 * **Z**  
@@ -151,7 +151,7 @@ Main mode, other modes are entered from here.
 
 ### TEXTINPUT
 
-Presed keys are inserted as text.
+Pressed keys are inserted as text.
 
 * **Escape**  
   Return to previous mode.
@@ -226,12 +226,12 @@ It is TEXINPUT mode. Correct SAN moves are accepted and played.
 
 ### TAG
 
-TEXTINPUT mode. First tag name is inputed.
-If it already exists, it will be editer - otherwise new tag is created.
+TEXTINPUT mode. First the tag name is inputted.
+If it already exists, it will be edited - otherwise new tag is created.
 
 * **Return**  
   Confirm tag name. And enter TEXTINPUT mode for editing tags.
-  Tag will be removed it its value is empty string (exept for required 7 tags).
+  Tag will be removed it its value is empty string (except for required 7 tags).
 
 <a name="training"></a>
 
