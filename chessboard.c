@@ -458,7 +458,7 @@ mode_training(WindowData *data)
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     cb_hidden = chessboard_mouse_square(data);
-                    data->piece = cb_hidden & 0x88 ? 0
+                    data->piece = cb_hidden & 0x88 ? Empty
                         : notation_move_get(
                                 &data->notation)->board.position[cb_hidden];
                 }
@@ -598,7 +598,15 @@ chessboard_move_do(WindowData *data, Square src, Square dst,
 Square
 chessboard_mouse_square(WindowData *data)
 {
+    if(!chessboard_mouse_is_inside(data))
+        return none;
+
     return filerank2square(
             rotation_convert(data, (data->mouse.x / data->layout.square.w)),
             rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+}
+
+int chessboard_mouse_is_inside(WindowData *data)
+{
+    return (SDL_PointInRect(&data->mouse, &data->layout.board) == SDL_TRUE);
 }

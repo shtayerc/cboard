@@ -38,7 +38,7 @@ mode_normal(WindowData *data)
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     cb_hidden = chessboard_mouse_square(data);
-                    data->piece = cb_hidden & 0x88 ? 0
+                    data->piece = cb_hidden & 0x88 ? Empty
                         : notation_move_get(
                                 &data->notation)->board.position[cb_hidden];
                 }
@@ -48,8 +48,9 @@ mode_normal(WindowData *data)
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     if(data->piece != Empty){
                         square_dst = chessboard_mouse_square(data);
-                        status = notation_move_status(&data->notation, cb_hidden,
-                                square_dst, Empty);
+                        status = square_dst != none ?
+                            notation_move_status(&data->notation, cb_hidden,
+                                    square_dst, Empty) : Invalid;
                         switch(status) {
                         case Invalid:
                             cb_hidden = none;
