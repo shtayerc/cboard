@@ -80,6 +80,7 @@ mode_game_list(WindowData *data)
                     if(data->game_list_current+1 < data->game_list.count){
                         data->game_list_current++;
                     }
+                    game_list_focus_current_game(data);
                     draw_render(data);
                     break;
 
@@ -98,6 +99,7 @@ mode_game_list(WindowData *data)
                     if(data->game_list_current-1 >= 0){
                         data->game_list_current--;
                     }
+                    game_list_focus_current_game(data);
                     draw_render(data);
 
                 case SDLK_LEFT:
@@ -221,5 +223,21 @@ game_list_reverse(GameList *gl)
         gl->list[end] = tmp;
         start++;
         end--;
+    }
+}
+
+void
+game_list_focus_current_game(WindowData *data)
+{
+    int y = data->layout.notation.y + NOTATION_PADDING_TOP
+        + data->game_list_scroll;
+    y += data->font_height * data->game_list_current;
+    int top = data->layout.notation.y + NOTATION_PADDING_TOP;
+    int bot = data->layout.notation.y + data->layout.notation.h;
+    if(y + data->font_height > bot){
+        data->game_list_scroll -= y - bot;
+        data->game_list_scroll -= data->font_height;
+    }else if(y < top){
+        data->game_list_scroll -= y - NOTATION_PADDING_TOP;
     }
 }
