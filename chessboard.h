@@ -37,5 +37,6 @@ void chessboard_focus_present(WindowData *data, Square src, Square dst,
 void chessboard_focus_random(WindowData *data);
 void chessboard_move_do(WindowData *data, Square src, Square dst,
         Piece prom_piece, Status status);
+Square chessboard_mouse_square(WindowData *data);
 
 #endif

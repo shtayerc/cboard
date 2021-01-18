@@ -595,3 +595,10 @@ chessboard_move_do(WindowData *data, Square src, Square dst,
     machine_position(&data->notation);
 }
 
+Square
+chessboard_mouse_square(WindowData *data)
+{
+    return filerank2square(
+            rotation_convert(data, (data->mouse.x / data->layout.square.w)),
+            rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+}
