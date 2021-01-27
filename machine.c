@@ -12,7 +12,23 @@ push_user_event(int index)
 }
 
 int
-machine_control(void *data)
+machine_read(void *data)
+{
+    MachineData *md = (MachineData*)data;
+    Machine *mc = &machine_list[md->index];
+
+    while(mc->running){
+        read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
+        if(strstr(mc->output, "multipv") == NULL)
+            continue;
+        machine_line_parse(md->index);
+        push_user_event(md->index);
+    }
+    return 1;
+}
+
+int
+machine_write(void *data)
 {
     MachineData *md = (MachineData*)data;
     Machine *mc = &machine_list[md->index];
@@ -39,12 +55,16 @@ machine_control(void *data)
             write(mc->fd_input[1], "\n", 1);
         }
     }
+
     board_fen_import(&mc->board, mc->fen);
     machine_line_init(mc, &mc->board);
-    write(mc->fd_input[1], "go infinite\n", 12);
     mc->running = 1;
+    SDL_Thread * thread = SDL_CreateThread(machine_read, NULL,
+            (void*)md);
+    SDL_DetachThread(thread);
     while(mc->running){
-        if(strcmp(fen, mc->fen)){
+        if(strcmp(fen, mc->fen) && mc->fen_changed){
+            mc->fen_changed = 0;
             snprintf(fen, FEN_LEN, "%s", mc->fen);
             write(mc->fd_input[1], "stop\n", 5);
             board_fen_import(&mc->board, mc->fen);
@@ -52,13 +72,8 @@ machine_control(void *data)
             write(mc->fd_input[1], fen, strlen(fen));
             write(mc->fd_input[1], "\ngo infinite\n", 13);
         }
-        read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
-        if(strstr(mc->output, "multipv") == NULL)
-            continue;
-        machine_line_parse(md->index);
-        push_user_event(md->index);
+        sleep(0.4);
     }
-    free(md);
     return 1;
 }
 
@@ -68,6 +83,7 @@ machine_start(WindowData *data, int index)
     Machine *mc = &machine_list[index];
     if(mc->running)
         return;
+    mc->fen_changed = 1;
     machine_config_free(data);
     machine_config_load(data);
     machine_set_line_count(data, index);
@@ -85,10 +101,10 @@ machine_start(WindowData *data, int index)
                 data->conf.machine_cmd_list[index]);
         exit(0);
     }else{
-        MachineData *md = malloc(sizeof(MachineData));
+        MachineData *md = &mc->md;
         md->index = index;
         md->data = data;
-        SDL_Thread * thread = SDL_CreateThread(machine_control, NULL,
+        SDL_Thread * thread = SDL_CreateThread(machine_write, NULL,
                 (void*)md);
         SDL_DetachThread(thread);
     }
@@ -176,6 +192,10 @@ machine_position(Notation *n)
             machine_list[i].type[j] = Centipawn;
             machine_list[i].score[j] = 0;
         }
+    }
+
+    for(i = 0; i < MACHINE_COUNT; i++){
+        machine_list[i].fen_changed = 1;
     }
 }
 

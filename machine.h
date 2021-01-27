@@ -11,6 +11,11 @@
 typedef struct WindowData WindowData;
 
 typedef struct{
+    int index;
+    WindowData *data;
+} MachineData;
+
+typedef struct{
     char output[MACHINE_OUTPUT_LEN];
     int running;
     Variation *line;
@@ -23,17 +28,15 @@ typedef struct{
     int fd_output[2];
     int pid;
     Board board;
+    MachineData md;
+    int fen_changed;
 } Machine;
-
-typedef struct{
-    int index;
-    WindowData *data;
-} MachineData;
 
 extern Machine machine_list[2];
 
 void push_user_event(int index);
-int machine_control(void *data);
+int machine_read(void *data);
+int machine_write(void *data);
 void machine_start(WindowData *data, int index);
 void machine_stop(int index);
 void machine_draw(WindowData *data);
