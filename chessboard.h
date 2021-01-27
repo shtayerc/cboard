@@ -13,7 +13,7 @@ enum { TextureBlackPawn, TextureBlackKnight, TextureBlackBishop,
 
 extern Square cb_hidden;
 
-SDL_Texture *cb_piece_texture[12];
+extern SDL_Texture *cb_piece_texture[12];
 void piece_load(WindowData *data);
 void piece_unload();
 void piece_draw(WindowData *data, int file, int rank,
