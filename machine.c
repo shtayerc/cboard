@@ -18,7 +18,7 @@ machine_read(void *data)
     Machine *mc = &machine_list[md->index];
 
     while(mc->running){
-        read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
+        read(mc->fd_output, mc->output, MACHINE_OUTPUT_LEN);
         if(strstr(mc->output, "multipv") == NULL)
             continue;
         machine_line_parse(md->index);
@@ -37,22 +37,22 @@ machine_write(void *data)
     int i;
     fen[0] = '\0';
 
-    write(mc->fd_input[1], "uci\n", 4);
-    read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
+    write(mc->fd_input, "uci\n", 4);
+    read(mc->fd_output, mc->output, MACHINE_OUTPUT_LEN);
     while(strstr(mc->output, "uciok") == NULL){
-        read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
+        read(mc->fd_output, mc->output, MACHINE_OUTPUT_LEN);
     }
 
-    write(mc->fd_input[1], "isready\n", 8);
-    read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
+    write(mc->fd_input, "isready\n", 8);
+    read(mc->fd_output, mc->output, MACHINE_OUTPUT_LEN);
     while(strstr(mc->output, "readyok") == NULL){
-        read(mc->fd_output[0], mc->output, MACHINE_OUTPUT_LEN);
+        read(mc->fd_output, mc->output, MACHINE_OUTPUT_LEN);
     }
 
     if(uci_list != NULL){
         for(i = 0; uci_list[i] != NULL; i++){
-            write(mc->fd_input[1], uci_list[i], strlen(uci_list[i]));
-            write(mc->fd_input[1], "\n", 1);
+            write(mc->fd_input, uci_list[i], strlen(uci_list[i]));
+            write(mc->fd_input, "\n", 1);
         }
     }
 
@@ -66,11 +66,11 @@ machine_write(void *data)
         if(strcmp(fen, mc->fen) && mc->fen_changed){
             mc->fen_changed = 0;
             snprintf(fen, FEN_LEN, "%s", mc->fen);
-            write(mc->fd_input[1], "stop\n", 5);
+            write(mc->fd_input, "stop\n", 5);
             board_fen_import(&mc->board, mc->fen);
-            write(mc->fd_input[1], "position fen ", 13);
-            write(mc->fd_input[1], fen, strlen(fen));
-            write(mc->fd_input[1], "\ngo infinite\n", 13);
+            write(mc->fd_input, "position fen ", 13);
+            write(mc->fd_input, fen, strlen(fen));
+            write(mc->fd_input, "\ngo infinite\n", 13);
         }
         sleep(0.4);
     }
@@ -88,15 +88,20 @@ machine_start(WindowData *data, int index)
     machine_config_load(data);
     machine_set_line_count(data, index);
     machine_resize(data, index);
-    pipe(mc->fd_input);
-    pipe(mc->fd_output);
+
+    int pipe_in[2], pipe_out[2];
+    pipe(pipe_in);
+    pipe(pipe_out);
+    mc->fd_input = pipe_in[1];
+    mc->fd_output = pipe_out[0];
+
     signal(SIGCHLD, SIG_IGN); //kernel will clear child process after its exit
     mc->pid = fork();
     if(mc->pid == 0){
         close(0);
-        dup(mc->fd_input[0]);
+        dup(pipe_in[0]);
         close(1);
-        dup(mc->fd_output[1]);
+        dup(pipe_out[1]);
         execvp(data->conf.machine_cmd_list[index][0],
                 data->conf.machine_cmd_list[index]);
         exit(0);

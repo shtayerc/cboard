@@ -24,8 +24,8 @@ typedef struct{
     UciScoreType *type;
     int *score;
     char fen[FEN_LEN];
-    int fd_input[2];
-    int fd_output[2];
+    int fd_input;
+    int fd_output;
     int pid;
     Board board;
     MachineData md;
