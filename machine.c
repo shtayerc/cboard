@@ -101,6 +101,7 @@ machine_start(WindowData *data, int index)
         close(0);
         dup(pipe_in[0]);
         close(1);
+        close(2);
         dup(pipe_out[1]);
         execvp(data->conf.machine_cmd_list[index][0],
                 data->conf.machine_cmd_list[index]);
