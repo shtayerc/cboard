@@ -1,12 +1,12 @@
 #ifndef _MACHINE_H_
 #define _MACHINE_H_
 
-#include <unistd.h>
-#include <signal.h>
 #include "window.h"
-
-#define MACHINE_COUNT 2
-#define LINE_COUNT 3
+#ifdef _WIN32
+#include "machine_win.h"
+#else
+#include "machine_unix.h"
+#endif
 
 typedef struct WindowData WindowData;
 
@@ -24,21 +24,21 @@ typedef struct{
     UciScoreType *type;
     int *score;
     char fen[FEN_LEN];
+    #ifdef _WIN32
+    #else
     int fd_input;
     int fd_output;
     int pid;
+    #endif
     Board board;
     MachineData md;
     int fen_changed;
 } Machine;
 
-extern Machine machine_list[2];
+extern Machine machine_list[MACHINE_COUNT];
+
 
 void push_user_event(int index);
-int machine_read(void *data);
-int machine_write(void *data);
-void machine_start(WindowData *data, int index);
-void machine_stop(int index);
 void machine_draw(WindowData *data);
 void machine_position(Notation *n);
 void machine_line_init(Machine *m, Board *b);
