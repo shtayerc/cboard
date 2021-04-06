@@ -1,9 +1,8 @@
-#ifndef _WIN32
-#ifndef _MACHINE_UNIX_H_
-#define _MACHINE_UNIX_H_
+#ifdef _WIN32
+#ifndef _MACHINE_WIN_H_
+#define _MACHINE_WIN_H_
 
-#include <unistd.h>
-#include <signal.h>
+#include <windows.h>
 #include "window.h"
 
 typedef struct WindowData WindowData;

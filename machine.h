@@ -25,6 +25,9 @@ typedef struct{
     int *score;
     char fen[FEN_LEN];
     #ifdef _WIN32
+    HANDLE fd_input;
+    HANDLE fd_output;
+    HANDLE pid;
     #else
     int fd_input;
     int fd_output;

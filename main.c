@@ -166,4 +166,5 @@ main(int argc, char *argv[])
     machine_stop(1);
     piece_unload();
     window_data_free(&data);
+    return 0;
 }

@@ -1,3 +1,4 @@
+#ifndef WIN32
 #include "machine_unix.h"
 
 int
@@ -116,3 +117,4 @@ machine_stop(int index)
     mc->running = 0;
 }
 
+#endif

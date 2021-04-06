@@ -96,6 +96,7 @@ window_open(WindowData *data)
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             data->conf.default_width, data->conf.default_height,
             SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE);
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width,
             data->conf.minimal_height);
     data->renderer = SDL_CreateRenderer(data->window, -1,
