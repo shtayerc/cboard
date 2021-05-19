@@ -108,6 +108,8 @@ Main mode, other modes are entered from here.
   Decrease size of chessboard.
 * **p**  
   Promote current variation.
+* **P**  
+  Promote current variation and delete old.
 * **d**  
   Delete current variation.
 * **D**  

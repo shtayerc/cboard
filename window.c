@@ -123,6 +123,7 @@ window_data_free(WindowData *data)
     undo_free(data->undo_list);
     undo_free(data->redo_list);
     notation_free(&data->notation);
+    game_list_free(&data->game_list);
     FC_FreeFont(data->font);
     SDL_DestroyRenderer(data->renderer);
     SDL_DestroyWindow(data->window);

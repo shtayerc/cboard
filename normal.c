@@ -245,6 +245,15 @@ mode_normal(WindowData *data)
                 case SDLK_p:
                     undo_add(data);
                     notation_variation_promote(&data->notation);
+                    if(event.key.keysym.mod & KMOD_SHIFT){
+                        int curr = data->notation.line_current->move_current-1;
+                        if(curr >= 0){
+                            Move *m = &data->notation.line_current->move_list[curr];
+                            for(int i = 0; i < m->variation_count; i++){
+                                move_variation_delete(m, m->variation_list[i]);
+                            }
+                        }
+                    }
                     draw_render(data);
                     break;
 
