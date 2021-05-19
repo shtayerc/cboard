@@ -1,5 +1,5 @@
 /*
-chess_utils v0.6.2
+chess_utils v0.6.4
 
 Copyright (c) 2021 David Murko
 
@@ -350,6 +350,10 @@ void move_copy(Move *src, Move *dst, Variation *prev);
 
 //returns index of given variation in variation_list if not found returns -1
 int move_variation_find(Move *m, Variation *v);
+
+//remove given variation from variation_list, returns 1 if it is found and
+//removed else returns 0
+int move_variation_delete(Move *m, Variation *v);
 
 //
 //VARIATION FUNCTIONS
@@ -835,11 +839,7 @@ tag_extract(const char *str, Tag *tag)
         tag->value[j] = str[i++];
     }
     tag->value[j] = '\0';
-    if(strlen(str) < i+1)
-        return 0;
-    if(str[i] != '"' || str[i+1] != ']')
-        return 0;
-    return 1;
+    return !(strlen(str) < i+1 || str[i] != '"' || str[i+1] != ']');
 }
 
 void
@@ -1950,6 +1950,24 @@ move_variation_find(Move *m, Variation *v)
     return -1;
 }
 
+int
+move_variation_delete(Move *m, Variation *v)
+{
+    int i, j;
+    i = move_variation_find(m, v);
+    if(i != -1){
+        m->variation_list[i] = NULL;
+        for(j = i + 1; j < m->variation_count; j++){
+            m->variation_list[j-1] = m->variation_list[j];
+        }
+        m->variation_count--;
+        variation_free(v);
+        free(v);
+        return 1;
+    }
+    return 0;
+}
+
 void
 variation_init(Variation *v, Board *b)
 {
@@ -2311,21 +2329,11 @@ notation_variation_delete(Notation *n)
     Variation *deleted = n->line_current;
     n->line_current = n->line_current->prev;
 
-    int i, j, l;
-    Move *m;
+    int i;
     for(i = 0; i < n->line_current->move_count; i++){
-        m = &n->line_current->move_list[i];
-        j = move_variation_find(m, deleted);
-        if(j != -1){
-            m->variation_list[j] = NULL;
-            for(l = j + 1; l < m->variation_count; l++){
-                m->variation_list[l-1] = m->variation_list[l];
-            }
-            m->variation_count--;
-        }
+        if(move_variation_delete(&n->line_current->move_list[i], deleted))
+            break;
     }
-    variation_free(deleted);
-    free(deleted);
 }
 
 void
@@ -2632,16 +2640,13 @@ pgn_write_comment(FILE *f, char *line, const char *str)
 }
 
 void
-pgn_write_variation(FILE *f, Variation *v, char *line, int i){
-
+pgn_write_variation(FILE *f, Variation *v, char *line, int i)
+{
     Move *m;
     int j, l;
     char num[MOVENUM_LEN];
-    int is_main = 0;
-    if(i == -1){
-        is_main = 1;
-        i = 0;
-    }
+    int is_main = (i == -1) ? 1 : 0;
+    i = (i == -1) ? 0 : i;
     for(j = 1; j < v->move_count; j++){
         m = &v->move_list[j];
         if(j == 1 && !is_main)
