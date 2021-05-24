@@ -244,9 +244,13 @@ mode_normal(WindowData *data)
 
                 case SDLK_p:
                     undo_add(data);
+                    //save current move from sub variation so we can find it
+                    //later
+                    int sub_current = data->notation.line_current->move_current;
                     notation_variation_promote(&data->notation);
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        int curr = data->notation.line_current->move_current-1;
+                        int curr = data->notation.line_current->move_current
+                            - sub_current;
                         if(curr >= 0){
                             Move *m = &data->notation.line_current->move_list[curr];
                             for(int i = 0; i < m->variation_count; i++){
