@@ -253,8 +253,10 @@ mode_normal(WindowData *data)
                             - sub_current;
                         if(curr >= 0){
                             Move *m = &data->notation.line_current->move_list[curr];
-                            for(int i = 0; i < m->variation_count; i++){
-                                move_variation_delete(m, m->variation_list[i]);
+                            //we can always use 0 index because variations are 
+                            //reordered after delete
+                            while(m->variation_count){
+                                move_variation_delete(m, m->variation_list[0]);
                             }
                         }
                     }
