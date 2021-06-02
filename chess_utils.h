@@ -1,5 +1,5 @@
 /*
-chess_utils v0.6.4
+chess_utils v0.6.5
 
 Copyright (c) 2021 David Murko
 
@@ -397,6 +397,10 @@ Variation *variation_equivalent_find(Variation *orig, Variation *clone,
 //returns pointer to deep copied Variation
 Variation *variation_clone(Variation *v, Variation *prev);
 
+//returns move index of given board found in given variation or sub variations.
+//found variation from which index was returned
+int variation_board_find(Variation *v, Board *b, Variation **found);
+
 //
 //NOTATION FUNCTIONS
 //
@@ -473,6 +477,10 @@ void notation_variation_delete(Notation *n);
 
 //if current line is not main it changes positions with main
 void notation_variation_promote(Notation *n);
+
+//find move with given board, first the main variation is checked
+//if not found function alse searches subvariations
+void notation_board_find(Notation *n, Board *b);
 
 //
 //PGN FUNCTIONS
@@ -2109,6 +2117,27 @@ variation_clone(Variation *v, Variation *prev)
     return clone;
 }
 
+int
+variation_board_find(Variation *v, Board *b, Variation **found)
+{
+    *found = *found ? *found : NULL;
+    int i, j, index;
+    index = -1;
+    for(i = 0; i < v->move_count; i++){
+        if(board_is_equal(&v->move_list[i].board, b, 0)){
+            *found = v;
+            return i;
+        }
+        for(j = 0; j < v->move_list[i].variation_count; j++){
+            index = variation_board_find(v->move_list[i].variation_list[j], b,
+                    found);
+            if(index > -1 && *found != NULL)
+                return index;
+        }
+    }
+    return index;
+}
+
 void
 notation_tag_init(Notation *n)
 {
@@ -2423,6 +2452,17 @@ notation_variation_promote(Notation *n)
     //free ex sub variation
     free(v->move_list);
     free(v);
+}
+
+void
+notation_board_find(Notation *n, Board *b)
+{
+    Variation *found = NULL;
+    int index = variation_board_find(n->line_main, b, &found);
+    if(index != -1 && found != NULL){
+        n->line_current = found;
+        n->line_current->move_current = index;
+    }
 }
 
 void
