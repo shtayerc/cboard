@@ -50,6 +50,7 @@ mode_game_list(WindowData *data)
     int loop = 1;
     FILE *f;
     GameList new_gl;
+    Board tmp_b;
     data->game_list_show = 1;
     int index = 0;
     char *comment;
@@ -144,6 +145,7 @@ mode_game_list(WindowData *data)
 
 
                 case SDLK_RETURN:
+                    tmp_b = notation_move_get(&data->notation)->board;
                     notation_free(&data->notation);
                     notation_init(&data->notation, NULL);
                     index = data->game_list.list[data->game_list_current].index;
@@ -151,6 +153,7 @@ mode_game_list(WindowData *data)
                     snprintf(data->number, data->conf.number_len, "%d", index);
                     pgn_read_file(f, &data->notation, index);
                     fclose(f);
+                    notation_board_find(&data->notation, &tmp_b);
                     loop = 0;
                     data->game_list_show = 0;
                     snprintf(data->status.mode, data->conf.status_max_len,
