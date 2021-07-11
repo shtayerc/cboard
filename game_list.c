@@ -50,7 +50,6 @@ mode_game_list(WindowData *data)
     int loop = 1;
     FILE *f;
     GameList new_gl;
-    Board tmp_b;
     data->game_list_show = 1;
     int index = 0;
     char *comment;
@@ -143,17 +142,18 @@ mode_game_list(WindowData *data)
                     draw_render(data);
                     break;
 
+                case SDLK_t:
+                    if(event.key.keysym.mod & KMOD_SHIFT){
+                        int index = rand() % data->game_list.count;
+                        game_list_game_load(data, index);
+                        loop = 0;
+                        data->game_list_show = 0;
+                        mode_training(data);
+                    }
+                    break;
 
                 case SDLK_RETURN:
-                    tmp_b = notation_move_get(&data->notation)->board;
-                    notation_free(&data->notation);
-                    notation_init(&data->notation, NULL);
-                    index = data->game_list.list[data->game_list_current].index;
-                    f = fopen(data->filename, "r");
-                    snprintf(data->number, data->conf.number_len, "%d", index);
-                    pgn_read_file(f, &data->notation, index);
-                    fclose(f);
-                    notation_board_find(&data->notation, &tmp_b);
+                    game_list_game_load(data, -1);
                     loop = 0;
                     data->game_list_show = 0;
                     snprintf(data->status.mode, data->conf.status_max_len,
@@ -243,4 +243,19 @@ game_list_focus_current_game(WindowData *data)
     }else if(y < top){
         data->game_list_scroll -= y - NOTATION_PADDING_TOP;
     }
+}
+
+void
+game_list_game_load(WindowData *data, int index)
+{
+    Board tmp_b = notation_move_get(&data->notation)->board;
+    FILE *f = fopen(data->filename, "r");
+    int gl_index = index == -1 ? data->game_list_current : index;
+    index = data->game_list.list[gl_index].index;
+    notation_free(&data->notation);
+    notation_init(&data->notation, NULL);
+    snprintf(data->number, data->conf.number_len, "%d", index);
+    pgn_read_file(f, &data->notation, index);
+    fclose(f);
+    notation_board_find(&data->notation, &tmp_b);
 }

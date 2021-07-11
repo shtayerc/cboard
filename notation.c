@@ -181,8 +181,6 @@ notation_draw(WindowData *data)
 {
     SDL_SetRenderDrawColor(data->renderer, NOTATION_BACKGROUND);
     SDL_RenderFillRect(data->renderer, &data->layout.notation);
-    if(data->notation_hidden)
-        return;
     nt_move_coord_index = 0;
     nt_move_coord_len = 0;
     int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
@@ -190,6 +188,13 @@ notation_draw(WindowData *data)
     int y = data->layout.notation.y + NOTATION_PADDING_TOP
         + data->notation_scroll;
 
+    if(data->notation_hidden){
+        if(notation_move_is_last(&data->notation)){
+            FC_DrawColor(data->font, data->renderer, x, y,
+                    data->conf.notation_font_color, "Variation end");
+        }
+        return;
+    }
     notation_draw_tags(data, &x, &y, x_start);
     variation_draw(data, data->notation.line_main, &x, &y, x_start, 0);
 }
