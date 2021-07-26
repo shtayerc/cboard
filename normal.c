@@ -326,6 +326,23 @@ mode_normal(WindowData *data)
                 case SDLK_n:
                     mode_number_edit(data);
                     break;
+
+                case SDLK_SPACE:
+                    tmp = (event.key.keysym.mod & KMOD_SHIFT);
+                    Square src, dst;
+                    if(machine_list[tmp].running){
+                        src = machine_list[tmp].line[0].move_list[1].src;
+                        dst = machine_list[tmp].line[0].move_list[1].dst;
+                        prom_piece = machine_list[tmp].line[0].move_list[1].prom_piece;
+                        status = notation_move_status(&data->notation, src,
+                                dst, prom_piece);
+                        if(status != Invalid){
+                            chessboard_move_do(data, src, dst, prom_piece,
+                                    status);
+                            draw_render(data);
+                        }
+                    }
+                    break;
                 }
                 break;
 
