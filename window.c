@@ -78,6 +78,7 @@ window_data_init(WindowData *data)
     data->game_list_show = 0;
     data->game_list_scroll = 0;
     data->game_list_current = 0;
+    data->machine_hidden = 0;
     undo_init(data->undo_list);
     data->undo_current = -1;
     undo_init(data->redo_list);

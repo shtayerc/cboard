@@ -343,6 +343,11 @@ mode_normal(WindowData *data)
                         }
                     }
                     break;
+
+                case SDLK_b:
+                    data->machine_hidden = !data->machine_hidden;
+                    draw_render(data);
+                    break;
                 }
                 break;
 

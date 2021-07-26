@@ -89,6 +89,7 @@ struct WindowData {
     int notation_hidden;
     int game_list_show;
     int game_list_scroll;
+    int machine_hidden;
     int loop;
     StatusLine status;
     Config conf;

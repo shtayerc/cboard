@@ -82,6 +82,8 @@ Main mode, other modes are entered from here.
   Start/stop machine 1.
 * **M**  
   Start/stop machine 2.
+* **b**  
+  Show/hide machine output.
 * **Space**  
   Play best move from machine 1.
 * **Shift-Space**  
