@@ -1,5 +1,5 @@
 /*
-chess_utils v0.6.5
+chess_utils v0.6.6
 
 Copyright (c) 2021 David Murko
 
@@ -1739,6 +1739,7 @@ board_move_san_export(Board *b, Square src, Square dst, Piece prom_piece,
 {
     OffsetIndex offset_index;
     char which[SQUARE_LEN];
+    char promotion[SQUARE_LEN];
     Piece piece = b->position[src];
     const char *piece_char = piece_map[piece];
     const char *prom_char = piece_map[prom_piece];
@@ -1769,13 +1770,18 @@ board_move_san_export(Board *b, Square src, Square dst, Piece prom_piece,
     case BlackPawn:
     case WhitePawn:
         offset_index = offset_map[piece];
+        promotion[0] = '\0';
+        if(board_move_is_promotion(b, src, dst))
+            snprintf(promotion, SQUARE_LEN, "=%s", prom_char);
+        snprintf(san, len, "%s%s%s%c%c%s%s", piece_char, which, capture, file,
+                rank, promotion, check);
+
         if(dst - src == piece_offset[offset_index][2]
                 || dst - src == piece_offset[offset_index][3]){
-            snprintf(san, len, "%s%c%s%c%c%s", piece_char,
-                    file2char(square2file(src)), capture, file, rank, check);
+            snprintf(san, len, "%s%c%s%c%c%s%s", piece_char,
+                    file2char(square2file(src)), capture, file, rank,
+                    promotion, check);
         }
-        if(board_move_is_promotion(b, src, dst))
-            concate(san, len, "=%s%s", prom_char, check);
         break;
 
     default:
