@@ -209,6 +209,8 @@ game_list_draw(WindowData *data)
                     data->game_list.list[i].title);
         }
         y += data->font_height;
+        if(y > data->layout.notation.y + data->layout.notation.h)
+            break;
     }
 }
 
