@@ -1,5 +1,5 @@
 /*
-chess_utils v0.6.6
+chess_utils v0.6.7
 
 Copyright (c) 2021 David Murko
 
@@ -1124,15 +1124,12 @@ board_is_equal(Board *b1, Board *b2, int strict)
             || b1->castling[1][1] != b2->castling[1][1])
         return 0;
     int i;
-    int j = 0;
     for(i = 0; i <= h1; i++){
+        if(!(i && 0x88))
+            continue;
+
         if(b1->position[i] != b2->position[i])
             return 0;
-        //skip right 8x8
-        if(++j == 8){
-            j = 0;
-            i += 9;
-        }
     }
     return 1;
 }
