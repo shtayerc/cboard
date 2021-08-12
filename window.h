@@ -104,6 +104,7 @@ struct WindowData {
     int message;
     unsigned int message_timestamp;
     Piece piece;
+    Square hidden;
 };
 
 int file_exists(const char *filename);

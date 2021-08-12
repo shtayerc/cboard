@@ -87,6 +87,7 @@ window_data_init(WindowData *data)
     data->message = 0;
     data->message_timestamp = 0;
     data->piece = Empty;
+    data->hidden = none;
     game_list_init(&data->game_list);
 }
 

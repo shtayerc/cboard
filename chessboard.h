@@ -11,8 +11,6 @@ enum { TextureBlackPawn, TextureBlackKnight, TextureBlackBishop,
     TextureWhiteKnight, TextureWhiteBishop, TextureWhiteRook,
     TextureWhiteQueen, TextureWhiteKing };
 
-extern Square cb_hidden;
-
 extern SDL_Texture *cb_piece_texture[12];
 void piece_load(WindowData *data);
 void piece_unload();

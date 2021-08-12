@@ -37,10 +37,10 @@ mode_normal(WindowData *data)
             switch (event.type) {
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                    cb_hidden = chessboard_mouse_square(data);
-                    data->piece = cb_hidden & 0x88 ? Empty
+                    data->hidden = chessboard_mouse_square(data);
+                    data->piece = data->hidden & 0x88 ? Empty
                         : notation_move_get(
-                                &data->notation)->board.position[cb_hidden];
+                                &data->notation)->board.position[data->hidden];
                 }
                 break;
 
@@ -49,11 +49,11 @@ mode_normal(WindowData *data)
                     if(data->piece != Empty){
                         square_dst = chessboard_mouse_square(data);
                         status = square_dst != none ?
-                            notation_move_status(&data->notation, cb_hidden,
+                            notation_move_status(&data->notation, data->hidden,
                                     square_dst, Empty) : Invalid;
                         switch(status) {
                         case Invalid:
-                            cb_hidden = none;
+                            data->hidden = none;
                             break;
 
                         case Promotion:
@@ -67,14 +67,14 @@ mode_normal(WindowData *data)
                                         "%s", data->conf.normal_status);
                                 break;
                             }
-                            chessboard_move_do(data, cb_hidden, square_dst,
+                            chessboard_move_do(data, data->hidden, square_dst,
                                     prom_piece, status);
                             snprintf(data->status.mode, data->conf.status_max_len,
                                     "%s", data->conf.normal_status);
                             break;
 
                         default:
-                            chessboard_move_do(data, cb_hidden, square_dst,
+                            chessboard_move_do(data, data->hidden, square_dst,
                                     Empty, status);
                             break;
                         }
@@ -89,7 +89,7 @@ mode_normal(WindowData *data)
                             data->notation.line_current = nt_move_coords[ind].variation;
                             notation_move_index_set(&data->notation,
                                     nt_move_coords[ind].index);
-                            cb_hidden = none;
+                            data->hidden = none;
                             machine_position(&data->notation);
                             draw_render(data);
                         }
@@ -143,7 +143,7 @@ mode_normal(WindowData *data)
                     }
                     notation_focus_current_move(data);
                     machine_position(&data->notation);
-                    cb_hidden = none;
+                    data->hidden = none;
                     draw_render(data);
                     break;
 
@@ -170,7 +170,7 @@ mode_normal(WindowData *data)
                     }
                     notation_focus_current_move(data);
                     machine_position(&data->notation);
-                    cb_hidden = none;
+                    data->hidden = none;
                     draw_render(data);
                     break;
 
@@ -198,7 +198,7 @@ mode_normal(WindowData *data)
                     }
                     notation_focus_current_move(data);
                     machine_position(&data->notation);
-                    cb_hidden = none;
+                    data->hidden = none;
                     draw_render(data);
                     break;
 
@@ -227,7 +227,7 @@ mode_normal(WindowData *data)
                     }
                     notation_focus_current_move(data);
                     machine_position(&data->notation);
-                    cb_hidden = none;
+                    data->hidden = none;
                     draw_render(data);
                     break;
 
@@ -276,7 +276,7 @@ mode_normal(WindowData *data)
                         notation_variation_delete(&data->notation);
                         machine_position(&data->notation);
                     }
-                    cb_hidden = none;
+                    data->hidden = none;
                     draw_render(data);
                     break;
 
@@ -300,7 +300,7 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_g:
-                    cb_hidden = none;
+                    data->hidden = none;
                     mode_game_list(data);
                     break;
 

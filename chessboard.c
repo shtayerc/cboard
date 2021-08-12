@@ -1,6 +1,5 @@
 #include "chessboard.h"
 
-Square cb_hidden = none;
 SDL_Texture *cb_piece_texture[12];
 
 void
@@ -69,7 +68,7 @@ position_draw(WindowData *data)
     int file = 0;
     Board b = notation_move_get(&data->notation)->board;
     for (i=0; i<128; i++) {
-        if (b.position[i] > 0 && i != cb_hidden){
+        if (b.position[i] > 0 && i != data->hidden){
             file = rotation_convert(data, square2file(i)) *
                 data->layout.square.w;
             rank = rotation_convert(data, square2rank(i)) *
@@ -225,7 +224,7 @@ mode_promotion(WindowData *data, Color color)
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     loop = 0;
-                    cb_hidden = none;
+                    data->hidden = none;
                     break;
                 }
                 break;
@@ -457,10 +456,10 @@ mode_training(WindowData *data)
             switch (event.type) {
             case SDL_MOUSEBUTTONDOWN:
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                    cb_hidden = chessboard_mouse_square(data);
-                    data->piece = cb_hidden & 0x88 ? Empty
+                    data->hidden = chessboard_mouse_square(data);
+                    data->piece = data->hidden & 0x88 ? Empty
                         : notation_move_get(
-                                &data->notation)->board.position[cb_hidden];
+                                &data->notation)->board.position[data->hidden];
                 }
                 break;
 
@@ -468,13 +467,13 @@ mode_training(WindowData *data)
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     if(data->piece != Empty){
                         dst = chessboard_mouse_square(data);
-                        if(notation_move_is_present(&data->notation, cb_hidden,
-                                    dst, Empty)){
-                            chessboard_focus_present(data, cb_hidden, dst,
+                        if(notation_move_is_present(&data->notation,
+                                    data->hidden, dst, Empty)){
+                            chessboard_focus_present(data, data->hidden, dst,
                                     Empty);
                             chessboard_focus_random(data);
                         }else{
-                            cb_hidden = none;
+                            data->hidden = none;
                         }
                     }
                     data->piece = Empty;
@@ -498,7 +497,7 @@ mode_training(WindowData *data)
                         notation_move_index_set(&data->notation, move_number);
                         data->status.info[0] = '\0';
                         pos = 0;
-                        cb_hidden = none;
+                        data->hidden = none;
                         cursor_add(&pos, data->status.info,
                                 data->conf.status_max_len, data);
                         draw_render(data);
