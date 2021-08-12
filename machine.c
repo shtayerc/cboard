@@ -23,8 +23,11 @@ machine_draw(WindowData *data)
     int max_len = data->layout.machine.w + data->layout.machine.x;
     SDL_SetRenderDrawColor(data->renderer, MACHINE_BACKGROUND);
     SDL_RenderFillRect(data->renderer, &data->layout.machine);
-    if(data->machine_hidden)
+    if(data->machine_hidden){
+        FC_DrawColor(data->font, data->renderer, x, y,
+                data->conf.comment_font_color, "Machine data is hidden");
         return;
+    }
     for(j = 0; j < MACHINE_COUNT; j++){
         mc = &machine_list[j];
         if(mc->running){
