@@ -53,7 +53,6 @@ mode_normal(WindowData *data)
                                     square_dst, Empty) : Invalid;
                         switch(status) {
                         case Invalid:
-                            data->hidden = none;
                             break;
 
                         case Promotion:
@@ -78,6 +77,7 @@ mode_normal(WindowData *data)
                                     Empty, status);
                             break;
                         }
+                        data->hidden = none;
                         data->piece = Empty;
                         draw_render(data);
                     }

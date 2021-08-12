@@ -472,10 +472,9 @@ mode_training(WindowData *data)
                             chessboard_focus_present(data, data->hidden, dst,
                                     Empty);
                             chessboard_focus_random(data);
-                        }else{
-                            data->hidden = none;
                         }
                     }
+                    data->hidden = none;
                     data->piece = Empty;
                     draw_render(data);
                 }
