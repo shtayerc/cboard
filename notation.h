@@ -26,7 +26,7 @@ void notation_handle_line_break(WindowData *data, int *x, int *y,
         int word_width, int x_start);
 void comment_draw(WindowData *data, Move *m, int *x, int *y, int x_start);
 void variation_draw(WindowData *data, Variation *v,  int *x, int *y,
-        int x_start, int i);
+        int x_start, int i, int recursive);
 int notation_click(WindowData *data);
 int notation_coord_index_click(WindowData *data);
 int notation_coord_index_move(WindowData *data, Move *m);

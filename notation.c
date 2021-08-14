@@ -38,7 +38,7 @@ comment_draw(WindowData *data, Move *m, int *x, int *y, int x_start)
 
 void
 variation_draw(WindowData *data, Variation *v,  int *x, int *y,
-        int x_start, int i)
+        int x_start, int i, int recursive)
 {
     SDL_Rect move_current;
     Move *m;
@@ -106,9 +106,9 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
         if(m->comment != NULL)
             comment_draw(data, m, x, y, x_start);
 
-        for(int l=0; l < v->move_list[j-1].variation_count; l++){
+        for(int l=0; l < v->move_list[j-1].variation_count && recursive; l++){
             variation_draw(data, v->move_list[j-1].variation_list[l], x, y,
-                    x_start, i+j-1);
+                    x_start, i+j-1, 1);
         }
 
 
@@ -190,13 +190,13 @@ notation_draw(WindowData *data)
 
     if(data->notation_hidden){
         if(notation_move_is_last(&data->notation)){
-            FC_DrawColor(data->font, data->renderer, x, y,
-                    data->conf.notation_font_color, "Variation end");
+            variation_draw(data, data->notation.line_current, &x, &y, x_start,
+                    0, 0);
         }
         return;
     }
     notation_draw_tags(data, &x, &y, x_start);
-    variation_draw(data, data->notation.line_main, &x, &y, x_start, 0);
+    variation_draw(data, data->notation.line_main, &x, &y, x_start, 0, 1);
 }
 
 void
