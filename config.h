@@ -1,8 +1,11 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#define SQUARE_WHITE 240,217,181,1
-#define SQUARE_BLACK 181,136,99,1
+static const SDL_Color SQUARE_WHITE = {240, 217, 181, 1};
+static const SDL_Color SQUARE_BLACK = {181,136,99,1};
+static const SDL_Color SQUARE_LASTMOVE_BLACK = {171,162,58,1};
+static const SDL_Color SQUARE_LASTMOVE_WHITE = {206,210,107,1};
+
 #define SQUARE_GREY 163,163,163,1
 #define SQUARE_ORANGE 202,109,55,1
 #define STATUS_BACKGROUND 85,85,85,1

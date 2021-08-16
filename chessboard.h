@@ -18,6 +18,7 @@ void piece_draw(WindowData *data, int file, int rank,
         SDL_Texture *texture);
 void rotation_toggle(WindowData *data);
 int rotation_convert(WindowData *data, int n); //rank or file
+Square square_rotation(WindowData *data, Square sq);
 void position_draw(WindowData *data);
 void background_draw(WindowData *data);
 void foreground_draw(WindowData *data);

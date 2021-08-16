@@ -60,6 +60,17 @@ rotation_convert(WindowData *data, int n) //rank or file
     return abs(n - (int)data->rotation);
 }
 
+Square
+square_rotation(WindowData *data, Square sq)
+{
+    if(sq == none)
+        return none;
+    Rank rank = square2rank(sq);
+    File file = square2file(sq);
+    return filerank2square(rotation_convert(data, file),
+            rotation_convert(data, rank));
+}
+
 void
 position_draw(WindowData *data)
 {
@@ -83,19 +94,23 @@ void
 background_draw(WindowData *data)
 {
     int col,row;
+    SDL_Color c;
     data->layout.square.x = 0;
     data->layout.square.y = 0;
 
+    Square src = square_rotation(data, notation_move_get(&data->notation)->src);
+    Square dst = square_rotation(data, notation_move_get(&data->notation)->dst);
     SDL_SetRenderDrawColor(data->renderer, STATUS_BACKGROUND);
     SDL_RenderFillRect(data->renderer, &data->layout.board);
     for (col = 0; col < 8; col++) {
         data->layout.square.y = col * data->layout.square.w;
         for (row = 0; row < 8; row++) {
-            if ((col + row) % 2) {
-                SDL_SetRenderDrawColor(data->renderer, SQUARE_BLACK);
-            }else {
-                SDL_SetRenderDrawColor(data->renderer, SQUARE_WHITE);
+            c = ((col + row) % 2) ? SQUARE_BLACK : SQUARE_WHITE;
+            if(filerank2square(row, col) == src
+                    || filerank2square(row, col) == dst){
+                c = ((col + row) % 2) ? SQUARE_LASTMOVE_BLACK : SQUARE_LASTMOVE_WHITE;
             }
+            SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
             data->layout.square.x = row * data->layout.square.w;
             SDL_RenderFillRect(data->renderer, &data->layout.square);
         }
