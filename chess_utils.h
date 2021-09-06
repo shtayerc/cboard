@@ -1,5 +1,5 @@
 /*
-chess_utils v0.6.7
+chess_utils v0.6.8
 
 Copyright (c) 2021 David Murko
 
@@ -825,11 +825,15 @@ int
 tag_extract(const char *str, Tag *tag)
 {
     int j;
-    unsigned int i = 1;
+    unsigned int i;
     tag->key[0] = '\0';
     tag->value[0] = '\0';
-    if(str[0] != '[')
-        return 0;
+    //ignore invisible ascii characters before [
+    for(i = 0; str[i] != '['; i++){
+        if((str[i] > ' ' && str[i] <= '~') || str[i] == '\0')
+            return 0;
+    }
+    i++; //skip [
 
     for(j = 0; str[i] != ' '; j++){
         tag->key[j] = str[i++];
