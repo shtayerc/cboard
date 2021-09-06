@@ -29,7 +29,7 @@ debug: FLAGS += -g
 debug: cboard
 
 clean:
-	rm -f $(EXE) $(OBJECTS)
+	rm -f $(EXE) $(OBJECTS) $(EXE)-64bit.exe $(EXE)-32bit.exe
 
 check: debug
 check:
