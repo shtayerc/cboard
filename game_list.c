@@ -14,7 +14,7 @@ mode_game_search(WindowData *data)
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            if(event.key.keysym.sym != SDLK_ESCAPE){
+            if(event.type != SDL_KEYUP || event.key.keysym.sym != SDLK_ESCAPE){
                 handle_input_events(&event, data, &loop, &pos,
                         data->status.info, data->conf.status_max_len);
             }
@@ -62,7 +62,7 @@ mode_game_list(WindowData *data)
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            if(event.key.keysym.sym != SDLK_r)
+            if(event.type == SDL_KEYUP && event.key.keysym.sym != SDLK_r)
                 handle_non_input_events(&event, data, &loop);
             switch (event.type) {
             case SDL_KEYUP:
