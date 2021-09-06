@@ -70,6 +70,7 @@ window_data_init(WindowData *data)
     data->number = malloc(sizeof(char) * data->conf.number_len);
     snprintf(data->number, data->conf.number_len, "a");
     data->loop = 1;
+    data->from_game_list = 0;
     data->mouse.x = data->conf.default_width / 2;
     data->mouse.y = data->conf.default_height / 2;
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");

@@ -293,6 +293,7 @@ mode_normal(WindowData *data)
 
                 case SDLK_t:
                     if(event.key.keysym.mod & KMOD_SHIFT){
+                        data->from_game_list = 0;
                         mode_training(data);
                     }else{
                         mode_tag(data);

@@ -509,6 +509,12 @@ mode_training(WindowData *data)
                     if(!strcmp(data->status.info, "Restart")){
                         data->notation.line_current = v;
                         notation_move_index_set(&data->notation, move_number);
+                        if(data->from_game_list){
+                            game_list_game_load(data, rand()
+                                    % data->game_list.count);
+                            v = data->notation.line_current;
+                            move_number = data->notation.line_current->move_current;
+                        }
                         data->status.info[0] = '\0';
                         pos = 0;
                         data->hidden = none;
