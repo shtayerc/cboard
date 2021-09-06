@@ -18,7 +18,7 @@
 #define CHESS_UTILS_IMPLEMENTATION
 #include "chess_utils.h"
 
-#define VERSION "0.2"
+#define VERSION "0.3"
 
 char fen[FEN_LEN];
 
