@@ -1,3 +1,6 @@
 tags
 cboard
+cboard-32bit.exe
+cboard-64bit.exe
+windows
 *.o
