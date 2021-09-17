@@ -50,7 +50,7 @@ mode_game_list(WindowData *data)
     int loop = 1;
     FILE *f;
     GameList new_gl;
-    data->game_list_show = 1;
+    data->notation_mode = ModeGameList;
     int index = 0;
     char *comment;
     SDL_Event event;
@@ -69,7 +69,7 @@ mode_game_list(WindowData *data)
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     loop = 0;
-                    data->game_list_show = 0;
+                    data->notation_mode = ModeMoves;
                     snprintf(data->status.mode, data->conf.status_max_len,
                             "%s", data->conf.normal_status);
                     draw_render(data);
@@ -147,7 +147,7 @@ mode_game_list(WindowData *data)
                         index = rand() % data->game_list.count;
                         game_list_game_load(data, index);
                         loop = 0;
-                        data->game_list_show = 0;
+                        data->notation_mode = ModeMoves;
                         data->from_game_list = 1;
                         mode_training(data);
                     }
@@ -156,7 +156,7 @@ mode_game_list(WindowData *data)
                 case SDLK_RETURN:
                     game_list_game_load(data, -1);
                     loop = 0;
-                    data->game_list_show = 0;
+                    data->notation_mode = ModeMoves;
                     snprintf(data->status.mode, data->conf.status_max_len,
                             "%s", data->conf.normal_status);
                     draw_render(data);

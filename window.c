@@ -76,7 +76,7 @@ window_data_init(WindowData *data)
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     data->notation_scroll = 0;
     data->notation_hidden = 0;
-    data->game_list_show = 0;
+    data->notation_mode = ModeMoves;
     data->game_list_scroll = 0;
     data->game_list_current = 0;
     data->machine_hidden = 0;
@@ -174,10 +174,15 @@ draw(WindowData *data)
 {
     background_draw(data);
     foreground_draw(data);
-    if(data->game_list_show)
-        game_list_draw(data);
-    else
+    switch(data->notation_mode){
+    case ModeMoves:
         notation_draw(data);
+        break;
+
+    case ModeGameList:
+        game_list_draw(data);
+        break;
+    }
     if(data->piece != Empty)
         piece_mouse_position(data);
 

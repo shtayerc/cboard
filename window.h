@@ -71,6 +71,10 @@ typedef enum {
     RotationWhite = 0, RotationBlack = 7
 } Rotation;
 
+typedef enum {
+    ModeMoves, ModeGameList, ModeExplorer
+} NotationMode;
+
 typedef struct WindowData WindowData;
 
 struct WindowData {
@@ -87,7 +91,7 @@ struct WindowData {
     int font_height;
     int notation_scroll;
     int notation_hidden;
-    int game_list_show;
+    NotationMode notation_mode;
     int game_list_scroll;
     int machine_hidden;
     int loop;
