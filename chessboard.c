@@ -381,7 +381,7 @@ mode_editor(WindowData *data)
         b = notation_move_get(&data->notation)->board;
         notation_free(&data->notation);
         game_init(&data->notation, &b);
-        machine_position(&data->notation);
+        handle_position_change(data);
         snprintf(data->number, data->conf.number_len, "a");
     }
     data->piece = Empty;
@@ -611,7 +611,7 @@ chessboard_move_do(WindowData *data, Square src, Square dst,
     }else{
         notation_variation_add(&data->notation, src, dst, prom_piece, status);
     }
-    machine_position(&data->notation);
+    handle_position_change(data);
 }
 
 Square

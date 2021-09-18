@@ -90,7 +90,7 @@ mode_normal(WindowData *data)
                             notation_move_index_set(&data->notation,
                                     nt_move_coords[ind].index);
                             data->hidden = none;
-                            machine_position(&data->notation);
+                            handle_position_change(data);
                             draw_render(data);
                         }
                     }
@@ -143,6 +143,7 @@ mode_normal(WindowData *data)
                     }
                     notation_focus_current_move(data);
                     machine_position(&data->notation);
+                    handle_position_change(data);
                     data->hidden = none;
                     draw_render(data);
                     break;
@@ -169,7 +170,7 @@ mode_normal(WindowData *data)
                         }
                     }
                     notation_focus_current_move(data);
-                    machine_position(&data->notation);
+                    handle_position_change(data);
                     data->hidden = none;
                     draw_render(data);
                     break;
@@ -197,7 +198,7 @@ mode_normal(WindowData *data)
                             data->notation.line_current->move_current = tmp;
                     }
                     notation_focus_current_move(data);
-                    machine_position(&data->notation);
+                    handle_position_change(data);
                     data->hidden = none;
                     draw_render(data);
                     break;
@@ -226,7 +227,7 @@ mode_normal(WindowData *data)
                         data->notation.line_current->move_current = 1;
                     }
                     notation_focus_current_move(data);
-                    machine_position(&data->notation);
+                    handle_position_change(data);
                     data->hidden = none;
                     draw_render(data);
                     break;
@@ -274,7 +275,7 @@ mode_normal(WindowData *data)
                         variation_delete_next_moves(data->notation.line_current);
                     }else{
                         notation_variation_delete(&data->notation);
-                        machine_position(&data->notation);
+                        handle_position_change(data);
                     }
                     data->hidden = none;
                     draw_render(data);

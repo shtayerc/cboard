@@ -41,7 +41,6 @@ typedef struct{
 extern Machine machine_list[MACHINE_COUNT];
 
 
-void push_user_event(int index);
 void machine_draw(WindowData *data);
 void machine_position(Notation *n);
 void machine_line_init(Machine *m, Board *b);

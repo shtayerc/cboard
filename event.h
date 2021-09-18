@@ -16,5 +16,7 @@ void handle_input_events(SDL_Event *event, WindowData *data, int *loop,
         int *pos, char *str, int len);
 void handle_resize(WindowData *data, SDL_Event *e);
 void handle_non_input_events(SDL_Event *event, WindowData *data, int *loop);
+void handle_position_change(WindowData *data);
+void push_user_event();
 
 #endif

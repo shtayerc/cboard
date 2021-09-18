@@ -142,3 +142,17 @@ handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
         break;
     }
 }
+
+void
+handle_position_change(WindowData *data)
+{
+    machine_position(&data->notation);
+}
+
+void
+push_user_event()
+{
+    SDL_Event event;
+    event.type = SDL_USEREVENT;
+    SDL_PushEvent(&event);
+}

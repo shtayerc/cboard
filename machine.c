@@ -3,15 +3,6 @@
 Machine machine_list[2] = {};
 
 void
-push_user_event(int index)
-{
-    SDL_Event event;
-    event.type = SDL_USEREVENT;
-    event.user.code = index;
-    SDL_PushEvent(&event);
-}
-
-void
 machine_draw(WindowData *data)
 {
     char num[MOVENUM_LEN];
