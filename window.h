@@ -6,6 +6,7 @@
 #include "SDL_FontCache.h"
 #include "chess_utils.h"
 #include "config.h"
+#include "explorer.h"
 #include "machine.h"
 #include "notation.h"
 #include "status.h"
@@ -54,6 +55,7 @@ typedef struct {
     int message_duration;
     char **machine_cmd_list[2];
     char **machine_uci_list[2];
+    char *explorer_exe;
     SDL_Color status_font_color;
     SDL_Color notation_font_color;
     SDL_Color notation_current_fg;
@@ -110,6 +112,7 @@ struct WindowData {
     unsigned int message_timestamp;
     Piece piece;
     Square hidden;
+    Explorer explorer;
 };
 
 int file_exists(const char *filename);

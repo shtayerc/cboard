@@ -350,6 +350,18 @@ mode_normal(WindowData *data)
                     data->machine_hidden = !data->machine_hidden;
                     draw_render(data);
                     break;
+
+                case SDLK_o:
+                    if(data->notation_mode != ModeExplorer){
+                        if(explorer_start(data)){
+                            data->notation_mode = ModeExplorer;
+                        }
+                    }else{
+                        data->notation_mode = ModeMoves;
+                        explorer_stop(data);
+                    }
+                    draw_render(data);
+                    break;
                 }
                 break;
 

@@ -88,6 +88,8 @@ Main mode, other modes are entered from here.
   Play best move from machine 1.
 * **Shift-Space**  
   Play best move from machine 2.
+* **o**  
+  Start/stop explorer.
 * **l, Arrow Right**  
   Go to next move.
 * **h, Arrow Left**  
@@ -307,6 +309,28 @@ TEXTINPUT mode. Comment is inserted after/before current move.
 * **Escape**  
   Return to NORMAL mode.
 
+<a name="explorer"></a>
+
+# Explorer
+
+Explorer is external program that comunicates with cboard over standard input and output.
+
+<a name="commands"></a>
+
+### COMMANDS
+
+Commands are send from cboard to explorer.
+
+* **fen _string_**  
+  Current position in cboard.
+
+<a name="response"></a>
+
+### RESPONSE
+
+Explorer should return newline separated strings.
+Response will be shown in cboard without modification.
+
 <a name="configuration"></a>
 
 # Configuration
@@ -326,6 +350,8 @@ Example config is located in /usr/share/cboard/config.
   Lines after this are passed to engine.
 * **machine_1_uci_option_end, machine_2_uci_option_end**  
   End literal input.
+* **explorer_exe**  
+  Absolute path to explorer executable.
 
 <a name="files"></a>
 

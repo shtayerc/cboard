@@ -147,6 +147,7 @@ void
 handle_position_change(WindowData *data)
 {
     machine_position(&data->notation);
+    explorer_position(data);
 }
 
 void

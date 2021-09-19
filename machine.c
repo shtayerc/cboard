@@ -252,6 +252,10 @@ machine_config_load(WindowData *data)
                         value);
                 data->conf.machine_cmd_list[1][machine_2_arg_count-1] = NULL;
             }
+
+            if(!strcmp(key, "explorer_exe")){
+                data->conf.explorer_exe = strdup(value);
+            }
         }
 
         if(machine_1_uci){
@@ -307,6 +311,10 @@ machine_config_free(WindowData *data)
         }
         free(data->conf.machine_uci_list[i]);
         data->conf.machine_uci_list[i] = NULL;
+    }
+    if(data->conf.explorer_exe != NULL){
+        free(data->conf.explorer_exe);
+        data->conf.explorer_exe = NULL;
     }
 }
 

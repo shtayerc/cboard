@@ -101,6 +101,9 @@ Play best move from machine 1.
 .B Shift-Space
 Play best move from machine 2.
 .TP
+.B o
+Start/stop explorer.
+.TP
 .B l, Arrow Right
 Go to next move.
 .TP
@@ -329,6 +332,16 @@ Copy current FEN to clipboard.
 .TP
 .B Escape
 Return to NORMAL mode.
+.SH EXPLORER
+Explorer is external program that comunicates with cboard over standard input and output.
+.SS COMMANDS
+Commands are send from cboard to explorer.
+.TP
+.B fen \fIstring\fP
+Current position in cboard.
+.SS RESPONSE
+Explorer should return newline separated strings.
+Response will be shown in cboard without modification.
 .SH CONFIGURATION
 Configuration is done by line separated key=value.
 Lines starting with # are skipped.
@@ -348,6 +361,9 @@ Lines after this are passed to engine.
 .TP
 .B machine_1_uci_option_end, machine_2_uci_option_end
 End literal input.
+.TP
+.B explorer_exe
+Absolute path to explorer executable.
 .SH FILES
 .I $HOME/.config/cboard/config
 Default config location.

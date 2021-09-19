@@ -53,6 +53,7 @@ config_init()
         .notation_current_fg = {255, 255, 255, 255},
         .comment_font_color = {0, 0, 255, 255},
         .variation_font_color = {120, 120, 120, 255},
+        .explorer_exe = NULL,
     };
     return config;
 }
@@ -90,6 +91,7 @@ window_data_init(WindowData *data)
     data->piece = Empty;
     data->hidden = none;
     game_list_init(&data->game_list);
+    explorer_init(&data->explorer);
 }
 
 void
@@ -127,6 +129,7 @@ window_data_free(WindowData *data)
     undo_free(data->redo_list);
     notation_free(&data->notation);
     game_list_free(&data->game_list);
+    explorer_free(&data->explorer);
     FC_FreeFont(data->font);
     SDL_DestroyRenderer(data->renderer);
     SDL_DestroyWindow(data->window);
@@ -181,6 +184,10 @@ draw(WindowData *data)
 
     case ModeGameList:
         game_list_draw(data);
+        break;
+
+    case ModeExplorer:
+        explorer_draw(data);
         break;
     }
     if(data->piece != Empty)

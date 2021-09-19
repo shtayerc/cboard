@@ -12,7 +12,7 @@ machine_read(void *data)
         if(strstr(mc->output, "multipv") == NULL)
             continue;
         machine_line_parse(md->index);
-        push_user_event(md->index);
+        push_user_event();
     }
     return 1;
 }

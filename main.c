@@ -14,6 +14,7 @@
 #include "event.h"
 #include "message.h"
 #include "normal.h"
+#include "explorer.h"
 
 #define CHESS_UTILS_IMPLEMENTATION
 #include "chess_utils.h"
@@ -164,6 +165,7 @@ main(int argc, char *argv[])
         output_game(&data, output_type);
     machine_stop(0);
     machine_stop(1);
+    explorer_stop(&data);
     piece_unload();
     window_data_free(&data);
     return 0;

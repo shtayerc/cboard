@@ -21,6 +21,7 @@ static const SDL_Color SQUARE_LASTMOVE_WHITE = {206,210,107,1};
 #define MACHINE_BACKGROUND 220,220,220,1
 #define MACHINE_OUTPUT_LEN 4096
 #define MACHINE_COUNT 2
+#define EXPLORER_BUFFER_LEN 1024*10
 #define UNDO_COUNT 5
 #define PIECE_PATH PREFIX "/share/cboard/alpha"
 #define FONT_PATH PREFIX "/share/cboard/DejaVuSansCondensed.ttf"
