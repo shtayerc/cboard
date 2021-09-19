@@ -620,9 +620,10 @@ chessboard_mouse_square(WindowData *data)
     if(!chessboard_mouse_is_inside(data))
         return none;
 
-    return filerank2square(
+    Square sq = filerank2square(
             rotation_convert(data, (data->mouse.x / data->layout.square.w)),
             rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+    return (sq & 0x88) == 0 ? sq : none;
 }
 
 int chessboard_mouse_is_inside(WindowData *data)
