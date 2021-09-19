@@ -177,6 +177,7 @@ draw(WindowData *data)
 {
     background_draw(data);
     foreground_draw(data);
+    machine_draw(data);
     switch(data->notation_mode){
     case ModeMoves:
         notation_draw(data);
@@ -194,7 +195,6 @@ draw(WindowData *data)
         piece_mouse_position(data);
 
     status_draw(data);
-    machine_draw(data);
 }
 
 void
