@@ -61,6 +61,7 @@ config_init()
 void
 window_data_init(WindowData *data)
 {
+    int i;
     data->conf = config_init();
     data->status.str = calloc(sizeof(char), data->conf.status_max_len);
     data->status.mode = calloc(sizeof(char), data->conf.status_max_len);
@@ -92,6 +93,10 @@ window_data_init(WindowData *data)
     data->hidden = none;
     game_list_init(&data->game_list);
     explorer_init(&data->explorer);
+    for(i = 0; i < MACHINE_COUNT; i++){
+        data->machine_list[i] = calloc(sizeof(Machine), 1);
+        data->machine_list[i]->running = 0;
+    }
 }
 
 void
@@ -119,6 +124,7 @@ window_open(WindowData *data)
 void
 window_data_free(WindowData *data)
 {
+    int i;
     free(data->status.str);
     free(data->status.mode);
     free(data->status.info);
@@ -131,6 +137,9 @@ window_data_free(WindowData *data)
     game_list_free(&data->game_list);
     explorer_free(&data->explorer);
     FC_FreeFont(data->font);
+    for(i = 0; i < MACHINE_COUNT; i++){
+        free(data->machine_list[i]);
+    }
     SDL_DestroyRenderer(data->renderer);
     SDL_DestroyWindow(data->window);
     SDL_Quit();

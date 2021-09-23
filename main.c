@@ -156,15 +156,15 @@ main(int argc, char *argv[])
     window_resize(&data, data.conf.default_width, data.conf.default_height);
     snprintf(data.status.mode, data.conf.status_max_len, "%s",
             data.conf.normal_status);
-    machine_position(&data.notation);
+    handle_position_change(&data);
     piece_load(&data);
 
     mode_normal(&data);
 
     if(strlen(output_type))
         output_game(&data, output_type);
-    machine_stop(0);
-    machine_stop(1);
+    machine_stop(&data, 0);
+    machine_stop(&data, 1);
     explorer_stop(&data);
     piece_unload();
     window_data_free(&data);

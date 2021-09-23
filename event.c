@@ -146,7 +146,7 @@ handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
 void
 handle_position_change(WindowData *data)
 {
-    machine_position(&data->notation);
+    machine_position(data);
     explorer_position(data);
 }
 

@@ -28,6 +28,7 @@ mode_normal(WindowData *data)
     Piece prom_piece;
     Status status;
     SDL_Event event;
+    Machine *mc;
 
     while (data->loop) {
         //WaitEvent is using way less CPU (on PoolEvent was 100%)
@@ -142,7 +143,6 @@ mode_normal(WindowData *data)
                             break;
                     }
                     notation_focus_current_move(data);
-                    machine_position(&data->notation);
                     handle_position_change(data);
                     data->hidden = none;
                     draw_render(data);
@@ -308,16 +308,18 @@ mode_normal(WindowData *data)
 
                 case SDLK_m:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        if(machine_list[1].running){
-                            machine_stop(1);
-                            machine_list[1].output[0] = '\0';
+                        mc = data->machine_list[1];
+                        if(mc->running){
+                            machine_stop(data, 1);
+                            mc->output[0] = '\0';
                         }else{
                             machine_start(data, 1);
                         }
                     }else{
-                        if(machine_list[0].running){
-                            machine_stop(0);
-                            machine_list[0].output[0] = '\0';
+                        mc = data->machine_list[0];
+                        if(mc->running){
+                            machine_stop(data, 0);
+                            mc->output[0] = '\0';
                         }else{
                             machine_start(data, 0);
                         }
@@ -332,10 +334,11 @@ mode_normal(WindowData *data)
                 case SDLK_SPACE:
                     tmp = (event.key.keysym.mod & KMOD_SHIFT);
                     Square src, dst;
-                    if(machine_list[tmp].running){
-                        src = machine_list[tmp].line[0].move_list[1].src;
-                        dst = machine_list[tmp].line[0].move_list[1].dst;
-                        prom_piece = machine_list[tmp].line[0].move_list[1].prom_piece;
+                    mc = data->machine_list[tmp];
+                    if(mc->running){
+                        src = mc->line[0].move_list[1].src;
+                        dst = mc->line[0].move_list[1].dst;
+                        prom_piece = mc->line[0].move_list[1].prom_piece;
                         status = notation_move_status(&data->notation, src,
                                 dst, prom_piece);
                         if(status != Invalid){

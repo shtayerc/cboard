@@ -1,7 +1,5 @@
 #include "machine.h"
 
-Machine machine_list[2] = {};
-
 void
 machine_draw(WindowData *data)
 {
@@ -20,7 +18,7 @@ machine_draw(WindowData *data)
         return;
     }
     for(j = 0; j < MACHINE_COUNT; j++){
-        mc = &machine_list[j];
+        mc = data->machine_list[j];
         if(mc->running){
             x = data->layout.machine.x;
             FC_DrawColor(data->font, data->renderer, x, y,
@@ -65,23 +63,22 @@ machine_draw(WindowData *data)
 }
 
 void
-machine_position(Notation *n)
+machine_position(WindowData *data)
 {
-    Board b = notation_move_get(n)->board;
+    Board b = notation_move_get(&data->notation)->board;
+    Machine *mc;
     int i, j;
     for(i = 0; i < MACHINE_COUNT; i++){
-        board_fen_export(&b, machine_list[i].fen);
-        for(j = 0; j < machine_list[i].line_count; j++){
-            machine_list[i].line->move_current = 0;
-            variation_delete_next_moves(machine_list[i].line);
-            machine_list[i].depth[j] = 0;
-            machine_list[i].type[j] = Centipawn;
-            machine_list[i].score[j] = 0;
+        mc = data->machine_list[i];
+        board_fen_export(&b, mc->fen);
+        for(j = 0; j < mc->line_count; j++){
+            mc->line->move_current = 0;
+            variation_delete_next_moves(mc->line);
+            mc->depth[j] = 0;
+            mc->type[j] = Centipawn;
+            mc->score[j] = 0;
         }
-    }
-
-    for(i = 0; i < MACHINE_COUNT; i++){
-        machine_list[i].fen_changed = 1;
+        mc->fen_changed = 1;
     }
 }
 
@@ -114,28 +111,9 @@ machine_line_free(Machine *m)
 }
 
 void
-machine_init(Board *b)
+machine_line_parse(WindowData *data, int index)
 {
-    int i;
-    for(i = 0; i < MACHINE_COUNT; i++){
-        machine_list[i].line_count = 1;
-        machine_line_init(&machine_list[i], b);
-    }
-}
-
-void
-machine_free()
-{
-    int i;
-    for(i = 0; i < MACHINE_COUNT; i++){
-        machine_line_free(&machine_list[i]);
-    }
-}
-
-void
-machine_line_parse(int index)
-{
-    Machine *mc = &machine_list[index];
+    Machine *mc = data->machine_list[index];
     char *tmp;
     char *saveptr;
     int depth, score, multipv, pv;
@@ -323,12 +301,13 @@ machine_set_line_count(WindowData *data, int index)
 {
     int i;
     char *num;
+    Machine *mc = data->machine_list[index];
     for(i = 0; data->conf.machine_uci_list[index][i] != NULL; i++){
         if(isubstr(data->conf.machine_uci_list[index][i], "multipv")){
             num = strrchr(data->conf.machine_uci_list[index][i], ' ');
             if(num){
                 num++;
-                machine_list[index].line_count = strtol(num, NULL, 10);
+                mc->line_count = strtol(num, NULL, 10);
             }
         }
     }
@@ -339,9 +318,11 @@ machine_resize(WindowData *data, int index)
 {
     int i, diff;
     int height = 0;
+    Machine *mc;
     for(i = 0; i < MACHINE_COUNT; i++){
-        if(machine_list[i].running || i == index){
-            height += (machine_list[i].line_count + 1) * data->font_height;
+        mc = data->machine_list[i];
+        if(mc->running || i == index){
+            height += (mc->line_count + 1) * data->font_height;
         }
     }
     if(height > data->layout.machine.h){

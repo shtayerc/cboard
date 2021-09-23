@@ -56,8 +56,8 @@ mode_game_list(WindowData *data)
     SDL_Event event;
     snprintf(data->status.mode, data->conf.status_max_len, "%s",
             data->conf.game_list_status);
-    machine_stop(0);
-    machine_stop(1);
+    machine_stop(data, 0);
+    machine_stop(data, 1);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {

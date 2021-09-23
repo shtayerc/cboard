@@ -2,27 +2,29 @@
 #include "machine_unix.h"
 
 int
-machine_read(void *data)
+machine_read(void *p)
 {
-    MachineData *md = (MachineData*)data;
-    Machine *mc = &machine_list[md->index];
+    MachineData *md = (MachineData*)p;
+    WindowData *data = (WindowData*)md->data;
+    Machine *mc = data->machine_list[md->index];
 
     while(mc->running){
         read(mc->fd_output, mc->output, MACHINE_OUTPUT_LEN);
         if(strstr(mc->output, "multipv") == NULL)
             continue;
-        machine_line_parse(md->index);
+        machine_line_parse(data, md->index);
         push_user_event();
     }
     return 1;
 }
 
 int
-machine_write(void *data)
+machine_write(void *p)
 {
-    MachineData *md = (MachineData*)data;
-    Machine *mc = &machine_list[md->index];
-    char **uci_list = md->data->conf.machine_uci_list[md->index];
+    MachineData *md = (MachineData*)p;
+    WindowData *data = (WindowData*)md->data;
+    Machine *mc = data->machine_list[md->index];
+    char **uci_list = data->conf.machine_uci_list[md->index];
     char fen[FEN_LEN];
     int i;
     fen[0] = '\0';
@@ -70,7 +72,7 @@ machine_write(void *data)
 void
 machine_start(WindowData *data, int index)
 {
-    Machine *mc = &machine_list[index];
+    Machine *mc = data->machine_list[index];
     if(mc->running)
         return;
     mc->fen_changed = 1;
@@ -107,9 +109,9 @@ machine_start(WindowData *data, int index)
 }
 
 void
-machine_stop(int index)
+machine_stop(WindowData *data, int index)
 {
-    Machine *mc = &machine_list[index];
+    Machine *mc = data->machine_list[index];
     if(mc->running){
         machine_line_free(mc);
         kill(mc->pid, SIGTERM);

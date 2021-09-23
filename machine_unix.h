@@ -8,10 +8,10 @@
 
 typedef struct WindowData WindowData;
 
-int machine_read(void *data);
-int machine_write(void *data);
+int machine_read(void *p);
+int machine_write(void *p);
 void machine_start(WindowData *data, int index);
-void machine_stop(int index);
+void machine_stop(WindowData *data, int index);
 
 #endif
 #endif

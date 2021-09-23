@@ -78,6 +78,7 @@ typedef enum {
 } NotationMode;
 
 typedef struct WindowData WindowData;
+typedef struct Machine Machine;
 
 struct WindowData {
     SDL_Window *window;
@@ -113,6 +114,7 @@ struct WindowData {
     Piece piece;
     Square hidden;
     Explorer explorer;
+    Machine *machine_list[MACHINE_COUNT];
 };
 
 int file_exists(const char *filename);
