@@ -98,6 +98,34 @@ mode_normal(WindowData *data)
                 }
                 break;
 
+            case SDL_MOUSEWHEEL:
+                if(event.wheel.y > 0){ //scroll up
+                    if(notation_move_index_get(&data->notation) == 1
+                            && !notation_line_is_main(&data->notation)){
+                        tmp = variation_index_find(
+                                data->notation.line_current,
+                                data->notation.line_current->prev);
+                        data->notation.line_current = data->notation.line_current->prev;
+                        if(tmp != -1)
+                            data->notation.line_current->move_current = tmp;
+                    }
+                    else if(!variation_move_prev(data->notation.line_current)){
+                        break;
+                    }
+                    notation_focus_current_move(data);
+                    handle_position_change(data);
+                    data->hidden = none;
+                    draw_render(data);
+                }else if(event.wheel.y < 0){ //scroll down
+                    if(variation_move_next(data->notation.line_current)){
+                        notation_focus_current_move(data);
+                        handle_position_change(data);
+                        data->hidden = none;
+                        draw_render(data);
+                    }
+                }
+                break;
+
             //TODO better shortcuts
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {

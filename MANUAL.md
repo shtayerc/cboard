@@ -90,9 +90,9 @@ Main mode, other modes are entered from here.
   Play best move from machine 2.
 * **o**  
   Start/stop explorer.
-* **l, Arrow Right**  
+* **l, Arrow Right, Mouse Scroll Up**  
   Go to next move.
-* **h, Arrow Left**  
+* **h, Arrow Left, Mouse Scroll Down**  
   Go to previous move.
 * **j, Arrow Down**  
   Go to first sub variation.
