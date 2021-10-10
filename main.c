@@ -26,9 +26,9 @@ char fen[FEN_LEN];
 void
 output_game(WindowData *data, char *type){
     if(!strcmp(type, "pgn")){
-        pgn_write_file(stdout, &data->notation);
+        pgn_write_file(stdout, &data->game);
     }else if(!strcmp(type, "fen")){
-        board_fen_export(&notation_move_get(&data->notation)->board, fen);
+        board_fen_export(&game_move_get(&data->game)->board, fen);
         fprintf(stdout, "%s\n", fen);
     }
 }
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
     }
 
     board_fen_import(&board, fen);
-    game_init(&data.notation, &board);
+    game_init_default(&data.game, &board);
 
     if(file == NULL){
         file = fopen(data.filename, "r");
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
         data.rotation = RotationBlack;
     if(strcmp(data.number, "a") || !strcmp(data.filename, "-")){
         number = strtol(data.number, NULL, 10);
-        if(file != NULL && !pgn_read_file(file, &data.notation, number)){
+        if(file != NULL && !pgn_read_file(file, &data.game, number)){
             fprintf(stderr, "Invalid pgn\n");
             return 1;
         }
@@ -136,7 +136,7 @@ main(int argc, char *argv[])
             if(data.game_list.count == 1){
                 snprintf(data.number, data.conf.number_len, "%s", "0");
                 fseek(file, 0, SEEK_SET);
-                if(!pgn_read_file(file, &data.notation, 0)){
+                if(!pgn_read_file(file, &data.game, 0)){
                     fprintf(stderr, "Invalid pgn\n");
                     return 1;
                 }

@@ -1,5 +1,5 @@
 /*
-chess_utils v0.6.8
+chess_utils v0.7.0
 
 Copyright (c) 2021 David Murko
 
@@ -132,7 +132,7 @@ typedef struct {
     Variation *line_current;
     Tag *tag_list;
     int tag_count;
-} Notation;
+} Game;
 
 typedef struct {
     char title[GAMETITLE_LEN];
@@ -402,85 +402,85 @@ Variation *variation_clone(Variation *v, Variation *prev);
 int variation_board_find(Variation *v, Board *b, Variation **found);
 
 //
-//NOTATION FUNCTIONS
+//GAME FUNCTIONS
 //
 
 //initialize tag_list and create 7 required tags (Event, Site, Date, Round,
 //White, Black, Result)
-void notation_tag_init(Notation *n);
+void game_tag_init(Game *g);
 
 //free tag_list if not empty
-void notation_tag_free(Notation *n);
+void game_tag_free(Game *g);
 
-//return index of n->tag_list for given key
-int notation_tag_index(Notation *n, const char *key);
+//return index of g->tag_list for given key
+int game_tag_index(Game *g, const char *key);
 
-//given Tag is appended to n->tag_list
-void notation_tag_add(Notation *n, Tag *tag);
+//given Tag is appended to g->tag_list
+void game_tag_add(Game *g, Tag *tag);
 
 //remove Tag with given key
-void notation_tag_remove(Notation *n, const char *key);
+void game_tag_remove(Game *g, const char *key);
 
 //returns Tag for given key
-Tag * notation_tag_get(Notation *n, const char *key);
+Tag * game_tag_get(Game *g, const char *key);
 
 //value of Tag with key is replaced - if key does not exists new Tag is created
-void notation_tag_set(Notation *n, const char *key, const char *value);
+void game_tag_set(Game *g, const char *key, const char *value);
 
-//initialize notation with 1 Variation with given Board and initialize 7 tags
+//initialize game with 1 Variation with given Board and initialize 7 tags
 //if b is NULL then FEN_DEFAULT Board is used
-void notation_init(Notation *n, Board *b);
+void game_init(Game *g, Board *b);
 
-//free given Notation and related Variations recursively
-void notation_free(Notation *n);
+//free given Game and related Variations recursively
+void game_free(Game *g);
 
-//returns pointer to deep copied Notation
-Notation * notation_clone(Notation *n);
+//returns pointer to deep copied Game
+Game * game_clone(Game *g);
 
 //returns 1 if current move in current line is last
-int notation_move_is_last(Notation *n);
+int game_move_is_last(Game *g);
 
 //returns 1 if given move already exists after current or in variation_list
-int notation_move_is_present(Notation *n, Square src, Square dst,
+int game_move_is_present(Game *g, Square src, Square dst,
         Piece prom_piece);
 
 //returns 1 if current line is main line
-int notation_line_is_main(Notation *n);
+int game_line_is_main(Game *g);
 
 //returns current Move in current line
-Move * notation_move_get(Notation *n);
+Move * game_move_get(Game *g);
 
 //returns index of current move in current line
-int notation_move_index_get(Notation *n);
+int game_move_index_get(Game *g);
 
 //index of current move is set in current line - returns 1 if index is changed
-int notation_move_index_set(Notation *n, int index);
+int game_move_index_set(Game *g, int index);
 
-//returns Status of given move at current move in Notation
-Status notation_move_status(Notation *n, Square src, Square dst,
+//returns Status of given move at current move in Game
+Status game_move_status(Game *g, Square src, Square dst,
         Piece prom_piece);
 
-//returns Status of given san move at current move in Notation
-Status notation_move_san_status(Notation *n, const char *san, Square *src,
+//returns Status of given san move at current move in Game
+Status game_move_san_status(Game *g, const char *san, Square *src,
         Square *dst, Piece *prom_piece);
 
 //given move is added after current move
-void notation_move_add(Notation *n, Square src, Square dst, Piece prom_piece,
+void game_move_add(Game *g, Square src, Square dst, Piece prom_piece,
         Status status);
 
 //Variation with given move is created at current move
-void notation_variation_add(Notation *n, Square src, Square dst,
+void game_variation_add(Game *g, Square src, Square dst,
         Piece prom_piece, Status status);
 
 //if current line is not main it is deleted
-void notation_variation_delete(Notation *n);
+void game_variation_delete(Game *g);
 
 //if current line is not main it changes positions with main
-void notation_variation_promote(Notation *n);
+void game_variation_promote(Game *g);
 
 //find move with given board, first the main variation is checked
 //if not found function alse searches subvariations
-void notation_board_find(Notation *n, Board *b);
+void game_board_find(Game *g, Board *b);
 
 //
 //PGN FUNCTIONS
@@ -489,8 +489,8 @@ void notation_board_find(Notation *n, Board *b);
 //move file position to next game, set tags to 1 if position is before tags
 void pgn_read_next(FILE *f, int tags);
 
-//returns 1 if PGN in given FILE at given index is valid, also Notation is set
-int pgn_read_file(FILE *f, Notation *n, int index);
+//returns 1 if PGN in given FILE at given index is valid, also Game is set
+int pgn_read_file(FILE *f, Game *g, int index);
 
 //handle PGN_LINE_LEN - output line to file before it is too long
 void pgn_write_concate(FILE *f, char *line, int len, const char *fmt, ...);
@@ -502,11 +502,11 @@ void pgn_write_comment(FILE *f, char *line, const char *str);
 //if i == -1 no parentheses will be written
 void pgn_write_variation(FILE *f, Variation *v, char *line, int i);
 
-//output PGN for given Notation
-void pgn_write_file(FILE *f, Notation *n);
+//output PGN for given Game
+void pgn_write_file(FILE *f, Game *g);
 
 //replace game at given index in file with given filename
-void pgn_replace_game(const char *filename, Notation *n, int index);
+void pgn_replace_game(const char *filename, Game *g, int index);
 
 //returns number of games in given FILE, if PGN is incorrect returns -1
 int pgn_count_games(FILE *f);
@@ -2146,133 +2146,133 @@ variation_board_find(Variation *v, Board *b, Variation **found)
 }
 
 void
-notation_tag_init(Notation *n)
+game_tag_init(Game *g)
 {
-    n->tag_list = (Tag*)malloc(sizeof(Tag));
-    n->tag_count = 0;
-    notation_tag_set(n, "Event", "");
-    notation_tag_set(n, "Site", "");
-    notation_tag_set(n, "Date", "");
-    notation_tag_set(n, "Round", "");
-    notation_tag_set(n, "White", "");
-    notation_tag_set(n, "Black", "");
-    notation_tag_set(n, "Result", "*");
+    g->tag_list = (Tag*)malloc(sizeof(Tag));
+    g->tag_count = 0;
+    game_tag_set(g, "Event", "");
+    game_tag_set(g, "Site", "");
+    game_tag_set(g, "Date", "");
+    game_tag_set(g, "Round", "");
+    game_tag_set(g, "White", "");
+    game_tag_set(g, "Black", "");
+    game_tag_set(g, "Result", "*");
 }
 
 void
-notation_tag_free(Notation *n)
+game_tag_free(Game *g)
 {
-    if(n->tag_count > 0)
-        free(n->tag_list);
+    if(g->tag_count > 0)
+        free(g->tag_list);
 }
 
 int
-notation_tag_index(Notation *n, const char *key)
+game_tag_index(Game *g, const char *key)
 {
     int i;
-    for(i = 0; i < n->tag_count; i++){
-        if(!strcmp(n->tag_list[i].key, key))
+    for(i = 0; i < g->tag_count; i++){
+        if(!strcmp(g->tag_list[i].key, key))
             return i;
     }
     return -1;
 }
 
 void
-notation_tag_add(Notation *n, Tag *tag)
+game_tag_add(Game *g, Tag *tag)
 {
-    int last = n->tag_count;
-    n->tag_count++;
-    n->tag_list = (Tag*)realloc(n->tag_list, sizeof(Tag)*n->tag_count);
-    n->tag_list[last] = *tag;
+    int last = g->tag_count;
+    g->tag_count++;
+    g->tag_list = (Tag*)realloc(g->tag_list, sizeof(Tag)*g->tag_count);
+    g->tag_list[last] = *tag;
 }
 
 void
-notation_tag_remove(Notation *n, const char *key)
+game_tag_remove(Game *g, const char *key)
 {
-    int i = notation_tag_index(n, key);
+    int i = game_tag_index(g, key);
     if(i == -1)
         return;
 
     int j;
-    for(j = 1; j+i < n->tag_count; j++){
-        n->tag_list[i + (j-1)] = n->tag_list[i+j];
+    for(j = 1; j+i < g->tag_count; j++){
+        g->tag_list[i + (j-1)] = g->tag_list[i+j];
     }
-    n->tag_count--;
-    n->tag_list = (Tag*)realloc(n->tag_list, sizeof(Tag)*n->tag_count);
+    g->tag_count--;
+    g->tag_list = (Tag*)realloc(g->tag_list, sizeof(Tag)*g->tag_count);
 }
 
 Tag *
-notation_tag_get(Notation *n, const char *key)
+game_tag_get(Game *g, const char *key)
 {
-    int index = notation_tag_index(n, key);
+    int index = game_tag_index(g, key);
     if(index == -1)
         return NULL;
-    return &n->tag_list[index];
+    return &g->tag_list[index];
 }
 
 void
-notation_tag_set(Notation *n, const char *key, const char *value)
+game_tag_set(Game *g, const char *key, const char *value)
 {
     Tag tag;
-    int index = notation_tag_index(n, key);
+    int index = game_tag_index(g, key);
     if(index == -1){
         snprintf(tag.key, TAG_LEN, "%s", key);
         snprintf(tag.value, TAG_LEN, "%s", value);
-        notation_tag_add(n, &tag);
+        game_tag_add(g, &tag);
     }else{
-        snprintf(n->tag_list[index].value, TAG_LEN, "%s", value);
+        snprintf(g->tag_list[index].value, TAG_LEN, "%s", value);
     }
 }
 
 void
-notation_init(Notation *n, Board *b)
+game_init(Game *g, Board *b)
 {
-    n->line_main = (Variation*)malloc(sizeof(Variation));
-    n->line_current = n->line_main;
-    variation_init(n->line_main, b);
-    notation_tag_init(n);
+    g->line_main = (Variation*)malloc(sizeof(Variation));
+    g->line_current = g->line_main;
+    variation_init(g->line_main, b);
+    game_tag_init(g);
 }
 
 void
-notation_free(Notation *n)
+game_free(Game *g)
 {
-    variation_free(n->line_main);
-    notation_tag_free(n);
-    free(n->line_main);
+    variation_free(g->line_main);
+    game_tag_free(g);
+    free(g->line_main);
 }
 
-Notation *
-notation_clone(Notation *n)
+Game *
+game_clone(Game *g)
 {
-    Notation *clone = (Notation*)malloc(sizeof(Notation));
-    clone->line_main = variation_clone(n->line_main, NULL);
-    clone->line_current = variation_equivalent_find(n->line_main,
-            clone->line_main, n->line_current);
-    clone->tag_count = n->tag_count;
+    Game *clone = (Game*)malloc(sizeof(Game));
+    clone->line_main = variation_clone(g->line_main, NULL);
+    clone->line_current = variation_equivalent_find(g->line_main,
+            clone->line_main, g->line_current);
+    clone->tag_count = g->tag_count;
     clone->tag_list = (Tag*)malloc(clone->tag_count*sizeof(Tag));
-    memcpy(clone->tag_list, n->tag_list, n->tag_count*sizeof(Tag));
+    memcpy(clone->tag_list, g->tag_list, g->tag_count*sizeof(Tag));
     return clone;
 }
 
 int
-notation_move_is_last(Notation *n)
+game_move_is_last(Game *g)
 {
-    return n->line_current->move_current + 1 == n->line_current->move_count;
+    return g->line_current->move_current + 1 == g->line_current->move_count;
 }
 
 int
-notation_move_is_present(Notation *n, Square src, Square dst, Piece prom_piece)
+game_move_is_present(Game *g, Square src, Square dst, Piece prom_piece)
 {
     int i;
     Move *m;
 
-    if(!notation_move_is_last(n)){
-        m = &n->line_current->move_list[n->line_current->move_current+1];
+    if(!game_move_is_last(g)){
+        m = &g->line_current->move_list[g->line_current->move_current+1];
         if(m->src == src && m->dst == dst && m->prom_piece == prom_piece)
             return 1;
     }
-    for(i = 0; i < notation_move_get(n)->variation_count; i++){
-        m = variation_move_get(notation_move_get(n)->variation_list[i]);
+    for(i = 0; i < game_move_get(g)->variation_count; i++){
+        m = variation_move_get(game_move_get(g)->variation_list[i]);
         if(m->src == src && m->dst == dst && m->prom_piece == prom_piece)
             return 1;
     }
@@ -2280,66 +2280,66 @@ notation_move_is_present(Notation *n, Square src, Square dst, Piece prom_piece)
 }
 
 int
-notation_line_is_main(Notation *n)
+game_line_is_main(Game *g)
 {
-    return n->line_current == n->line_main;
+    return g->line_current == g->line_main;
 }
 
 Move *
-notation_move_get(Notation *n)
+game_move_get(Game *g)
 {
-    return variation_move_get(n->line_current);
+    return variation_move_get(g->line_current);
 }
 
 int
-notation_move_index_get(Notation *n)
+game_move_index_get(Game *g)
 {
-    return n->line_current->move_current;
+    return g->line_current->move_current;
 }
 
 int
-notation_move_index_set(Notation *n, int index)
+game_move_index_set(Game *g, int index)
 {
-    int old = n->line_current->move_current;
-    n->line_current->move_current = index;
+    int old = g->line_current->move_current;
+    g->line_current->move_current = index;
     return old != index;
 }
 
 Status
-notation_move_status(Notation *n, Square src, Square dst, Piece prom_piece)
+game_move_status(Game *g, Square src, Square dst, Piece prom_piece)
 {
-    return board_move_status(&notation_move_get(n)->board, src, dst,
+    return board_move_status(&game_move_get(g)->board, src, dst,
             prom_piece);
 }
 
 Status
-notation_move_san_status(Notation *n, const char *san, Square *src,
+game_move_san_status(Game *g, const char *san, Square *src,
         Square *dst, Piece *prom_piece)
 {
-    return board_move_san_status(&notation_move_get(n)->board, san, src, dst,
+    return board_move_san_status(&game_move_get(g)->board, san, src, dst,
             prom_piece);
 }
 
 void
-notation_move_add(Notation *n, Square src, Square dst, Piece prom_piece,
+game_move_add(Game *g, Square src, Square dst, Piece prom_piece,
         Status status)
 {
     char san[SAN_LEN];
-    Board b = notation_move_get(n)->board;
+    Board b = game_move_get(g)->board;
     board_move_san_export(&b, src, dst, prom_piece, san, SAN_LEN, status);
     board_move_do(&b, src, dst, prom_piece, status);
-    variation_move_add(n->line_current, src, dst, prom_piece, &b, san);
+    variation_move_add(g->line_current, src, dst, prom_piece, &b, san);
 }
 
 void
-notation_variation_add(Notation *n, Square src, Square dst, Piece prom_piece,
+game_variation_add(Game *g, Square src, Square dst, Piece prom_piece,
         Status status)
 {
     char san[SAN_LEN];
-    Board b = notation_move_get(n)->board;
+    Board b = game_move_get(g)->board;
     board_move_san_export(&b, src, dst, prom_piece, san, SAN_LEN, status);
     board_move_do(&b, src, dst, prom_piece, status);
-    Variation *v = n->line_current;
+    Variation *v = g->line_current;
     Move *m = &v->move_list[v->move_current];
     m->variation_count++;
     m->variation_list = (Variation**)realloc(m->variation_list,
@@ -2354,31 +2354,31 @@ notation_variation_add(Notation *n, Square src, Square dst, Piece prom_piece,
     new_v->prev = v;
     snprintf(new_v->move_list[0].san, SAN_LEN, "%s", san);
     variation_move_add(new_v, src, dst, prom_piece, &b, san);
-    n->line_current = new_v;
+    g->line_current = new_v;
 }
 
 void
-notation_variation_delete(Notation *n)
+game_variation_delete(Game *g)
 {
-    if(n->line_current == n->line_main)
+    if(g->line_current == g->line_main)
         return;
-    Variation *deleted = n->line_current;
-    n->line_current = n->line_current->prev;
+    Variation *deleted = g->line_current;
+    g->line_current = g->line_current->prev;
 
     int i;
-    for(i = 0; i < n->line_current->move_count; i++){
-        if(move_variation_delete(&n->line_current->move_list[i], deleted))
+    for(i = 0; i < g->line_current->move_count; i++){
+        if(move_variation_delete(&g->line_current->move_list[i], deleted))
             break;
     }
 }
 
 void
-notation_variation_promote(Notation *n)
+game_variation_promote(Game *g)
 {
-    if(n->line_current == n->line_main)
+    if(g->line_current == g->line_main)
         return;
 
-    Variation *v = n->line_current;
+    Variation *v = g->line_current;
     Variation *parent = v->prev;
     Variation *tmp_v;
     Variation **tmp_list;
@@ -2454,7 +2454,7 @@ notation_variation_promote(Notation *n)
 
     //promoted variation becomes current
     parent->move_current = i + v->move_current;
-    n->line_current = parent;
+    g->line_current = parent;
 
     //free ex sub variation
     free(v->move_list);
@@ -2462,13 +2462,13 @@ notation_variation_promote(Notation *n)
 }
 
 void
-notation_board_find(Notation *n, Board *b)
+game_board_find(Game *g, Board *b)
 {
     Variation *found = NULL;
-    int index = variation_board_find(n->line_main, b, &found);
+    int index = variation_board_find(g->line_main, b, &found);
     if(index != -1 && found != NULL){
-        n->line_current = found;
-        n->line_current->move_current = index;
+        g->line_current = found;
+        g->line_current->move_current = index;
     }
 }
 
@@ -2501,7 +2501,7 @@ pgn_read_next(FILE *f, int tags)
 }
 
 int
-pgn_read_file(FILE *f, Notation *n, int index)
+pgn_read_file(FILE *f, Game *g, int index)
 {
     char buffer[BUFFER_LEN];
     char word[WORD_LEN];
@@ -2526,7 +2526,7 @@ pgn_read_file(FILE *f, Notation *n, int index)
 
     comment[0] = '\0';
     board_fen_import(&b, FEN_DEFAULT);
-    v = n->line_main;
+    v = g->line_main;
 
     for(i = 0; i < index; i++){
         pgn_read_next(f, 1);
@@ -2539,12 +2539,12 @@ pgn_read_file(FILE *f, Notation *n, int index)
             continue;
 
         if(tag_extract(buffer, &tag)){
-            notation_tag_set(n, tag.key, tag.value);
+            game_tag_set(g, tag.key, tag.value);
             if(!strcmp(tag.key, "Result"))
                 snprintf(result, 10, "%s", tag.value);
             if(!strcmp(tag.key, "FEN")){
                 board_fen_import(&b, tag.value);
-                n->line_main->move_list[0].board = b;
+                g->line_main->move_list[0].board = b;
             }
         }else{
             //skip lines starting with %
@@ -2730,7 +2730,7 @@ pgn_write_variation(FILE *f, Variation *v, char *line, int i)
 }
 
 void
-pgn_write_file(FILE *f, Notation *n)
+pgn_write_file(FILE *f, Game *g)
 {
     int i;
     char line[PGN_LINE_LEN];
@@ -2738,20 +2738,20 @@ pgn_write_file(FILE *f, Notation *n)
     char escaped[TAG_LEN];
     line[0] = '\0';
 
-    for(i = 0; i < n->tag_count; i++){
-        tag_escape_value(n->tag_list[i].value, escaped, TAG_LEN);
-        fprintf(f, "[%s \"%s\"]\n", n->tag_list[i].key, escaped);
-        if(!strcmp(n->tag_list[i].key, "Result"))
-            snprintf(result, 10, "%s", n->tag_list[i].value);
+    for(i = 0; i < g->tag_count; i++){
+        tag_escape_value(g->tag_list[i].value, escaped, TAG_LEN);
+        fprintf(f, "[%s \"%s\"]\n", g->tag_list[i].key, escaped);
+        if(!strcmp(g->tag_list[i].key, "Result"))
+            snprintf(result, 10, "%s", g->tag_list[i].value);
     }
 
     fprintf(f, "\n");
-    pgn_write_variation(f, n->line_main, line, -1);
+    pgn_write_variation(f, g->line_main, line, -1);
     fprintf(f, "%s %s\n\n", line, result);
 }
 
 void
-pgn_replace_game(const char *filename, Notation *n, int index)
+pgn_replace_game(const char *filename, Game *g, int index)
 {
     int i;
     long before_len, after_len, filesize;
@@ -2789,7 +2789,7 @@ pgn_replace_game(const char *filename, Notation *n, int index)
 
     //write replaced file
     fwrite(before_str, sizeof(char), before_len, f);
-    pgn_write_file(f, n);
+    pgn_write_file(f, g);
     fwrite(after_str, sizeof(char), after_len, f);
 
     fclose(f);
@@ -2925,36 +2925,36 @@ game_list_read_pgn(GameList *gl, FILE *f)
     int index = 0;
     Tag tag;
     GameRow gr;
-    Notation n;
-    notation_tag_init(&n);
+    Game g;
+    game_tag_init(&g);
     game_list_init(gl);
 
     while(fgets(buffer, BUFFER_LEN, f)){
         trimendl(buffer);
         if(tag_extract(buffer, &tag)){
-            notation_tag_set(&n, tag.key, tag.value);
+            game_tag_set(&g, tag.key, tag.value);
         }else{
             snprintf(gr.title, GAMETITLE_LEN, "%s-%s/%s[%s]/%s (%s)",
-                    notation_tag_get(&n, "White")->value,
-                    notation_tag_get(&n, "Black")->value,
-                    notation_tag_get(&n, "Event")->value,
-                    notation_tag_get(&n, "Round")->value,
-                    notation_tag_get(&n, "Date")->value,
-                    notation_tag_get(&n, "Result")->value);
+                    game_tag_get(&g, "White")->value,
+                    game_tag_get(&g, "Black")->value,
+                    game_tag_get(&g, "Event")->value,
+                    game_tag_get(&g, "Round")->value,
+                    game_tag_get(&g, "Date")->value,
+                    game_tag_get(&g, "Result")->value);
             gr.index = index++;
             game_list_add(gl, &gr);
             pgn_read_next(f, 0);
 
             //reset tags
-            notation_tag_set(&n, "White", "");
-            notation_tag_set(&n, "Black", "");
-            notation_tag_set(&n, "Event", "");
-            notation_tag_set(&n, "Round", "");
-            notation_tag_set(&n, "Date", "");
-            notation_tag_set(&n, "Result", "*");
+            game_tag_set(&g, "White", "");
+            game_tag_set(&g, "Black", "");
+            game_tag_set(&g, "Event", "");
+            game_tag_set(&g, "Round", "");
+            game_tag_set(&g, "Date", "");
+            game_tag_set(&g, "Result", "*");
         }
     }
-    notation_tag_free(&n);
+    game_tag_free(&g);
 }
 
 void
@@ -2998,7 +2998,7 @@ game_list_search_board(GameList *gl, GameList *new_gl, FILE *f, Board *b)
     Board b_tmp, b_start;
     Variation *v, *new_v;
     Move *m;
-    Notation n;
+    Game g;
     Square pawn_start[] = {a2, b2, c2, d2, e2, f2, g2, h2, a7, b7, c7, d7, e7,
         f7, g7, h7};
 
@@ -3013,8 +3013,8 @@ game_list_search_board(GameList *gl, GameList *new_gl, FILE *f, Board *b)
         }
         snprintf(fen, FEN_LEN, "%s", FEN_DEFAULT);
         b_tmp = b_start;
-        notation_init(&n, &b_tmp);
-        v = n.line_main;
+        game_init(&g, &b_tmp);
+        v = g.line_main;
         snprintf(result, 10, "*");
         skip = 0;
         skip_var = 0;
@@ -3083,7 +3083,7 @@ game_list_search_board(GameList *gl, GameList *new_gl, FILE *f, Board *b)
                         if(str_is_move(word)){
                             if(b_tmp.move_number > b->move_number
                                     + MOVENUM_OVERCHECK){
-                                if(v == n.line_main){
+                                if(v == g.line_main){
                                     skip = 1;
                                 }else{
                                     skip_var++;
@@ -3106,7 +3106,7 @@ game_list_search_board(GameList *gl, GameList *new_gl, FILE *f, Board *b)
                                         b->position[pawn_start[j]] == WhitePawn){
                                     if(b->position[pawn_start[j]]
                                             != b_tmp.position[pawn_start[j]]){
-                                        if(v == n.line_main){
+                                        if(v == g.line_main){
                                             skip = 1;
                                         }else{
                                             skip_var = 1;
@@ -3154,7 +3154,7 @@ game_list_search_board(GameList *gl, GameList *new_gl, FILE *f, Board *b)
                 }
             }
         }
-        notation_free(&n);
+        game_free(&g);
     }
 }
 

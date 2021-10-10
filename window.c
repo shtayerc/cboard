@@ -133,7 +133,7 @@ window_data_free(WindowData *data)
     machine_config_free(data);
     undo_free(data->undo_list);
     undo_free(data->redo_list);
-    notation_free(&data->notation);
+    game_free(&data->game);
     game_list_free(&data->game_list);
     explorer_free(&data->explorer);
     FC_FreeFont(data->font);

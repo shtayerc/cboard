@@ -34,7 +34,7 @@ machine_draw(WindowData *data)
                         if(mc->type[l] == Centipawn){
                             snprintf(move, MOVENUM_LEN+SAN_LEN, "(%.2f)[%d]",
                                     (mc->score[l] / 100.f) *
-                                    (notation_move_get(&data->notation)->board.turn == White ? 1 : -1),
+                                    (game_move_get(&data->game)->board.turn == White ? 1 : -1),
                                     mc->depth[l]);
                         }else if(mc->type[l] == Mate){
                             snprintf(move, MOVENUM_LEN+SAN_LEN, "(#%d)[%d]",
@@ -65,7 +65,7 @@ machine_draw(WindowData *data)
 void
 machine_position(WindowData *data)
 {
-    Board b = notation_move_get(&data->notation)->board;
+    Board b = game_move_get(&data->game)->board;
     Machine *mc;
     int i, j;
     for(i = 0; i < MACHINE_COUNT; i++){

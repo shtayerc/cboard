@@ -25,7 +25,7 @@ explorer_write(void *p)
 
     char fen[FEN_LEN];
     fen[0] = '\0';
-    board_fen_export(&notation_move_get(&data->notation)->board, e->fen);
+    board_fen_export(&game_move_get(&data->game)->board, e->fen);
 
     e->running = 1;
     SDL_Thread * thread = SDL_CreateThread(explorer_read, NULL, (void*)data);

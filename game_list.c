@@ -125,7 +125,7 @@ mode_game_list(WindowData *data)
                 case SDLK_p:
                     f = fopen(data->filename, "r");
                     game_list_search_board(&data->game_list, &new_gl, f,
-                            &notation_move_get(&data->notation)->board);
+                            &game_move_get(&data->game)->board);
                     data->game_list = new_gl;
                     data->game_list_current = 0;
                     fclose(f);
@@ -133,12 +133,12 @@ mode_game_list(WindowData *data)
                     break;
 
                 case SDLK_c:
-                    comment = notation_move_get(&data->notation)->comment;
+                    comment = game_move_get(&data->game)->comment;
                     if(comment != NULL)
                         free(comment);
                     index = data->game_list_current;
                     comment = strdup(data->game_list.list[index].title);
-                    notation_move_get(&data->notation)->comment = comment;
+                    game_move_get(&data->game)->comment = comment;
                     draw_render(data);
                     break;
 
@@ -251,14 +251,14 @@ game_list_focus_current_game(WindowData *data)
 void
 game_list_game_load(WindowData *data, int index)
 {
-    Board tmp_b = notation_move_get(&data->notation)->board;
+    Board tmp_b = game_move_get(&data->game)->board;
     FILE *f = fopen(data->filename, "r");
     int gl_index = index == -1 ? data->game_list_current : index;
     index = data->game_list.list[gl_index].index;
-    notation_free(&data->notation);
-    notation_init(&data->notation, NULL);
+    game_free(&data->game);
+    game_init_default(&data->game, NULL);
     snprintf(data->number, data->conf.number_len, "%d", index);
-    pgn_read_file(f, &data->notation, index);
+    pgn_read_file(f, &data->game, index);
     fclose(f);
-    notation_board_find(&data->notation, &tmp_b);
+    game_board_find(&data->game, &tmp_b);
 }

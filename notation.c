@@ -86,8 +86,8 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
         nt_move_coords[nt_move_coord_index].variation = v;
         nt_move_coord_index++;
 
-        if (j == data->notation.line_current->move_current
-                && data->notation.line_current == v){
+        if (j == data->game.line_current->move_current
+                && data->game.line_current == v){
             move_current.x = *x - NOTATION_CURRENT_MOVE_PADDING_LEFT;
             move_current.y = *y;
             move_current.w = word_width;
@@ -162,10 +162,10 @@ notation_draw_tags(WindowData *data, int *x, int *y, int x_start)
     int word_width;
     char word[TAG_LEN*2];
     int i;
-    for(i=0; i < data->notation.tag_count; i++){
+    for(i=0; i < data->game.tag_count; i++){
         snprintf(word, TAG_LEN*2, "[%s \"%s\"]",
-                data->notation.tag_list[i].key,
-                data->notation.tag_list[i].value);
+                data->game.tag_list[i].key,
+                data->game.tag_list[i].value);
         word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_TITLE;
         notation_handle_line_break(data, x, y, word_width, x_start);
         FC_DrawColor(data->font, data->renderer, *x, *y,
@@ -189,14 +189,14 @@ notation_draw(WindowData *data)
         + data->notation_scroll;
 
     if(data->notation_hidden){
-        if(notation_move_is_last(&data->notation)){
-            variation_draw(data, data->notation.line_current, &x, &y, x_start,
+        if(game_move_is_last(&data->game)){
+            variation_draw(data, data->game.line_current, &x, &y, x_start,
                     0, 0);
         }
         return;
     }
     notation_draw_tags(data, &x, &y, x_start);
-    variation_draw(data, data->notation.line_main, &x, &y, x_start, 0, 1);
+    variation_draw(data, data->game.line_main, &x, &y, x_start, 0, 1);
 }
 
 void
@@ -270,19 +270,19 @@ mode_move(WindowData *data)
 
                 case SDLK_j:
                 case SDLK_DOWN:
-                    nag_move_next(&data->notation);
+                    nag_move_next(&data->game);
                     draw_render(data);
                     break;
 
                 case SDLK_k:
                 case SDLK_UP:
-                    nag_move_prev(&data->notation);
+                    nag_move_prev(&data->game);
                     draw_render(data);
                     break;
 
                 case SDLK_x:
                 case SDLK_BACKSPACE:
-                    notation_move_get(&data->notation)->nag_move = 0;
+                    game_move_get(&data->game)->nag_move = 0;
                     loop = 0;
                     break;
                 }
@@ -315,19 +315,19 @@ mode_position(WindowData *data)
 
                 case SDLK_j:
                 case SDLK_DOWN:
-                    nag_position_next(&data->notation);
+                    nag_position_next(&data->game);
                     draw_render(data);
                     break;
 
                 case SDLK_k:
                 case SDLK_UP:
-                    nag_position_prev(&data->notation);
+                    nag_position_prev(&data->game);
                     draw_render(data);
                     break;
 
                 case SDLK_x:
                 case SDLK_BACKSPACE:
-                    notation_move_get(&data->notation)->nag_position = 0;
+                    game_move_get(&data->game)->nag_position = 0;
                     loop = 0;
                     break;
                 }
@@ -364,7 +364,7 @@ mode_tag_edit(WindowData *data, Tag *tag)
                             && strcmp(tag->key, "White")
                             && strcmp(tag->key, "Black")
                             && strcmp(tag->key, "Result"))
-                        notation_tag_remove(&data->notation, tag->key);
+                        game_tag_remove(&data->game, tag->key);
                     data->status.info[0] = '\0';
                     draw_render(data);
                     break;
@@ -403,11 +403,11 @@ mode_tag(WindowData *data)
 
                 case SDLK_RETURN:
                     cursor_remove(&pos, data->status.info);
-                    tag = notation_tag_get(&data->notation, data->status.info);
+                    tag = game_tag_get(&data->game, data->status.info);
                     if(tag == NULL){
-                        notation_tag_set(&data->notation, data->status.info,
+                        game_tag_set(&data->game, data->status.info,
                                 "");
-                        tag = notation_tag_get(&data->notation,
+                        tag = game_tag_get(&data->game,
                                 data->status.info);
                     }
                     mode_tag_edit(data, tag);
@@ -442,8 +442,8 @@ mode_clipboard(WindowData *data)
                     break;
 
                 case SDLK_f:
-                    board_fen_export(&notation_move_get(
-                                &data->notation)->board, fen);
+                    board_fen_export(&game_move_get(
+                                &data->game)->board, fen);
                     SDL_SetClipboardText(fen);
                     message_add(data, &event, "FEN copied to clipboard");
                     break;
@@ -465,7 +465,7 @@ mode_clipboard(WindowData *data)
 }
 
 void
-game_init(Notation *n, Board *b)
+game_init_default(Game *g, Board *b)
 {
     char fen[FEN_LEN];
     char date[20];
@@ -475,16 +475,16 @@ game_init(Notation *n, Board *b)
     timeinfo = localtime(&rawtime);
     strftime(date, 20, "%Y.%m.%d", timeinfo);
     board_fen_export(b, fen);
-    notation_init(n, b);
+    game_init(g, b);
     if(strcmp(fen, FEN_DEFAULT))
-        notation_tag_set(n, "FEN", fen);
-    notation_tag_set(n, "Date", date);
+        game_tag_set(g, "FEN", fen);
+    game_tag_set(g, "Date", date);
 }
 
 void
-undo_init(Notation *list[])
+undo_init(Game *list[])
 {
-    memset(list, 0, sizeof(Notation*)*UNDO_COUNT);
+    memset(list, 0, sizeof(Game*)*UNDO_COUNT);
 }
 
 void
@@ -492,11 +492,11 @@ undo_add(WindowData *data)
 {
     int i = (data->undo_current + 1) % UNDO_COUNT;
     if(data->undo_list[i] != NULL
-            && data->undo_list[i]->line_main != data->notation.line_main){
-        notation_free(data->undo_list[i]);
+            && data->undo_list[i]->line_main != data->game.line_main){
+        game_free(data->undo_list[i]);
         free(data->undo_list[i]);
     }
-    data->undo_list[i] = notation_clone(&data->notation);
+    data->undo_list[i] = game_clone(&data->game);
     data->undo_current = i;
 }
 
@@ -508,8 +508,8 @@ undo_do(WindowData *data)
         return;
     if(data->undo_list[i] != NULL){
         redo_add(data);
-        notation_free(&data->notation);
-        data->notation = *data->undo_list[i];
+        game_free(&data->game);
+        data->game = *data->undo_list[i];
         free(data->undo_list[i]);
         data->undo_list[i] = NULL;
         i--;
@@ -524,11 +524,11 @@ redo_add(WindowData *data)
 {
     int i = (data->redo_current + 1) % UNDO_COUNT;
     if(data->redo_list[i] != NULL
-            && data->redo_list[i]->line_main != data->notation.line_main){
-        notation_free(data->redo_list[i]);
+            && data->redo_list[i]->line_main != data->game.line_main){
+        game_free(data->redo_list[i]);
         free(data->redo_list[i]);
     }
-    data->redo_list[i] = notation_clone(&data->notation);
+    data->redo_list[i] = game_clone(&data->game);
     data->redo_current = i;
 }
 
@@ -539,8 +539,8 @@ redo_do(WindowData *data)
     if(i < 0)
         return;
     if(data->redo_list[i] != NULL){
-        notation_free(&data->notation);
-        data->notation = *data->redo_list[i];
+        game_free(&data->game);
+        data->game = *data->redo_list[i];
         free(data->redo_list[i]);
         data->redo_list[i] = NULL;
         i--;
@@ -551,12 +551,12 @@ redo_do(WindowData *data)
 }
 
 void
-undo_free(Notation *list[])
+undo_free(Game *list[])
 {
     int i;
     for(i = 0; i < UNDO_COUNT; i++){
         if(list[i] != NULL){
-            notation_free(list[i]);
+            game_free(list[i]);
             free(list[i]);
         }
     }
@@ -566,7 +566,7 @@ void
 notation_focus_current_move(WindowData *data)
 {
     int index = notation_coord_index_move(data,
-            notation_move_get(&data->notation));
+            game_move_get(&data->game));
     if(index < 0){
         data->notation_scroll = 0;
         return;

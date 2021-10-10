@@ -7,7 +7,7 @@ write_game(WindowData *data){
 
     if(!strcmp(data->number, "a")){
         f = fopen(data->filename, "a");
-        pgn_write_file(f, &data->notation);
+        pgn_write_file(f, &data->game);
         fclose(f);
 
         f = fopen(data->filename, "r");
@@ -16,7 +16,7 @@ write_game(WindowData *data){
             snprintf(data->number, data->conf.number_len, "%d", number);
         return;
     }
-    pgn_replace_game(data->filename, &data->notation,
+    pgn_replace_game(data->filename, &data->game,
             strtol(data->number, NULL, 10));
 }
 
@@ -40,8 +40,8 @@ mode_normal(WindowData *data)
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     data->hidden = chessboard_mouse_square(data);
                     data->piece = data->hidden & 0x88 ? Empty
-                        : notation_move_get(
-                                &data->notation)->board.position[data->hidden];
+                        : game_move_get(
+                                &data->game)->board.position[data->hidden];
                 }
                 break;
 
@@ -50,7 +50,7 @@ mode_normal(WindowData *data)
                     if(data->piece != Empty){
                         square_dst = chessboard_mouse_square(data);
                         status = square_dst != none ?
-                            notation_move_status(&data->notation, data->hidden,
+                            game_move_status(&data->game, data->hidden,
                                     square_dst, Empty) : Invalid;
                         switch(status) {
                         case Invalid:
@@ -60,8 +60,8 @@ mode_normal(WindowData *data)
                             snprintf(data->status.mode, data->conf.status_max_len,
                                     "%s", data->conf.promotion_status);
                             prom_piece = mode_promotion(data,
-                                    notation_move_get(
-                                        &data->notation)->board.turn);
+                                    game_move_get(
+                                        &data->game)->board.turn);
                             if(prom_piece == Empty){
                                 snprintf(data->status.mode, data->conf.status_max_len,
                                         "%s", data->conf.normal_status);
@@ -87,8 +87,8 @@ mode_normal(WindowData *data)
                     if (notation_click(data)) {
                         int ind = notation_coord_index_click(data);
                         if(ind != -1){
-                            data->notation.line_current = nt_move_coords[ind].variation;
-                            notation_move_index_set(&data->notation,
+                            data->game.line_current = nt_move_coords[ind].variation;
+                            game_move_index_set(&data->game,
                                     nt_move_coords[ind].index);
                             data->hidden = none;
                             handle_position_change(data);
@@ -100,16 +100,16 @@ mode_normal(WindowData *data)
 
             case SDL_MOUSEWHEEL:
                 if(event.wheel.y > 0){ //scroll up
-                    if(notation_move_index_get(&data->notation) == 1
-                            && !notation_line_is_main(&data->notation)){
+                    if(game_move_index_get(&data->game) == 1
+                            && !game_line_is_main(&data->game)){
                         tmp = variation_index_find(
-                                data->notation.line_current,
-                                data->notation.line_current->prev);
-                        data->notation.line_current = data->notation.line_current->prev;
+                                data->game.line_current,
+                                data->game.line_current->prev);
+                        data->game.line_current = data->game.line_current->prev;
                         if(tmp != -1)
-                            data->notation.line_current->move_current = tmp;
+                            data->game.line_current->move_current = tmp;
                     }
-                    else if(!variation_move_prev(data->notation.line_current)){
+                    else if(!variation_move_prev(data->game.line_current)){
                         break;
                     }
                     notation_focus_current_move(data);
@@ -117,7 +117,7 @@ mode_normal(WindowData *data)
                     data->hidden = none;
                     draw_render(data);
                 }else if(event.wheel.y < 0){ //scroll down
-                    if(variation_move_next(data->notation.line_current)){
+                    if(variation_move_next(data->game.line_current)){
                         notation_focus_current_move(data);
                         handle_position_change(data);
                         data->hidden = none;
@@ -145,11 +145,11 @@ mode_normal(WindowData *data)
                     undo_add(data);
                     if(event.key.keysym.mod & KMOD_SHIFT){
                         mode_annotate(data,
-                                &data->notation.line_current->move_list[
-                                data->notation.line_current->move_current-1]);
+                                &data->game.line_current->move_list[
+                                data->game.line_current->move_current-1]);
                     }else{
-                        mode_annotate(data, notation_move_get(
-                                &data->notation));
+                        mode_annotate(data, game_move_get(
+                                &data->game));
                     }
                     break;
 
@@ -163,11 +163,11 @@ mode_normal(WindowData *data)
                 case SDLK_l:
                 case SDLK_RIGHT:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        if(!notation_move_index_set(&data->notation,
-                                data->notation.line_current->move_count-1))
+                        if(!game_move_index_set(&data->game,
+                                data->game.line_current->move_count-1))
                             break;
                     }else{
-                        if(!variation_move_next(data->notation.line_current))
+                        if(!variation_move_next(data->game.line_current))
                             break;
                     }
                     notation_focus_current_move(data);
@@ -179,21 +179,21 @@ mode_normal(WindowData *data)
                 case SDLK_h:
                 case SDLK_LEFT:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        if(!notation_move_index_set(&data->notation,
-                                !notation_line_is_main(&data->notation)))
+                        if(!game_move_index_set(&data->game,
+                                !game_line_is_main(&data->game)))
                             break;
                     }else{
-                        if(notation_move_index_get(&data->notation) == 1
-                                && !notation_line_is_main(&data->notation)){
+                        if(game_move_index_get(&data->game) == 1
+                                && !game_line_is_main(&data->game)){
                             tmp = variation_index_find(
-                                    data->notation.line_current,
-                                    data->notation.line_current->prev);
-                            data->notation.line_current = data->notation.line_current->prev;
+                                    data->game.line_current,
+                                    data->game.line_current->prev);
+                            data->game.line_current = data->game.line_current->prev;
                             if(tmp != -1)
-                                data->notation.line_current->move_current = tmp;
+                                data->game.line_current->move_current = tmp;
                         }
                         else{
-                            if(!variation_move_prev(data->notation.line_current))
+                            if(!variation_move_prev(data->game.line_current))
                                 break;
                         }
                     }
@@ -206,24 +206,24 @@ mode_normal(WindowData *data)
                 case SDLK_k:
                 case SDLK_UP:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        if(notation_line_is_main(&data->notation))
+                        if(game_line_is_main(&data->game))
                             break;
                         tmp = move_variation_find(variation_move_get(
-                                    data->notation.line_current->prev),
-                                data->notation.line_current);
+                                    data->game.line_current->prev),
+                                data->game.line_current);
                         if(tmp == -1 || tmp < 1)
                             break;
-                        data->notation.line_current = variation_move_get(
-                                data->notation.line_current->prev)->variation_list[tmp-1];
-                        data->notation.line_current->move_current = 1;
+                        data->game.line_current = variation_move_get(
+                                data->game.line_current->prev)->variation_list[tmp-1];
+                        data->game.line_current->move_current = 1;
                     }else{
-                        if(notation_line_is_main(&data->notation))
+                        if(game_line_is_main(&data->game))
                             break;
-                        tmp = variation_index_find(data->notation.line_current,
-                                data->notation.line_current->prev);
-                        data->notation.line_current = data->notation.line_current->prev;
+                        tmp = variation_index_find(data->game.line_current,
+                                data->game.line_current->prev);
+                        data->game.line_current = data->game.line_current->prev;
                         if(tmp != -1)
-                            data->notation.line_current->move_current = tmp;
+                            data->game.line_current->move_current = tmp;
                     }
                     notation_focus_current_move(data);
                     handle_position_change(data);
@@ -234,25 +234,25 @@ mode_normal(WindowData *data)
                 case SDLK_j:
                 case SDLK_DOWN:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        if(notation_line_is_main(&data->notation))
+                        if(game_line_is_main(&data->game))
                             break;
                         tmp = move_variation_find(variation_move_get(
-                                    data->notation.line_current->prev),
-                                data->notation.line_current);
+                                    data->game.line_current->prev),
+                                data->game.line_current);
                         if(tmp == -1 || tmp + 1 >= variation_move_get(
-                                    data->notation.line_current->prev)->variation_count){
+                                    data->game.line_current->prev)->variation_count){
                             break;
                         }
-                            data->notation.line_current = variation_move_get(
-                                    data->notation.line_current->prev)->variation_list[tmp+1];
-                            data->notation.line_current->move_current = 1;
+                            data->game.line_current = variation_move_get(
+                                    data->game.line_current->prev)->variation_list[tmp+1];
+                            data->game.line_current->move_current = 1;
                     }else{
-                        if(notation_move_get(
-                                &data->notation)->variation_count == 0)
+                        if(game_move_get(
+                                &data->game)->variation_count == 0)
                             break;
-                        data->notation.line_current = notation_move_get(
-                                &data->notation)->variation_list[0];
-                        data->notation.line_current->move_current = 1;
+                        data->game.line_current = game_move_get(
+                                &data->game)->variation_list[0];
+                        data->game.line_current->move_current = 1;
                     }
                     notation_focus_current_move(data);
                     handle_position_change(data);
@@ -275,13 +275,13 @@ mode_normal(WindowData *data)
                     undo_add(data);
                     //save current move from sub variation so we can find it
                     //later
-                    int sub_current = data->notation.line_current->move_current;
-                    notation_variation_promote(&data->notation);
+                    int sub_current = data->game.line_current->move_current;
+                    game_variation_promote(&data->game);
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        int curr = data->notation.line_current->move_current
+                        int curr = data->game.line_current->move_current
                             - sub_current;
                         if(curr >= 0){
-                            Move *m = &data->notation.line_current->move_list[curr];
+                            Move *m = &data->game.line_current->move_list[curr];
                             //we can always use 0 index because variations are
                             //reordered after delete
                             while(m->variation_count){
@@ -300,9 +300,9 @@ mode_normal(WindowData *data)
                 case SDLK_d:
                     undo_add(data);
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        variation_delete_next_moves(data->notation.line_current);
+                        variation_delete_next_moves(data->game.line_current);
                     }else{
-                        notation_variation_delete(&data->notation);
+                        game_variation_delete(&data->game);
                         handle_position_change(data);
                     }
                     data->hidden = none;
@@ -367,7 +367,7 @@ mode_normal(WindowData *data)
                         src = mc->line[0].move_list[1].src;
                         dst = mc->line[0].move_list[1].dst;
                         prom_piece = mc->line[0].move_list[1].prom_piece;
-                        status = notation_move_status(&data->notation, src,
+                        status = game_move_status(&data->game, src,
                                 dst, prom_piece);
                         if(status != Invalid){
                             chessboard_move_do(data, src, dst, prom_piece,

@@ -56,7 +56,7 @@ void
 explorer_position(WindowData *data)
 {
     explorer_row_free(&data->explorer);
-    Board b = notation_move_get(&data->notation)->board;
+    Board b = game_move_get(&data->game)->board;
     board_fen_export(&b, data->explorer.fen);
     data->explorer.fen_changed = 1;
 }

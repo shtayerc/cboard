@@ -40,13 +40,13 @@ void mode_position(WindowData *data);
 void mode_tag_edit(WindowData *data, Tag *tag);
 void mode_tag(WindowData *data);
 void mode_clipboard(WindowData *data);
-void game_init(Notation *n, Board *b);
-void undo_init(Notation *list[]);
+void game_init_default(Game *g, Board *b);
+void undo_init(Game *list[]);
 void undo_add(WindowData *data);
 void undo_do(WindowData *data);
 void redo_add(WindowData *data);
 void redo_do(WindowData *data);
-void undo_free(Notation *list[]);
+void undo_free(Game *list[]);
 void notation_focus_current_move(WindowData *data);
 
 #endif

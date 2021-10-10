@@ -101,12 +101,12 @@ struct WindowData {
     int from_game_list;
     StatusLine status;
     Config conf;
-    Notation notation;
+    Game game;
     GameList game_list;
     int game_list_current;
-    Notation *undo_list[UNDO_COUNT];
+    Game *undo_list[UNDO_COUNT];
     int undo_current;
-    Notation *redo_list[UNDO_COUNT];
+    Game *redo_list[UNDO_COUNT];
     int redo_current;
     Rotation rotation;
     int message;
