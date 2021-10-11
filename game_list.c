@@ -256,7 +256,7 @@ game_list_game_load(WindowData *data, int index)
     int gl_index = index == -1 ? data->game_list_current : index;
     index = data->game_list.list[gl_index].index;
     game_free(&data->game);
-    game_init_default(&data->game, NULL);
+    game_init(&data->game, NULL);
     snprintf(data->number, data->conf.number_len, "%d", index);
     pgn_read_file(f, &data->game, index);
     fclose(f);
