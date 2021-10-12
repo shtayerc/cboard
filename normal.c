@@ -12,6 +12,7 @@ write_game(WindowData *data){
 
         f = fopen(data->filename, "r");
         number = pgn_count_games(f) -1;
+        fclose(f);
         if(number >= 0)
             snprintf(data->number, data->conf.number_len, "%d", number);
         return;
