@@ -115,12 +115,12 @@ mode_game_list(WindowData *data)
                         break;
                     }
                     game_list_read_pgn(&data->game_list, f);
+                    fclose(f);
                     data->game_list_sorting = Ascending;
                     if(!(event.key.keysym.mod & KMOD_SHIFT)){
                         game_list_reverse(&data->game_list);
                         data->game_list_sorting = Descending;
                     }
-                    fclose(f);
                     data->game_list_current = 0;
                     draw_render(data);
                     break;
@@ -129,11 +129,11 @@ mode_game_list(WindowData *data)
                     f = fopen(data->filename, "r");
                     game_list_search_board(&data->game_list, &new_gl, f,
                             &game_move_get(&data->game)->board);
+                    fclose(f);
                     data->game_list = new_gl;
                     data->game_list_current = 0;
                     if(data->game_list_sorting == Descending)
                         game_list_reverse(&data->game_list);
-                    fclose(f);
                     draw_render(data);
                     break;
 
@@ -257,12 +257,12 @@ void
 game_list_game_load(WindowData *data, int index)
 {
     Board tmp_b = game_move_get(&data->game)->board;
-    FILE *f = fopen(data->filename, "r");
     int gl_index = index == -1 ? data->game_list_current : index;
     index = data->game_list.list[gl_index].index;
     game_free(&data->game);
     game_init(&data->game, NULL);
     snprintf(data->number, data->conf.number_len, "%d", index);
+    FILE *f = fopen(data->filename, "r");
     pgn_read_file(f, &data->game, index);
     fclose(f);
     game_board_find(&data->game, &tmp_b);
