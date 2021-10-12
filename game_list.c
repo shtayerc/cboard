@@ -115,8 +115,11 @@ mode_game_list(WindowData *data)
                         break;
                     }
                     game_list_read_pgn(&data->game_list, f);
-                    if(!(event.key.keysym.mod & KMOD_SHIFT))
+                    data->game_list_sorting = Ascending;
+                    if(!(event.key.keysym.mod & KMOD_SHIFT)){
                         game_list_reverse(&data->game_list);
+                        data->game_list_sorting = Descending;
+                    }
                     fclose(f);
                     data->game_list_current = 0;
                     draw_render(data);
@@ -128,6 +131,8 @@ mode_game_list(WindowData *data)
                             &game_move_get(&data->game)->board);
                     data->game_list = new_gl;
                     data->game_list_current = 0;
+                    if(data->game_list_sorting == Descending)
+                        game_list_reverse(&data->game_list);
                     fclose(f);
                     draw_render(data);
                     break;

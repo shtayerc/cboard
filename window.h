@@ -77,6 +77,10 @@ typedef enum {
     ModeMoves, ModeGameList, ModeExplorer
 } NotationMode;
 
+typedef enum {
+    Ascending, Descending
+} Sorting;
+
 typedef struct WindowData WindowData;
 typedef struct Machine Machine;
 
@@ -104,6 +108,7 @@ struct WindowData {
     Game game;
     GameList game_list;
     int game_list_current;
+    Sorting game_list_sorting;
     Game *undo_list[UNDO_COUNT];
     int undo_current;
     Game *redo_list[UNDO_COUNT];
