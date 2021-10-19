@@ -109,6 +109,8 @@ handle_non_input_events(SDL_Event *event, WindowData *data, int *loop)
     case SDL_KEYUP:
         switch(event->key.keysym.sym){
         case SDLK_q:
+            if(!mode_confirm(data, "Quit (y/N)"))
+                break;
             data->loop = 0;
             if(loop != NULL)
                 *loop = 0;

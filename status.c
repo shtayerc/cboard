@@ -93,6 +93,35 @@ mode_number_edit(WindowData *data)
 
 }
 
+int
+mode_confirm(WindowData *data, const char* msg)
+{
+    SDL_Event event;
+    int loop = 1;
+    snprintf(data->status.info, data->conf.status_max_len, "%s", msg);
+    draw_render(data);
+    while(loop){
+        if (SDL_WaitEvent(&event)) {
+            switch (event.type) {
+            case SDL_KEYUP:
+                switch(event.key.keysym.sym){
+                case SDLK_y:
+                case SDLK_z:
+                    return 1;
+
+                default:
+                    loop = 0;
+                    break;
+                }
+                break;
+            }
+        }
+    }
+    data->status.info[0] = '\0';
+    draw_render(data);
+    return 0;
+}
+
 void
 status_draw(WindowData *data)
 {
