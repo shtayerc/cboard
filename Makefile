@@ -2,6 +2,7 @@ PREFIX?=/usr
 BINDIR?=$(PREFIX)/bin
 SHAREDIR?=$(PREFIX)/share/cboard
 MANDIR?=$(PREFIX)/share/man
+APPDIR?=$(PREFIX)/share/applications
 
 CC=cc
 FILES=*.c
@@ -41,7 +42,11 @@ install:
 	install -m 755 cboard $(DESTDIR)$(BINDIR)/cboard
 	install -m 644 cboard.1 $(DESTDIR)$(MANDIR)/man1/cboard.1
 	cp -R --preserve=mode resources/* $(DESTDIR)$(SHAREDIR)
+	@if [ "$(shell uname)" = "Linux" ]; then \
+		install -m 644 cboard.desktop $(DESTDIR)$(APPDIR)/cboard.desktop; \
+	fi
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/cboard
 	rm -rf $(DESTDIR)$(SHAREDIR)
+	rm -f $(DESTDIR)$(APPDIR)/cboard.desktop
