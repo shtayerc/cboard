@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.0
+chess_utils v0.7.1
 
 Copyright (c) 2021 David Murko
 
@@ -172,7 +172,8 @@ int isubstr(const char *haystack, const char *needle);
 //append to the end of string - usage is similar to printf functions
 void concate(char *str, int len, const char *fmt, ...);
 
-//remove "+x#=()" characters from string
+//remove "+x#=()" characters from string and characters before first dot
+//(including first dot)
 void trimmove(char *str);
 
 //remove "\r\n" characters from string
@@ -643,6 +644,13 @@ void
 trimmove(char *str)
 {
     int i = 0;
+    if(charcount(str, '.') == 1){
+        while(str[i] != '.'){
+            charremove(str, i);
+        }
+        charremove(str, i);
+        i = 0;
+    }
     while(str[i] != '\0'){
         if(strchr("+x#=()", str[i]) != NULL)
             charremove(str, i);
@@ -2601,7 +2609,7 @@ pgn_read_file(FILE *f, Game *g, int index)
 
                 //parse SAN moves
                 if(comments == 0 && anglebrackets == 0
-                        && charcount(tmp, '.') == 0 && nags == 0){
+                        && charcount(tmp, '.') < 2 && nags == 0){
                     snprintf(word, WORD_LEN, "%s", tmp);
                     trimmove(word);
                     if(str_is_move(word)){
@@ -3076,7 +3084,7 @@ game_list_search_board(GameList *gl, GameList *new_gl, FILE *f, Board *b)
 
                     //parse SAN moves
                     if(comments == 0 && anglebrackets == 0
-                            && charcount(tmp, '.') == 0 && nags == 0 && !skip
+                            && charcount(tmp, '.') < 2 && nags == 0 && !skip
                             && !skip_var){
                         snprintf(word, WORD_LEN, "%s", tmp);
                         trimmove(word);
