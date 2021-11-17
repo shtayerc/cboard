@@ -603,6 +603,7 @@ chessboard_move_do(WindowData *data, Square src, Square dst,
 {
     if(game_move_is_present(&data->game, src, dst, prom_piece)){
         chessboard_focus_present(data, src, dst, prom_piece);
+        handle_position_change(data);
         return;
     }
 
