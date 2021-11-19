@@ -10,11 +10,12 @@ machine_draw(WindowData *data)
     int x = data->layout.machine.x;
     int y = data->layout.machine.y;
     int max_len = data->layout.machine.w + data->layout.machine.x;
-    SDL_SetRenderDrawColor(data->renderer, MACHINE_BACKGROUND);
+    SDL_Color c = data->conf.colors[ColorMachineBackground];
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &data->layout.machine);
     if(data->machine_hidden){
         FC_DrawColor(data->font, data->renderer, x, y,
-                data->conf.comment_font_color, "Machine data is hidden");
+                data->conf.colors[ColorMachineFont], "Machine data is hidden");
         return;
     }
     for(j = 0; j < MACHINE_COUNT; j++){
@@ -22,7 +23,7 @@ machine_draw(WindowData *data)
         if(mc->running){
             x = data->layout.machine.x;
             FC_DrawColor(data->font, data->renderer, x, y,
-                    data->conf.comment_font_color,
+                    data->conf.colors[ColorMachineFont],
                     data->conf.machine_cmd_list[j][0]);
             y += data->font_height;
             for(l = 0; l < mc->line_count; l++){
@@ -53,7 +54,7 @@ machine_draw(WindowData *data)
                             break;
                     }
                     FC_DrawColor(data->font, data->renderer, x, y,
-                            data->conf.comment_font_color, move);
+                            data->conf.colors[ColorMachineFont], move);
                     x += font_width;
                 }
                 y += data->font_height;

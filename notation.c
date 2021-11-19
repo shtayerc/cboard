@@ -30,7 +30,7 @@ comment_draw(WindowData *data, Move *m, int *x, int *y, int x_start)
         word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_MOVE;
         notation_handle_line_break(data, x, y, word_width, x_start);
         FC_DrawColor(data->font, data->renderer, *x, *y,
-                data->conf.comment_font_color, word);
+                data->conf.colors[ColorCommentFont], word);
         word = strtok_r(NULL, " ", &saveptr);
         *x += word_width;
     }
@@ -41,6 +41,7 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
         int x_start, int i, int recursive)
 {
     SDL_Rect move_current;
+    SDL_Color c = data->conf.colors[ColorNotationActiveBackground];
     Move *m;
     char san[SAN_LEN+MOVENUM_LEN];
     int movelen = SAN_LEN+MOVENUM_LEN + 2 * NAG_LEN;
@@ -60,7 +61,7 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
             }
             notation_handle_line_break(data, x, y, word_width, x_start);
             FC_DrawColor(data->font, data->renderer, *x, *y,
-                    data->conf.variation_font_color, san);
+                    data->conf.colors[ColorVariationFont], san);
             *x += word_width;
         }
 
@@ -92,15 +93,14 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
             move_current.y = *y;
             move_current.w = word_width;
             move_current.h = data->font_height;
-            SDL_SetRenderDrawColor(data->renderer,
-                    NOTATION_CURRENT_MOVE_BACKGROUND);
+            SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
             SDL_RenderFillRect(data->renderer, &move_current);
             FC_DrawColor(data->font, data->renderer, *x, *y,
-                    data->conf.notation_current_fg, san);
+                    data->conf.colors[ColorNotationActiveFont], san);
         }else
             FC_DrawColor(data->font, data->renderer, *x, *y, i
-                    ? data->conf.variation_font_color
-                    : data->conf.notation_font_color, san);
+                    ? data->conf.colors[ColorVariationFont]
+                    : data->conf.colors[ColorNotationFont], san);
         *x += word_width;
 
         if(m->comment != NULL)
@@ -117,7 +117,7 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
             word_width = FC_GetWidth(data->font, san) + NOTATION_PADDING_MOVE;
             notation_handle_line_break(data, x, y, word_width, x_start);
             FC_DrawColor(data->font, data->renderer, *x, *y,
-                    data->conf.variation_font_color, san);
+                    data->conf.colors[ColorVariationFont], san);
             *x += word_width;
         }
     }
@@ -169,7 +169,7 @@ notation_draw_tags(WindowData *data, int *x, int *y, int x_start)
         word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_TITLE;
         notation_handle_line_break(data, x, y, word_width, x_start);
         FC_DrawColor(data->font, data->renderer, *x, *y,
-                data->conf.notation_font_color, word);
+                data->conf.colors[ColorNotationFont], word);
         *x += word_width;
     }
     *y += data->font_height * 2;
@@ -179,7 +179,8 @@ notation_draw_tags(WindowData *data, int *x, int *y, int x_start)
 void
 notation_draw(WindowData *data)
 {
-    SDL_SetRenderDrawColor(data->renderer, NOTATION_BACKGROUND);
+    SDL_Color c = data->conf.colors[ColorNotationBackground];
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &data->layout.notation);
     nt_move_coord_index = 0;
     nt_move_coord_len = 0;

@@ -94,21 +94,21 @@ void
 background_draw(WindowData *data)
 {
     int col,row;
-    SDL_Color c;
+    SDL_Color c = data->conf.colors[ColorStatusBackground];
     data->layout.square.x = 0;
     data->layout.square.y = 0;
 
     Square src = square_rotation(data, game_move_get(&data->game)->src);
     Square dst = square_rotation(data, game_move_get(&data->game)->dst);
-    SDL_SetRenderDrawColor(data->renderer, STATUS_BACKGROUND);
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &data->layout.board);
     for (col = 0; col < 8; col++) {
         data->layout.square.y = col * data->layout.square.w;
         for (row = 0; row < 8; row++) {
-            c = ((col + row) % 2) ? SQUARE_BLACK : SQUARE_WHITE;
+            c = data->conf.colors[((col + row) % 2) ? ColorSquareBlack : ColorSquareWhite];
             if(filerank2square(row, col) == src
                     || filerank2square(row, col) == dst){
-                c = ((col + row) % 2) ? SQUARE_LASTMOVE_BLACK : SQUARE_LASTMOVE_WHITE;
+                c = data->conf.colors[((col + row) % 2) ? ColorSquareBlackLast : ColorSquareWhiteLast];
             }
             SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
             data->layout.square.x = row * data->layout.square.w;
@@ -152,6 +152,7 @@ void
 promotion_selection_draw(WindowData *data, Square sq, Color color)
 {
     int i;
+    SDL_Color c;
     int texture[] = {
         ((color == White) ? TextureWhiteQueen : TextureBlackQueen),
         ((color == White) ? TextureWhiteKnight : TextureBlackKnight),
@@ -166,10 +167,9 @@ promotion_selection_draw(WindowData *data, Square sq, Color color)
 
     for (i=0; i<4; i++) {
         data->layout.square.y = y + i*diff;
-        if (hover == i)
-            SDL_SetRenderDrawColor(data->renderer, SQUARE_ORANGE);
-        else
-            SDL_SetRenderDrawColor(data->renderer, SQUARE_GREY);
+
+        c = data->conf.colors[hover == i ? ColorSquareActive : ColorSquareInactive];
+        SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
         SDL_RenderFillRect(data->renderer, &data->layout.square);
         piece_draw(data, data->layout.square.x, data->layout.square.y,
                 cb_piece_texture[texture[i]]);

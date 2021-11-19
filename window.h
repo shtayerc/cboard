@@ -20,6 +20,26 @@ typedef struct {
     SDL_Rect machine;
 } Layout;
 
+typedef enum{
+    ColorSquareWhite,
+    ColorSquareBlack,
+    ColorSquareInactive,
+    ColorSquareActive,
+    ColorSquareWhiteLast,
+    ColorSquareBlackLast,
+    ColorStatusBackground,
+    ColorStatusFont,
+    ColorNotationBackground,
+    ColorNotationFont,
+    ColorNotationActiveBackground,
+    ColorNotationActiveFont,
+    ColorCommentFont,
+    ColorVariationFont,
+    ColorMachineBackground,
+    ColorMachineFont,
+    ColorCount, //this should always be the last
+} ColorIndex;
+
 typedef struct {
     int path_max_len;
     int status_max_len;
@@ -55,12 +75,8 @@ typedef struct {
     int message_duration;
     char **machine_cmd_list[2];
     char **machine_uci_list[2];
+    SDL_Color colors[ColorCount];
     char *explorer_exe;
-    SDL_Color status_font_color;
-    SDL_Color notation_font_color;
-    SDL_Color notation_current_fg;
-    SDL_Color comment_font_color;
-    SDL_Color variation_font_color;
 } Config;
 
 typedef struct {

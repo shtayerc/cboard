@@ -3,7 +3,8 @@
 void
 explorer_draw(WindowData *data)
 {
-    SDL_SetRenderDrawColor(data->renderer, NOTATION_BACKGROUND);
+    SDL_Color c = data->conf.colors[ColorNotationBackground];
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &data->layout.notation);
     int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
     int y = data->layout.notation.y + NOTATION_PADDING_TOP;
@@ -11,7 +12,7 @@ explorer_draw(WindowData *data)
     for(i = 0; i < data->explorer.row_count; i++){
         x = x_start;
         FC_DrawColor(data->font, data->renderer, x, y,
-                data->conf.notation_font_color, data->explorer.row_list[i]);
+                data->conf.colors[ColorNotationFont], data->explorer.row_list[i]);
         y += data->font_height;
     }
 }

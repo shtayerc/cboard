@@ -48,11 +48,24 @@ config_init()
         .message_duration = 2000, //miliseconds
         .machine_cmd_list = {NULL, NULL},
         .machine_uci_list = {NULL, NULL},
-        .status_font_color = {255, 255, 255, 255},
-        .notation_font_color = {0, 0, 0, 255},
-        .notation_current_fg = {255, 255, 255, 255},
-        .comment_font_color = {0, 0, 255, 255},
-        .variation_font_color = {120, 120, 120, 255},
+        .colors = {
+            [ColorSquareWhite] = {240, 217, 181, SDL_ALPHA_OPAQUE},
+            [ColorSquareBlack] = {181, 136, 99, SDL_ALPHA_OPAQUE},
+            [ColorSquareInactive] = {163, 163, 163, SDL_ALPHA_OPAQUE},
+            [ColorSquareActive] = {202, 109, 55, SDL_ALPHA_OPAQUE},
+            [ColorSquareWhiteLast] = {206, 210, 107, SDL_ALPHA_OPAQUE},
+            [ColorSquareBlackLast] = {171, 162, 58, SDL_ALPHA_OPAQUE},
+            [ColorStatusBackground] = {85, 85, 85, SDL_ALPHA_OPAQUE},
+            [ColorStatusFont] = {255, 255, 255, 255},
+            [ColorNotationBackground] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+            [ColorNotationFont] = {0, 0, 0, SDL_ALPHA_OPAQUE},
+            [ColorNotationActiveBackground] = {0, 0, 0, SDL_ALPHA_OPAQUE},
+            [ColorNotationActiveFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+            [ColorCommentFont] = {0, 0, 255, SDL_ALPHA_OPAQUE},
+            [ColorVariationFont] = {120, 120, 120, SDL_ALPHA_OPAQUE},
+            [ColorMachineBackground] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+            [ColorMachineFont] = {0, 0, 0, SDL_ALPHA_OPAQUE},
+        },
         .explorer_exe = NULL,
     };
     return config;
@@ -117,7 +130,7 @@ window_open(WindowData *data)
         data->conf.font_path = "./resources/DejaVuSansCondensed.ttf";
     }
     FC_LoadFont(data->font, data->renderer, data->conf.font_path,
-            data->conf.font_size, data->conf.status_font_color,
+            data->conf.font_size, data->conf.colors[ColorStatusFont],
             TTF_STYLE_NORMAL);
     data->font_height = FC_GetLineHeight(data->font);
 }
