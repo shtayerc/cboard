@@ -48,5 +48,6 @@ void redo_add(WindowData *data);
 void redo_do(WindowData *data);
 void undo_free(Game *list[]);
 void notation_focus_current_move(WindowData *data);
+void custom_text_draw(WindowData *data);
 
 #endif

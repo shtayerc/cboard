@@ -580,3 +580,16 @@ notation_focus_current_move(WindowData *data)
         data->notation_scroll -= nt_move_coords[index].y;
     }
 }
+
+void
+custom_text_draw(WindowData *data)
+{
+    SDL_Color c = data->conf.colors[ColorNotationBackground];
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
+    SDL_RenderFillRect(data->renderer, &data->layout.notation);
+    int x = data->layout.notation.x + NOTATION_PADDING_LEFT;
+    int y = data->layout.notation.y + NOTATION_PADDING_TOP
+        + data->game_list_scroll;
+    FC_DrawColor(data->font, data->renderer, x, y,
+                data->conf.colors[ColorNotationFont], data->custom_text);
+}

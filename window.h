@@ -90,7 +90,7 @@ typedef enum {
 } Rotation;
 
 typedef enum {
-    ModeMoves, ModeGameList, ModeExplorer
+    ModeMoves, ModeGameList, ModeExplorer, ModeCustomText,
 } NotationMode;
 
 typedef enum {
@@ -107,6 +107,7 @@ struct WindowData {
     char *filename;
     char *number;
     char *info;
+    char *custom_text;
     SDL_Renderer *renderer;
     SDL_Point mouse;
     Layout layout;

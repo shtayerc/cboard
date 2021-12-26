@@ -84,6 +84,7 @@ window_data_init(WindowData *data)
             data->conf.default_filename);
     data->number = malloc(sizeof(char) * data->conf.number_len);
     snprintf(data->number, data->conf.number_len, "a");
+    data->custom_text = calloc(sizeof(char), data->conf.status_max_len);
     data->loop = 1;
     data->from_game_list = 0;
     data->mouse.x = data->conf.default_width / 2;
@@ -144,6 +145,7 @@ window_data_free(WindowData *data)
     free(data->status.info);
     free(data->filename);
     free(data->number);
+    free(data->custom_text);
     machine_config_free(data);
     undo_free(data->undo_list);
     undo_free(data->redo_list);
@@ -212,6 +214,10 @@ draw(WindowData *data)
 
     case ModeExplorer:
         explorer_draw(data);
+        break;
+
+    case ModeCustomText:
+        custom_text_draw(data);
         break;
     }
     if(data->piece != Empty)
