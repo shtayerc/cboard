@@ -31,6 +31,7 @@ mode_game_search(WindowData *data)
                     cursor_remove(&pos, data->status.info);
                     game_list_search_str(&data->game_list, &new_gl,
                             data->status.info);
+                    game_list_free(&data->game_list);
                     data->game_list = new_gl;
                     data->game_list_current = 0;
                     loop = 0;
@@ -130,6 +131,7 @@ mode_game_list(WindowData *data)
                     game_list_search_board(&data->game_list, &new_gl, f,
                             &game_move_get(&data->game)->board);
                     fclose(f);
+                    game_list_free(&data->game_list);
                     data->game_list = new_gl;
                     data->game_list_current = 0;
                     if(data->game_list_sorting == Descending)
