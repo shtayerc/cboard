@@ -52,7 +52,6 @@ usage()
 int
 main(int argc, char *argv[])
 {
-    srand(time(NULL));
     snprintf(fen, FEN_LEN, "%s", FEN_DEFAULT);
     WindowData data;
     window_data_init(&data);

@@ -33,7 +33,7 @@ void mode_san(WindowData *data);
 void mode_training(WindowData *data);
 void chessboard_focus_present(WindowData *data, Square src, Square dst,
         Piece prom_piece);
-void chessboard_focus_random(WindowData *data);
+void chessboard_vs_next(WindowData *data, int *vs_index);
 void chessboard_move_do(WindowData *data, Square src, Square dst,
         Piece prom_piece, Status status);
 Square chessboard_mouse_square(WindowData *data);

@@ -450,13 +450,18 @@ mode_training(WindowData *data)
     Piece prom_piece;
     Status status;
     SDL_Event event;
+    VariationSequence vs_tmp;
 
     data->notation_hidden = 1;
     Variation *v = data->game.line_current;
+    vs_generate_first(&data->vs, v);
     int move_number = data->game.line_current->move_current;
     int loop = 1;
     int pos = 0;
     int old_pos;
+    int vs_index = 0;
+    int gl_index = 0;
+    int not_move = 0;
     data->message = 0;
     data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
@@ -486,7 +491,7 @@ mode_training(WindowData *data)
                                     data->hidden, dst, Empty)){
                             chessboard_focus_present(data, data->hidden, dst,
                                     Empty);
-                            chessboard_focus_random(data);
+                            chessboard_vs_next(data, &vs_index);
                         }
                     }
                     data->hidden = none;
@@ -498,23 +503,65 @@ mode_training(WindowData *data)
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
+                    data->notation_mode = ModeMoves;
                     data->status.info[0] = '\0';
                     data->notation_hidden = 0;
                     draw_render(data);
                     break;
 
                 case SDLK_RETURN:
+                    data->notation_mode = ModeMoves;
                     old_pos = pos;
                     cursor_remove(&pos, data->status.info);
                     if(!strcmp(data->status.info, "Restart")){
+                        not_move = 1;
+                        vs_free(&data->vs);
+                        vs_init(&data->vs);
+                        vs_index = 0;
+                        gl_index = 0;
                         data->game.line_current = v;
                         game_move_index_set(&data->game, move_number);
                         if(data->from_game_list){
-                            game_list_game_load(data, rand()
-                                    % data->game_list.count);
+                            game_list_game_load(data, 0);
                             v = data->game.line_current;
                             move_number = data->game.line_current->move_current;
                         }
+                        vs_generate_first(&data->vs, v);
+                    }
+
+                    if(!strcmp(data->status.info, "Repeat")){
+                        not_move = 1;
+                        data->game.line_current = v;
+                        game_move_index_set(&data->game, move_number);
+                        vs_index = 0;
+                    }
+
+                    if(!strcmp(data->status.info, "Next")){
+                        not_move = 1;
+                        data->game.line_current = v;
+                        game_move_index_set(&data->game, move_number);
+                        if(vs_can_generate_next(&data->vs)){
+                            vs_index = 0;
+                            vs_tmp = data->vs;
+                            vs_init(&data->vs);
+                            vs_generate_next(&data->vs, v, &vs_tmp);
+                            vs_free(&vs_tmp);
+                        }else if(data->from_game_list && gl_index + 1 < data->game_list.count){
+                            vs_free(&data->vs);
+                            vs_init(&data->vs);
+                            gl_index++;
+                            game_list_game_load(data, gl_index);
+                            v = data->game.line_current;
+                            vs_generate_first(&data->vs, v);
+                            move_number = data->game.line_current->move_current;
+                        }else{
+                            data->notation_mode = ModeCustomText;
+                            snprintf(data->custom_text, data->conf.status_max_len, "All done.");
+                        }
+                    }
+
+                    if(not_move){
+                        not_move = 0;
                         data->status.info[0] = '\0';
                         pos = 0;
                         data->hidden = none;
@@ -523,6 +570,7 @@ mode_training(WindowData *data)
                         draw_render(data);
                         break;
                     }
+
                     status = game_move_san_status(&data->game,
                             data->status.info, &src, &dst, &prom_piece);
                     if(status == Invalid)
@@ -532,7 +580,7 @@ mode_training(WindowData *data)
                                 prom_piece)){
                         chessboard_focus_present(data, src, dst,
                                 prom_piece);
-                        chessboard_focus_random(data);
+                        chessboard_vs_next(data, &vs_index);
                         data->status.info[0] = '\0';
                         old_pos = 0;
                     }
@@ -580,14 +628,14 @@ chessboard_focus_present(WindowData *data, Square src, Square dst,
 }
 
 void
-chessboard_focus_random(WindowData *data)
+chessboard_vs_next(WindowData *data, int *vs_index)
 {
     Move *m = game_move_get(&data->game);
     int num = !game_move_is_last(&data->game) + m->variation_count;
     if(num == 0)
         return;
 
-    int i = rand() % num;
+    int i =  m->variation_count ? data->vs.list[*vs_index].index : 0;
     if(i == 0 && !game_move_is_last(&data->game)){
         variation_move_next(data->game.line_current);
     }else{
@@ -595,6 +643,8 @@ chessboard_focus_random(WindowData *data)
         data->game.line_current = m->variation_list[i];
         data->game.line_current->move_current = 1;
     }
+    if(m->variation_count)
+        (*vs_index)++;
 }
 
 void

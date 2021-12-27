@@ -112,6 +112,7 @@ window_data_init(WindowData *data)
         data->machine_list[i] = calloc(sizeof(Machine), 1);
         data->machine_list[i]->running = 0;
     }
+    vs_init(&data->vs);
 }
 
 void
@@ -156,6 +157,7 @@ window_data_free(WindowData *data)
     for(i = 0; i < MACHINE_COUNT; i++){
         free(data->machine_list[i]);
     }
+    vs_free(&data->vs);
     SDL_DestroyRenderer(data->renderer);
     SDL_DestroyWindow(data->window);
     SDL_Quit();

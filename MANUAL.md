@@ -248,10 +248,16 @@ If it already exists, it will be edited - otherwise new tag is created.
 ### TRAINING
 
 TEXTINPUT mode. Notation is hidden.
-After user plays move that exists in notation, random
-opponents move will be played.
+After user plays move that exists in notation the opponents move will be
+played automatically - starting with main line.
 Move can be inserted with mouse or in SAN format.
-Training can be restarted with "Restart" value.
+There are 3 avaliable commands besides correct SAN moves: Restart, Repeat and
+Next.
+Restart will start from begining - first game and its main line.
+Repeat will replay current line again.
+Next will proceed to the next line or next file if all lines in current game
+are finished.
+
 
 <a name="move"></a>
 

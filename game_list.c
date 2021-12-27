@@ -151,8 +151,7 @@ mode_game_list(WindowData *data)
 
                 case SDLK_t:
                     if(event.key.keysym.mod & KMOD_SHIFT){
-                        index = rand() % data->game_list.count;
-                        game_list_game_load(data, index);
+                        game_list_game_load(data, 0);
                         loop = 0;
                         data->notation_mode = ModeMoves;
                         data->from_game_list = 1;

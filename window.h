@@ -137,6 +137,7 @@ struct WindowData {
     Square hidden;
     Explorer explorer;
     Machine *machine_list[MACHINE_COUNT];
+    VariationSequence vs;
 };
 
 int file_exists(const char *filename);
