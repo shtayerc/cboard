@@ -226,6 +226,10 @@ draw(WindowData *data)
     }
     if(data->piece != Empty)
         piece_mouse_position(data);
+
+    //For some reason on slower hardware the last drawn thing is not visible.
+    //We solve this by drawing point off screen.
+    SDL_RenderDrawPoint(data->renderer, -1, -1);
 }
 
 void
