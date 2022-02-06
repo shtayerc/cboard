@@ -454,7 +454,8 @@ mode_training(WindowData *data)
 
     data->notation_hidden = 1;
     Variation *v = data->game.line_current;
-    vs_generate_first(&data->vs, v);
+    Color color = game_move_get(&data->game)->board.turn;
+    vs_generate_first(&data->vs, v, color);
     int move_number = data->game.line_current->move_current;
     int loop = 1;
     int pos = 0;
@@ -526,7 +527,7 @@ mode_training(WindowData *data)
                             v = data->game.line_current;
                             move_number = data->game.line_current->move_current;
                         }
-                        vs_generate_first(&data->vs, v);
+                        vs_generate_first(&data->vs, v, color);
                     }
 
                     if(!strcmp(data->status.info, "Repeat")){
@@ -540,11 +541,12 @@ mode_training(WindowData *data)
                         not_move = 1;
                         data->game.line_current = v;
                         game_move_index_set(&data->game, move_number);
+                        vs_print(&data->vs);
                         if(vs_can_generate_next(&data->vs)){
                             vs_index = 0;
                             vs_tmp = data->vs;
                             vs_init(&data->vs);
-                            vs_generate_next(&data->vs, v, &vs_tmp);
+                            vs_generate_next(&data->vs, v, &vs_tmp, color);
                             vs_free(&vs_tmp);
                         }else if(data->from_game_list && gl_index + 1 < data->game_list.count){
                             vs_free(&data->vs);
@@ -552,7 +554,7 @@ mode_training(WindowData *data)
                             gl_index++;
                             game_list_game_load(data, gl_index);
                             v = data->game.line_current;
-                            vs_generate_first(&data->vs, v);
+                            vs_generate_first(&data->vs, v, color);
                             move_number = data->game.line_current->move_current;
                         }else{
                             data->notation_mode = ModeCustomText;
@@ -643,8 +645,9 @@ chessboard_vs_next(WindowData *data, int *vs_index)
         data->game.line_current = m->variation_list[i];
         data->game.line_current->move_current = 1;
     }
-    if(m->variation_count)
+    if(m->variation_count){
         (*vs_index)++;
+    }
 }
 
 void
