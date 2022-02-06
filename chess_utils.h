@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.2
+chess_utils v0.7.3
 
 Copyright (c) 2021 David Murko
 
@@ -433,8 +433,9 @@ void vs_remove_last(VariationSequence *vs);
 //returns 1 is both given VariationSequences are equal
 int vs_is_equal(VariationSequence *vs1, VariationSequence *vs2);
 
-//fill given VariationSequence with main line of given Variation
-void vs_generate_first(VariationSequence *vs, Variation *v);
+//fill given VariationSequence with main line of given Variation. Variations of
+//given Color are ignored - to not ignore anything pass NoColor.
+void vs_generate_first(VariationSequence *vs, Variation *v, Color color);
 
 //returns 1 if next VariationSequence can be generated
 int vs_can_generate_next(VariationSequence *vs);
@@ -443,9 +444,10 @@ int vs_can_generate_next(VariationSequence *vs);
 //VariationBranch from prev VariationSequence is increased and its sub
 //variations are added (if there are any). This function is meant to be used
 //after vs_generate_first and before that one should check if it can be
-//generated with function vs_can_generate_next.
+//generated with function vs_can_generate_next. Color parameters has the same
+//meaning as in vs_generate_first.
 void vs_generate_next(VariationSequence *vs, Variation *v,
-        VariationSequence *prev);
+        VariationSequence *prev, Color color);
 
 //print VariatonSequence list of VariationBranches to standard output
 void vs_print(VariationSequence *vs);
@@ -2249,13 +2251,15 @@ vs_is_equal(VariationSequence *vs1, VariationSequence *vs2)
 }
 
 void
-vs_generate_first(VariationSequence *vs, Variation *v)
+vs_generate_first(VariationSequence *vs, Variation *v, Color color)
 {
     int i, num;
     Move *m;
     for(i = v->move_current; i < v->move_count; i++){
         m = &v->move_list[i];
         if(m->variation_count > 0){
+            if(color == m->board.turn)
+                continue;
             num = (v->move_current + 1 == v->move_count) + m->variation_count;
             vs_add(vs, 0, num, 0);
         }
@@ -2263,7 +2267,8 @@ vs_generate_first(VariationSequence *vs, Variation *v)
 }
 
 void
-vs_generate_next(VariationSequence *vs, Variation *v, VariationSequence *prev)
+vs_generate_next(VariationSequence *vs, Variation *v, VariationSequence *prev,
+        Color color)
 {
     int i, j, l;
     Move *m;
@@ -2284,6 +2289,8 @@ vs_generate_next(VariationSequence *vs, Variation *v, VariationSequence *prev)
     for(i = tmp->move_current; i < tmp->move_count; i++){
         m = &tmp->move_list[i];
         if(m->variation_count > 0){
+            if(color == m->board.turn)
+                continue;
             if(l < vs->count){
                 if(vs->list[l].index > 0){ //if subvariation
                     tmp = m->variation_list[vs->list[l].index-1];
@@ -2291,7 +2298,7 @@ vs_generate_next(VariationSequence *vs, Variation *v, VariationSequence *prev)
 
                     if(l == j){
                         vs->list[j].searched = 1;
-                        vs_generate_first(vs, tmp);
+                        vs_generate_first(vs, tmp, color);
                     }
                 }
             }
