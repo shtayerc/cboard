@@ -10,7 +10,9 @@ do
             opening="$(echo "$response" | jq -rcM '.opening | "\(.eco) \(.name)"')\n"
             [ "$opening" = "null null\n" ] && opening=""
             moves="$(echo "$response" | jq -rcM '.moves[] | "\(.san) (\(.white+.black+.draws)) [\((.white/(.white+.draws+.black)*100) | round)% | \((.draws/(.white+.draws+.black)*100) | round)% | \((.black/(.white+.draws+.black))*100 | round)%]"')"
-            echo "${opening}${moves}"
+            moves="${opening}${moves}"
+            response="${moves:-No explorer data}"
+            echo "$response"
             ;;
 
         *)
