@@ -125,6 +125,9 @@ window_open(WindowData *data)
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width,
             data->conf.minimal_height);
+    SDL_DisplayMode dm;
+    SDL_GetDesktopDisplayMode(0, &dm);
+    SDL_SetWindowMaximumSize(data->window, dm.w, dm.h);
     data->renderer = SDL_CreateRenderer(data->window, -1,
             SDL_RENDERER_ACCELERATED);
     data->font = FC_CreateFont();
