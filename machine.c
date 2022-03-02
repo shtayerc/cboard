@@ -301,17 +301,16 @@ void
 machine_set_line_count(WindowData *data, int index)
 {
     int i;
-    char *num;
+    char *num = "1";
+    char **uci_list = data->conf.machine_uci_list[index];
     Machine *mc = data->machine_list[index];
-    for(i = 0; data->conf.machine_uci_list[index][i] != NULL; i++){
-        if(isubstr(data->conf.machine_uci_list[index][i], "multipv")){
-            num = strrchr(data->conf.machine_uci_list[index][i], ' ');
-            if(num){
-                num++;
-                mc->line_count = strtol(num, NULL, 10);
-            }
+    for(i = 0; uci_list != NULL && uci_list[i] != NULL; i++){
+        if(isubstr(uci_list[i], "multipv")){
+            num = strrchr(uci_list[i], ' ') + 1;
+            break;
         }
     }
+    mc->line_count = strtol(num, NULL, 10);
 }
 
 void
