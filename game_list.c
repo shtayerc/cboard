@@ -70,6 +70,7 @@ mode_game_list(WindowData *data)
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     loop = 0;
+                    data->from_game_list = 0;
                     data->notation_mode = ModeMoves;
                     snprintf(data->status.mode, data->conf.status_max_len,
                             "%s", data->conf.normal_status);

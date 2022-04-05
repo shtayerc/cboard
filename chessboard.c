@@ -455,6 +455,8 @@ mode_training(WindowData *data)
     data->notation_hidden = 1;
     Variation *v = data->game.line_current;
     Color color = game_move_get(&data->game)->board.turn;
+    vs_free(&data->vs);
+    vs_init(&data->vs);
     vs_generate_first(&data->vs, v, color);
     int move_number = data->game.line_current->move_current;
     int loop = 1;
@@ -541,7 +543,6 @@ mode_training(WindowData *data)
                         not_move = 1;
                         data->game.line_current = v;
                         game_move_index_set(&data->game, move_number);
-                        vs_print(&data->vs);
                         if(vs_can_generate_next(&data->vs)){
                             vs_index = 0;
                             vs_tmp = data->vs;
@@ -549,6 +550,7 @@ mode_training(WindowData *data)
                             vs_generate_next(&data->vs, v, &vs_tmp, color);
                             vs_free(&vs_tmp);
                         }else if(data->from_game_list && gl_index + 1 < data->game_list.count){
+                            vs_index = 0;
                             vs_free(&data->vs);
                             vs_init(&data->vs);
                             gl_index++;
