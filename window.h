@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDL_FontCache.h"
-#include "chess_utils.h"
+#include "chess_utils_define.h"
 #include "config.h"
 #include "explorer.h"
 #include "machine.h"

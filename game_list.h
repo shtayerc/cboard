@@ -1,7 +1,7 @@
 #ifndef _GAME_LIST_H_
 #define _GAME_LIST_H_
 
-#include "chess_utils.h"
+#include "chess_utils_define.h"
 #include "window.h"
 #include "event.h"
 #include "message.h"

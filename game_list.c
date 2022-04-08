@@ -191,7 +191,7 @@ game_list_draw(WindowData *data)
     SDL_Color c = data->conf.colors[ColorNotationBackground];
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &data->layout.notation);
-    int i, x, y;
+    int i, x, y, color;
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     y = data->layout.notation.y + NOTATION_PADDING_TOP
         + data->game_list_scroll;
@@ -200,9 +200,10 @@ game_list_draw(WindowData *data)
                 data->conf.colors[ColorNotationFont], "No games");
         return;
     }
-    c = data->conf.colors[ColorNotationActiveBackground];
     for(i = 0; i < data->game_list.count; i++){
+        color = !strcmp(data->game_list.list[i].tag_value, "1");
         if(i == data->game_list_current){
+            c = data->conf.colors[color ? ColorCommentFont : ColorNotationActiveBackground];
             game_current.x = x;
             game_current.y = y;
             game_current.w = data->layout.notation.w;
@@ -214,7 +215,7 @@ game_list_draw(WindowData *data)
         }
         else{
             FC_DrawColor(data->font, data->renderer, x, y,
-                    data->conf.colors[ColorNotationFont],
+                    data->conf.colors[color ? ColorCommentFont : ColorNotationFont],
                     data->game_list.list[i].title);
         }
         y += data->font_height;

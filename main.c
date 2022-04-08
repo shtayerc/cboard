@@ -17,7 +17,7 @@
 #include "explorer.h"
 
 #define CHESS_UTILS_IMPLEMENTATION
-#include "chess_utils.h"
+#include "chess_utils_define.h"
 
 #define VERSION "0.3"
 
