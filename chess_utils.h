@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.3
+chess_utils v0.7.4
 
 Copyright (c) 2021 David Murko
 
@@ -136,6 +136,9 @@ typedef struct {
 
 typedef struct {
     char title[GAMETITLE_LEN];
+#ifdef ADDITIONAL_TAG
+    char tag_value[TAG_LEN];
+#endif
     int index;
 } GameRow;
 
@@ -3126,6 +3129,12 @@ game_list_read_pgn(GameList *gl, FILE *f)
                     game_tag_get(&g, "Date")->value,
                     game_tag_get(&g, "Result")->value);
             gr.index = index++;
+#ifdef ADDITIONAL_TAG
+            Tag *tmp_tag = game_tag_get(&g, ADDITIONAL_TAG);
+            gr.tag_value[0] = '\0';
+            if (tmp_tag != NULL)
+                snprintf(gr.tag_value, TAG_LEN, "%s", tmp_tag->value);
+#endif
             game_list_add(gl, &gr);
             pgn_read_next(f, 0);
 
@@ -3136,6 +3145,9 @@ game_list_read_pgn(GameList *gl, FILE *f)
             game_tag_set(&g, "Round", "");
             game_tag_set(&g, "Date", "");
             game_tag_set(&g, "Result", "*");
+#ifdef ADDITIONAL_TAG
+            game_tag_remove(&g, ADDITIONAL_TAG);
+#endif
         }
     }
     game_tag_free(&g);
