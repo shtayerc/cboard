@@ -15,7 +15,7 @@
 #include "event.h"
 #include "message.h"
 
-void write_game(WindowData *data);
+int write_game(WindowData *data);
 void mode_normal(WindowData *data);
 
 #endif

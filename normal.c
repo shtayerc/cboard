@@ -1,12 +1,15 @@
 #include "normal.h"
 
-void
+int
 write_game(WindowData *data){
     FILE *f;
     int number;
 
     if(!strcmp(data->number, "a")){
         f = fopen(data->filename, "a");
+        if (f == NULL) {
+            return 0;
+        }
         pgn_write_file(f, &data->game);
         fclose(f);
 
@@ -15,9 +18,9 @@ write_game(WindowData *data){
         fclose(f);
         if(number >= 0)
             snprintf(data->number, data->conf.number_len, "%d", number);
-        return;
+        return 1;
     }
-    pgn_replace_game(data->filename, &data->game,
+    return pgn_replace_game(data->filename, &data->game,
             strtol(data->number, NULL, 10));
 }
 
@@ -400,8 +403,11 @@ mode_normal(WindowData *data)
             case SDL_TEXTINPUT:
                 switch(event.text.text[0]){
                 case 'W':
-                    write_game(data);
-                    message_add(data, &event, "Game written");
+                    if (write_game(data)) {
+                        message_add(data, &event, "Game written");
+                    } else {
+                        message_add(data, &event, "Error while writing file");
+                    }
                     break;
                 }
                 break;
