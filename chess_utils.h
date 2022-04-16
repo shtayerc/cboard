@@ -1,7 +1,7 @@
 /*
-chess_utils v0.7.4
+chess_utils v0.7.5
 
-Copyright (c) 2021 David Murko
+Copyright (c) 2022 David Murko
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -560,7 +560,7 @@ void pgn_write_variation(FILE *f, Variation *v, char *line, int i);
 void pgn_write_file(FILE *f, Game *g);
 
 //replace game at given index in file with given filename
-void pgn_replace_game(const char *filename, Game *g, int index);
+int pgn_replace_game(const char *filename, Game *g, int index);
 
 //returns number of games in given FILE, if PGN is incorrect returns -1
 int pgn_count_games(FILE *f);
@@ -2937,7 +2937,7 @@ pgn_write_file(FILE *f, Game *g)
     fprintf(f, "%s %s\n\n", line, result);
 }
 
-void
+int
 pgn_replace_game(const char *filename, Game *g, int index)
 {
     int i;
@@ -2946,6 +2946,9 @@ pgn_replace_game(const char *filename, Game *g, int index)
 
     //append mode does not fail if file does not exist
     FILE *f = fopen(filename, "a+");
+    if (f == NULL) {
+        return 0;
+    }
 
     //get file size
     fseek(f, 0L, SEEK_END);
@@ -2973,6 +2976,9 @@ pgn_replace_game(const char *filename, Game *g, int index)
 
     fclose(f);
     f = fopen(filename, "w");
+    if (f == NULL) {
+        return 0;
+    }
 
     //write replaced file
     fwrite(before_str, sizeof(char), before_len, f);
@@ -2982,6 +2988,7 @@ pgn_replace_game(const char *filename, Game *g, int index)
     fclose(f);
     free(before_str);
     free(after_str);
+    return 1;
 }
 
 int
