@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.5
+chess_utils v0.7.6
 
 Copyright (c) 2022 David Murko
 
@@ -1417,7 +1417,8 @@ board_move_is_promotion(Board *b, Square src, Square dst)
 int
 board_move_is_capture(Board *b, Square src, Square dst)
 {
-    return (b->position[dst] != Empty && b->position[src] != Empty);
+    return ((b->position[dst] != Empty || dst == b->en_passant)
+            && b->position[src] != Empty);
 }
 
 int
