@@ -56,6 +56,7 @@ main(int argc, char *argv[])
     WindowData data;
     window_data_init(&data);
     Board board;
+    SDL_Event *tmp_event = NULL;
     FILE *file = NULL;
     char output_type[4] = "";
     int i, number;
@@ -141,10 +142,9 @@ main(int argc, char *argv[])
                     return 1;
                 }
             }else{
-                SDL_Event tmp_event;
-                tmp_event.type = SDL_KEYUP;
-                tmp_event.key.keysym.sym = SDLK_g;
-                SDL_PushEvent(&tmp_event);
+                tmp_event = (SDL_Event*)malloc(sizeof(SDL_Event));
+                tmp_event->type = SDL_KEYUP;
+                tmp_event->key.keysym.sym = SDLK_g;
             }
         }
     }
@@ -153,6 +153,10 @@ main(int argc, char *argv[])
         fclose(file);
 
     window_open(&data);
+    if (tmp_event != NULL) {
+        SDL_PushEvent(tmp_event);
+        free(tmp_event);
+    }
     window_resize(&data, data.conf.default_width, data.conf.default_height);
     snprintf(data.status.mode, data.conf.status_max_len, "%s",
             data.conf.normal_status);
