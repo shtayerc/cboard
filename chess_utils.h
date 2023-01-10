@@ -1,7 +1,7 @@
 /*
-chess_utils v0.7.6
+chess_utils v0.7.7
 
-Copyright (c) 2022 David Murko
+Copyright (c) 2023 David Murko
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -2055,9 +2055,8 @@ variation_init(Variation *v, Board *b)
     v->move_list[0].dst = none;
     v->move_list[0].prom_piece = Empty;
     if(b == NULL){
-        Board board;
-        board_fen_import(&board, FEN_DEFAULT);
-        b = &board;
+        b = (Board*)malloc(sizeof(Board));
+        board_fen_import(b, FEN_DEFAULT);
     }
     v->move_list[0].board = *b;
     v->move_list[0].san[0] = '\0';
