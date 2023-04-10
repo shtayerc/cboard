@@ -21,6 +21,7 @@ typedef struct{
     char **row_list;
     int row_count;
     int fen_changed;
+    int event;
     #ifdef _WIN32
     HANDLE fd_input;
     HANDLE fd_output;
@@ -47,6 +48,7 @@ void explorer_free(Explorer *e);
 void explorer_row_add(Explorer *e, char *row);
 void explorer_row_free(Explorer *e);
 void explorer_position(WindowData *data);
+void explorer_event(WindowData *data, int event, int clear);
 void explorer_parse_str(Explorer *e, char *str);
 
 #endif

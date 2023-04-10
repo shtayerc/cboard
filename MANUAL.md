@@ -23,8 +23,10 @@ Current mode is shown in lower left corner. See **MODES**
   Path configuration file.
 * **-f, --font _file_**  
   Path to TrueType font file.
-* **--FEN**  
+* **--FEN-start**  
   Starting position in FEN format.
+* **--FEN-find**  
+  Set current move for position in FEN format.
 * **-h, --help**  
   Prints usage information.
 * **-n, --number _number_**  
@@ -90,6 +92,8 @@ Main mode, other modes are entered from here.
   Play best move from machine 2.
 * **o**  
   Start/stop explorer.
+* **0-9**  
+  Explorer events.
 * **l, Arrow Right, Mouse Scroll Up**  
   Go to next move.
 * **h, Arrow Left, Mouse Scroll Down**  

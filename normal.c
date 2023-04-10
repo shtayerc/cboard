@@ -397,6 +397,36 @@ mode_normal(WindowData *data)
                     }
                     draw_render(data);
                     break;
+                case SDLK_0:
+                    explorer_event(data, 0, 1);
+                    break;
+                case SDLK_1:
+                    explorer_event(data, 1, 0);
+                    break;
+                case SDLK_2:
+                    explorer_event(data, 2, 0);
+                    break;
+                case SDLK_3:
+                    explorer_event(data, 3, 0);
+                    break;
+                case SDLK_4:
+                    explorer_event(data, 4, 0);
+                    break;
+                case SDLK_5:
+                    explorer_event(data, 5, 0);
+                    break;
+                case SDLK_6:
+                    explorer_event(data, 6, 0);
+                    break;
+                case SDLK_7:
+                    explorer_event(data, 7, 0);
+                    break;
+                case SDLK_8:
+                    explorer_event(data, 8, 0);
+                    break;
+                case SDLK_9:
+                    explorer_event(data, 9, 0);
+                    break;
                 }
                 break;
 

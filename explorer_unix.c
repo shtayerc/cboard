@@ -24,6 +24,8 @@ explorer_write(void *p)
     Explorer *e = &data->explorer;
 
     char fen[FEN_LEN];
+    char cmd[100];
+    cmd[0] = '\0';
     fen[0] = '\0';
     board_fen_export(&game_move_get(&data->game)->board, e->fen);
 
@@ -35,6 +37,10 @@ explorer_write(void *p)
             e->fen_changed = 0;
             snprintf(fen, FEN_LEN, "fen %s\n", e->fen);
             write(e->fd_input, fen, strlen(fen)+1);
+        }else if(e->event > -1){
+            snprintf(cmd, 100, "event %d\n", e->event);
+            e->event = -1;
+            write(e->fd_input, cmd, strlen(cmd)+1);
         }
         sleep(0.4);
     }

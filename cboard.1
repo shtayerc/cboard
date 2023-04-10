@@ -19,8 +19,11 @@ Path configuration file.
 .B -f, --font \fIfile\fP
 Path to TrueType font file.
 .TP
-.B --FEN
+.B --FEN-start
 Starting position in FEN format.
+.TP
+.B --FEN-find
+Set current move for position in FEN format.
 .TP
 .B -h, --help
 Prints usage information.
@@ -103,6 +106,9 @@ Play best move from machine 2.
 .TP
 .B o
 Start/stop explorer.
+.TP
+.B 0-9
+Explorer events.
 .TP
 .B l, Arrow Right, Mouse Scroll Up
 Go to next move.

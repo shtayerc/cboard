@@ -25,6 +25,7 @@ explorer_init(Explorer *e)
     e->row_list = NULL;
     e->running = 0;
     e->fen[0] = '\0';
+    e->event = -1;
 }
 
 void
@@ -60,6 +61,16 @@ explorer_position(WindowData *data)
     Board b = game_move_get(&data->game)->board;
     board_fen_export(&b, data->explorer.fen);
     data->explorer.fen_changed = 1;
+}
+
+void
+explorer_event(WindowData *data, int event, int clear)
+{
+    if(!data->explorer.running)
+        return;
+    if(clear)
+        explorer_row_free(&data->explorer);
+    data->explorer.event = event;
 }
 
 void

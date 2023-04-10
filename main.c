@@ -41,7 +41,8 @@ usage()
         "\nOPTIONS\n"
         " -c --config <file>      Config to use (default ~/.config/cboard/config)\n"
         " -f --font <file>        Font to use\n"
-        "    --FEN <fen string>   Starting position\n"
+        "    --FEN-start <fen>    Starting position\n"
+        "    --FEN-find <fen>     Set current move for position\n"
         " -h --help               Print help\n"
         " -n --number <number>    Game number\n"
         " -o --output fen|pgn     Output to stdout\n"
@@ -53,6 +54,8 @@ int
 main(int argc, char *argv[])
 {
     snprintf(fen, FEN_LEN, "%s", FEN_DEFAULT);
+    char fen_find[FEN_LEN];
+    fen_find[0] = '\0';
     WindowData data;
     window_data_init(&data);
     Board board;
@@ -74,12 +77,18 @@ main(int argc, char *argv[])
                 return 1;
             }
             snprintf(output_type, 4, "%s", argv[i]);
-        }else if(!strcmp(argv[i], "--FEN")){
+        }else if(!strcmp(argv[i], "--FEN-start")){
             if(++i == argc){
                 usage();
                 return 1;
             }
             snprintf(fen, FEN_LEN, "%s", argv[i]);
+        }else if(!strcmp(argv[i], "--FEN-find")){
+            if(++i == argc){
+                usage();
+                return 1;
+            }
+            snprintf(fen_find, FEN_LEN, "%s", argv[i]);
         }else if(!strcmp(argv[i], "--font") || !strcmp(argv[i], "-f")){
             if(++i == argc){
                 usage();
@@ -156,6 +165,9 @@ main(int argc, char *argv[])
     if (tmp_event != NULL) {
         SDL_PushEvent(tmp_event);
         free(tmp_event);
+    } else if(strlen(fen_find) > 0){
+        board_fen_import(&board, fen_find);
+        game_board_find(&data.game, &board);
     }
     window_resize(&data, data.conf.default_width, data.conf.default_height);
     snprintf(data.status.mode, data.conf.status_max_len, "%s",
