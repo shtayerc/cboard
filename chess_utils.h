@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.7
+chess_utils v0.7.8
 
 Copyright (c) 2023 David Murko
 
@@ -2057,8 +2057,11 @@ variation_init(Variation *v, Board *b)
     if(b == NULL){
         b = (Board*)malloc(sizeof(Board));
         board_fen_import(b, FEN_DEFAULT);
+        v->move_list[0].board = *b;
+        free(b);
+    }else{
+        v->move_list[0].board = *b;
     }
-    v->move_list[0].board = *b;
     v->move_list[0].san[0] = '\0';
     v->move_count = 1;
     v->prev = NULL;
