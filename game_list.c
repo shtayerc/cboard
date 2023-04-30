@@ -269,5 +269,6 @@ game_list_game_load(WindowData *data, int index)
     FILE *f = fopen(data->filename, "r");
     pgn_read_file(f, &data->game, index);
     fclose(f);
+    data->notation_scroll = 0;
     game_board_find(&data->game, &tmp_b);
 }

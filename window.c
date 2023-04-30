@@ -200,6 +200,7 @@ window_resize(WindowData *data, int width, int height)
     data->layout.notation.y = 0;
     data->layout.notation.w = width - data->layout.notation.x;
     data->layout.notation.h = height - data->layout.status.h;
+    data->conf.scroll_step = data->layout.notation.h / 2;
 }
 
 void

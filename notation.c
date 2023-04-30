@@ -204,6 +204,9 @@ void
 notation_scroll_up(WindowData *data)
 {
     data->notation_scroll += data->conf.scroll_step;
+    if(data->notation_scroll > 0){
+        data->notation_scroll = 0;
+    }
 }
 
 void
