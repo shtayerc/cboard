@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.8
+chess_utils v0.7.9
 
 Copyright (c) 2023 David Murko
 
@@ -793,6 +793,9 @@ str_is_move(const char *str){
     if(strlen(str) < 2)
         return 0;
     const char *allowed = "12345678abcdefghxBNKQRO-+#=";
+    if(!strcmp(str, "--")){
+        return 0;
+    }
     for(i = 0; i < strlen(str); i++){
         if(strchr(allowed, str[i]) == NULL)
             return 0;
