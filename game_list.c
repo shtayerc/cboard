@@ -87,12 +87,12 @@ mode_game_list(WindowData *data)
                     break;
 
                 case SDLK_PAGEUP:
-                    data->game_list_scroll += data->conf.scroll_step;
+                    scroll_up(&data->game_list_scroll);
                     draw_render(data);
                     break;
 
                 case SDLK_PAGEDOWN:
-                    data->game_list_scroll -= data->conf.scroll_step;
+                    scroll_down(&data->game_list_scroll);
                     draw_render(data);
                     break;
 
@@ -194,7 +194,7 @@ game_list_draw(WindowData *data)
     int i, x, y, color;
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     y = data->layout.notation.y + NOTATION_PADDING_TOP
-        + data->game_list_scroll;
+        + data->game_list_scroll.value;
     if(data->game_list.count == 0){
         FC_DrawColor(data->font, data->renderer, x, y,
                 data->conf.colors[ColorNotationFont], "No games");
@@ -222,6 +222,10 @@ game_list_draw(WindowData *data)
         if(y > data->layout.notation.y + data->layout.notation.h)
             break;
     }
+    //we set scroll length without scroll_set_length, because game_list length
+    //is predictable
+    data->game_list_scroll.length = data->font_height * data->game_list.count;
+    scroll_set_max(&data->game_list_scroll, data->font_height);
 }
 
 void
@@ -245,15 +249,15 @@ void
 game_list_focus_current_game(WindowData *data)
 {
     int y = data->layout.notation.y + NOTATION_PADDING_TOP
-        + data->game_list_scroll;
+        + data->game_list_scroll.value;
     y += data->font_height * data->game_list_current;
     int top = data->layout.notation.y + NOTATION_PADDING_TOP;
     int bot = data->layout.notation.y + data->layout.notation.h;
     if(y + data->font_height > bot){
-        data->game_list_scroll -= y - bot;
-        data->game_list_scroll -= data->font_height;
+        data->game_list_scroll.value -= y - bot;
+        data->game_list_scroll.value -= data->font_height;
     }else if(y < top){
-        data->game_list_scroll -= y - NOTATION_PADDING_TOP;
+        data->game_list_scroll.value -= y - NOTATION_PADDING_TOP;
     }
 }
 
@@ -269,6 +273,6 @@ game_list_game_load(WindowData *data, int index)
     FILE *f = fopen(data->filename, "r");
     pgn_read_file(f, &data->game, index);
     fclose(f);
-    data->notation_scroll = 0;
+    data->notation_scroll.value = 0;
     game_board_find(&data->game, &tmp_b);
 }

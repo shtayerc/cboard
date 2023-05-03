@@ -187,7 +187,7 @@ notation_draw(WindowData *data)
     int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
     int x = x_start;
     int y = data->layout.notation.y + NOTATION_PADDING_TOP
-        + data->notation_scroll;
+        + data->notation_scroll.value;
 
     if(data->notation_hidden){
         if(game_move_is_last(&data->game)){
@@ -198,21 +198,8 @@ notation_draw(WindowData *data)
     }
     notation_draw_tags(data, &x, &y, x_start);
     variation_draw(data, data->game.line_main, &x, &y, x_start, 0, 1);
-}
-
-void
-notation_scroll_up(WindowData *data)
-{
-    data->notation_scroll += data->conf.scroll_step;
-    if(data->notation_scroll > 0){
-        data->notation_scroll = 0;
-    }
-}
-
-void
-notation_scroll_down(WindowData *data)
-{
-    data->notation_scroll -= data->conf.scroll_step;
+    scroll_set_length(&data->notation_scroll, y);
+    scroll_set_max(&data->notation_scroll, data->font_height);
 }
 
 void
@@ -349,7 +336,7 @@ mode_tag_edit(WindowData *data, Tag *tag)
     int loop = 1;
     SDL_Event event;
     int pos = U8_strlen(tag->value);
-    data->notation_scroll = 0;
+    data->notation_scroll.value = 0;
     cursor_add(&pos, tag->value, TAG_LEN, data);
     draw_render(data);
     while (loop) {
@@ -572,15 +559,15 @@ notation_focus_current_move(WindowData *data)
     int index = notation_coord_index_move(data,
             game_move_get(&data->game));
     if(index < 0){
-        data->notation_scroll = 0;
+        data->notation_scroll.value = 0;
         return;
     }
     int bot = data->layout.notation.y + data->layout.notation.h;
     if(nt_move_coords[index].y > bot){
-        data->notation_scroll -= nt_move_coords[index].y - bot;
-        data->notation_scroll -= data->font_height;
+        data->notation_scroll.value -= nt_move_coords[index].y - bot;
+        data->notation_scroll.value -= data->font_height;
     }else if(nt_move_coords[index].y < 0){
-        data->notation_scroll -= nt_move_coords[index].y;
+        data->notation_scroll.value -= nt_move_coords[index].y;
     }
 }
 
@@ -592,7 +579,7 @@ custom_text_draw(WindowData *data)
     SDL_RenderFillRect(data->renderer, &data->layout.notation);
     int x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     int y = data->layout.notation.y + NOTATION_PADDING_TOP
-        + data->game_list_scroll;
+        + data->game_list_scroll.value;
     FC_DrawColor(data->font, data->renderer, x, y,
                 data->conf.colors[ColorNotationFont], data->custom_text);
 }

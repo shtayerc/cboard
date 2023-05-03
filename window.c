@@ -18,7 +18,6 @@ config_init()
         .status_max_len = 200,
         .number_len = 10,
         .square_size = 100,
-        .scroll_step = 20,
         .default_width = 1200,
         .default_height = 800,
         .minimal_width = 600,
@@ -90,10 +89,10 @@ window_data_init(WindowData *data)
     data->mouse.x = data->conf.default_width / 2;
     data->mouse.y = data->conf.default_height / 2;
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-    data->notation_scroll = 0;
+    scroll_init(&data->notation_scroll);
     data->notation_hidden = 0;
     data->notation_mode = ModeMoves;
-    data->game_list_scroll = 0;
+    scroll_init(&data->game_list_scroll);
     data->game_list_current = 0;
     data->game_list_sorting = Ascending;
     data->machine_hidden = 0;
@@ -200,7 +199,10 @@ window_resize(WindowData *data, int width, int height)
     data->layout.notation.y = 0;
     data->layout.notation.w = width - data->layout.notation.x;
     data->layout.notation.h = height - data->layout.status.h;
-    data->conf.scroll_step = data->layout.notation.h / 2;
+    data->notation_scroll.step = data->layout.notation.h / 2;
+    data->notation_scroll.shown = data->layout.notation.h;
+    data->game_list_scroll.step = data->layout.notation.h / 2;
+    data->game_list_scroll.shown = data->layout.notation.h;
 }
 
 void
@@ -209,7 +211,6 @@ draw(WindowData *data)
     background_draw(data);
     foreground_draw(data);
     machine_draw(data);
-    status_draw(data);
 
     switch(data->notation_mode){
     case ModeMoves:
@@ -228,6 +229,7 @@ draw(WindowData *data)
         custom_text_draw(data);
         break;
     }
+    status_draw(data);
     if(data->piece != Empty)
         piece_mouse_position(data);
 

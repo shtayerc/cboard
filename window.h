@@ -11,6 +11,7 @@
 #include "notation.h"
 #include "status.h"
 #include "game_list.h"
+#include "scroll.h"
 
 typedef struct {
     SDL_Rect board;
@@ -113,10 +114,10 @@ struct WindowData {
     Layout layout;
     FC_Font *font;
     int font_height;
-    int notation_scroll;
+    Scroll notation_scroll;
     int notation_hidden;
     NotationMode notation_mode;
-    int game_list_scroll;
+    Scroll game_list_scroll;
     int machine_hidden;
     int loop;
     int from_game_list;

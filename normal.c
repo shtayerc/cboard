@@ -266,12 +266,12 @@ mode_normal(WindowData *data)
 
 
                 case SDLK_PAGEUP:
-                    notation_scroll_up(data);
+                    scroll_up(&data->notation_scroll);
                     draw_render(data);
                     break;
 
                 case SDLK_PAGEDOWN:
-                    notation_scroll_down(data);
+                    scroll_down(&data->notation_scroll);
                     draw_render(data);
                     break;
 
