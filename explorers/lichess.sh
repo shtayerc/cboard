@@ -3,6 +3,8 @@ url="https://explorer.lichess.ovh/masters"
 mode=0
 
 mode_handle() {
+    echo "[Lichess explorer]"
+    echo " "
     case "$mode" in
         0)
             moves_get "$response"
