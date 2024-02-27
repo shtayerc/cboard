@@ -47,6 +47,8 @@ variation_draw(WindowData *data, Variation *v,  int *x, int *y,
     int movelen = SAN_LEN+MOVENUM_LEN + 2 * NAG_LEN;
     int word_width;
     nt_move_coord_len += v->move_count - 1;
+    if(nt_move_coord_len == 0)
+        return;
     nt_move_coords = realloc(nt_move_coords, sizeof(MoveCoord)*nt_move_coord_len);
     if(nt_move_coords == NULL)
         return;
