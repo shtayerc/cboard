@@ -53,7 +53,7 @@ explorer_write(void *p)
 }
 
 int
-explorer_start(WindowData *data)
+explorer_start(WindowData *data, int index)
 {
     Explorer *e = &data->explorer;
     if(e->running)
@@ -62,7 +62,7 @@ explorer_start(WindowData *data)
     machine_config_free(data);
     machine_config_load(data);
 
-    if(data->conf.explorer_exe == NULL)
+    if(data->conf.explorer_exe_list[index] == NULL)
         return 0;
 
     e->fen_changed = 1;
@@ -100,7 +100,7 @@ explorer_start(WindowData *data)
         DUPLICATE_SAME_ACCESS);
 
     CreateProcess(NULL,
-            data->conf.explorer_exe,
+            data->conf.explorer_exe_list[index],
             NULL,
             NULL,
             1,

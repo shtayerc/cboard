@@ -48,7 +48,7 @@ explorer_write(void *p)
 }
 
 int
-explorer_start(WindowData *data)
+explorer_start(WindowData *data, int index)
 {
     Explorer *e = &data->explorer;
     if(e->running)
@@ -57,12 +57,12 @@ explorer_start(WindowData *data)
     machine_config_free(data);
     machine_config_load(data);
 
-    if(data->conf.explorer_exe == NULL)
+    if(data->conf.explorer_exe_list[index] == NULL)
         return 0;
 
     e->fen_changed = 1;
 
-    char *argv[] = { NULL };
+    char *argv[] = { data->conf.explorer_exe_list[index], NULL };
     int pipe_in[2], pipe_out[2];
     pipe(pipe_in);
     pipe(pipe_out);
@@ -77,7 +77,7 @@ explorer_start(WindowData *data)
         close(1);
         close(2);
         dup(pipe_out[1]);
-        execvp(data->conf.explorer_exe, argv);
+        execvp(data->conf.explorer_exe_list[index], argv);
         exit(0);
     }else{
         SDL_Thread * thread = SDL_CreateThread(explorer_write, NULL,

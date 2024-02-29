@@ -74,10 +74,10 @@ typedef struct {
     char *default_filename;
     int font_size;
     int message_duration;
-    char **machine_cmd_list[2];
-    char **machine_uci_list[2];
+    char **machine_cmd_list[MACHINE_COUNT];
+    char **machine_uci_list[MACHINE_COUNT];
     SDL_Color colors[ColorCount];
-    char *explorer_exe;
+    char *explorer_exe_list[EXPLORER_EXE_COUNT];
 } Config;
 
 typedef struct {

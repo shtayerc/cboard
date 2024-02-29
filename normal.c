@@ -339,22 +339,13 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_m:
-                    if(event.key.keysym.mod & KMOD_SHIFT){
-                        mc = data->machine_list[1];
-                        if(mc->running){
-                            machine_stop(data, 1);
-                            mc->output[0] = '\0';
-                        }else{
-                            machine_start(data, 1);
-                        }
+                    tmp = (event.key.keysym.mod & KMOD_SHIFT);
+                    mc = data->machine_list[tmp];
+                    if(mc->running){
+                        machine_stop(data, tmp);
+                        mc->output[0] = '\0';
                     }else{
-                        mc = data->machine_list[0];
-                        if(mc->running){
-                            machine_stop(data, 0);
-                            mc->output[0] = '\0';
-                        }else{
-                            machine_start(data, 0);
-                        }
+                        machine_start(data, tmp);
                     }
                     draw_render(data);
                     break;
@@ -387,8 +378,9 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_o:
+                    tmp = (event.key.keysym.mod & KMOD_SHIFT);
                     if(data->notation_mode != ModeExplorer){
-                        if(explorer_start(data)){
+                        if(explorer_start(data, tmp)){
                             data->notation_mode = ModeExplorer;
                         }
                     }else{

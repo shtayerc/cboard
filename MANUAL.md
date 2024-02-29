@@ -91,7 +91,9 @@ Main mode, other modes are entered from here.
 * **Shift-Space**  
   Play best move from machine 2.
 * **o**  
-  Start/stop explorer.
+  Start/stop explorer 1.
+* **O**  
+  Start/stop explorer 2.
 * **0-9**  
   Explorer events.
 * **l, Arrow Right, Mouse Scroll Up**  
@@ -360,7 +362,7 @@ Example config is located in /usr/share/cboard/config.
   Lines after this are passed to engine.
 * **machine_1_uci_option_end, machine_2_uci_option_end**  
   End literal input.
-* **explorer_exe**  
+* **explorer_1_exe,explorer_2_exe**  
   Absolute path to explorer executable.
 
 <a name="files"></a>

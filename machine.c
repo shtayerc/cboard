@@ -231,9 +231,11 @@ machine_config_load(WindowData *data)
                         value);
                 data->conf.machine_cmd_list[1][machine_2_arg_count-1] = NULL;
             }
-
-            if(!strcmp(key, "explorer_exe")){
-                data->conf.explorer_exe = strdup(value);
+            if(!strcmp(key, "explorer_1_exe")){
+                data->conf.explorer_exe_list[0] = strdup(value);
+            }
+            if(!strcmp(key, "explorer_2_exe")){
+                data->conf.explorer_exe_list[1] = strdup(value);
             }
         }
 
@@ -273,7 +275,7 @@ void
 machine_config_free(WindowData *data)
 {
     int i, j;
-    for(i = 0; i < 2; i++){
+    for(i = 0; i < MACHINE_COUNT; i++){
         if(data->conf.machine_cmd_list[i] == NULL)
             continue;
         for(j = 0; data->conf.machine_cmd_list[i][j] != NULL; j++){
@@ -282,7 +284,7 @@ machine_config_free(WindowData *data)
         free(data->conf.machine_cmd_list[i]);
         data->conf.machine_cmd_list[i] = NULL;
     }
-    for(i = 0; i < 2; i++){
+    for(i = 0; i < MACHINE_COUNT; i++){
         if(data->conf.machine_uci_list[i] == NULL)
             continue;
         for(j = 0; data->conf.machine_uci_list[i][j] != NULL; j++){
@@ -291,9 +293,11 @@ machine_config_free(WindowData *data)
         free(data->conf.machine_uci_list[i]);
         data->conf.machine_uci_list[i] = NULL;
     }
-    if(data->conf.explorer_exe != NULL){
-        free(data->conf.explorer_exe);
-        data->conf.explorer_exe = NULL;
+    for(i = 0; i < EXPLORER_EXE_COUNT; i++){
+        if(data->conf.explorer_exe_list[i] != NULL){
+            free(data->conf.explorer_exe_list[i]);
+            data->conf.explorer_exe_list[i] = NULL;
+        }
     }
 }
 

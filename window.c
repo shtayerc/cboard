@@ -65,7 +65,7 @@ config_init()
             [ColorMachineBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
             [ColorMachineFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
         },
-        .explorer_exe = NULL,
+        .explorer_exe_list = {NULL, NULL},
     };
     return config;
 }
