@@ -120,12 +120,14 @@ window_open(WindowData *data)
     data->window = SDL_CreateWindow(data->conf.window_title,
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             data->conf.default_width, data->conf.default_height,
-            SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE|SDL_WINDOW_BORDERLESS);
+            SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE|SDL_WINDOW_BORDERLESS
+            |SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width,
             data->conf.minimal_height);
     SDL_DisplayMode dm;
-    SDL_GetDesktopDisplayMode(0, &dm);
+    int displayIndex = SDL_GetWindowDisplayIndex(data->window);
+    SDL_GetDesktopDisplayMode(displayIndex, &dm);
     SDL_SetWindowMaximumSize(data->window, dm.w, dm.h);
     data->renderer = SDL_CreateRenderer(data->window, -1,
             SDL_RENDERER_ACCELERATED);
