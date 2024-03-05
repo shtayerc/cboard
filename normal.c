@@ -147,18 +147,18 @@ mode_normal(WindowData *data)
 
                 case SDLK_a:
                     undo_add(data);
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         mode_annotate(data,
                                 &data->game.line_current->move_list[
                                 data->game.line_current->move_current-1]);
-                    }else{
+                    }else if(is_keymod(event, KMOD_NONE)){
                         mode_annotate(data, game_move_get(
                                 &data->game));
                     }
                     break;
 
                 case SDLK_r:
-                    if(event.key.keysym.mod & KMOD_CTRL){
+                    if(is_keymod_ctrl(event)){
                         redo_do(data);
                         draw_render(data);
                     }
@@ -166,11 +166,11 @@ mode_normal(WindowData *data)
 
                 case SDLK_l:
                 case SDLK_RIGHT:
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         if(!game_move_index_set(&data->game,
                                 data->game.line_current->move_count-1))
                             break;
-                    }else{
+                    }else if(is_keymod(event, KMOD_NONE)){
                         if(!variation_move_next(data->game.line_current))
                             break;
                     }
@@ -182,11 +182,11 @@ mode_normal(WindowData *data)
 
                 case SDLK_h:
                 case SDLK_LEFT:
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         if(!game_move_index_set(&data->game,
                                 !game_line_is_main(&data->game)))
                             break;
-                    }else{
+                    }else if(is_keymod(event, KMOD_NONE)){
                         if(game_move_index_get(&data->game) == 1
                                 && !game_line_is_main(&data->game)){
                             tmp = variation_index_find(
@@ -209,7 +209,7 @@ mode_normal(WindowData *data)
 
                 case SDLK_k:
                 case SDLK_UP:
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         if(game_line_is_main(&data->game))
                             break;
                         tmp = move_variation_find(variation_move_get(
@@ -220,7 +220,7 @@ mode_normal(WindowData *data)
                         data->game.line_current = variation_move_get(
                                 data->game.line_current->prev)->variation_list[tmp-1];
                         data->game.line_current->move_current = 1;
-                    }else{
+                    }else if(is_keymod(event, KMOD_NONE)){
                         if(game_line_is_main(&data->game))
                             break;
                         tmp = variation_index_find(data->game.line_current,
@@ -237,7 +237,7 @@ mode_normal(WindowData *data)
 
                 case SDLK_j:
                 case SDLK_DOWN:
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         if(game_line_is_main(&data->game))
                             break;
                         tmp = move_variation_find(variation_move_get(
@@ -250,7 +250,7 @@ mode_normal(WindowData *data)
                             data->game.line_current = variation_move_get(
                                     data->game.line_current->prev)->variation_list[tmp+1];
                             data->game.line_current->move_current = 1;
-                    }else{
+                    }else if(is_keymod(event, KMOD_NONE)){
                         if(game_move_get(
                                 &data->game)->variation_count == 0)
                             break;
@@ -281,7 +281,7 @@ mode_normal(WindowData *data)
                     //later
                     int sub_current = data->game.line_current->move_current;
                     game_variation_promote(&data->game);
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         int curr = data->game.line_current->move_current
                             - sub_current;
                         if(curr >= 0){
@@ -303,9 +303,9 @@ mode_normal(WindowData *data)
 
                 case SDLK_d:
                     undo_add(data);
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         variation_delete_next_moves(data->game.line_current);
-                    }else{
+                    }else if(is_keymod(event, KMOD_NONE)){
                         game_variation_delete(&data->game);
                         handle_position_change(data);
                     }
@@ -314,9 +314,9 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_v:
-                    if(event.key.keysym.mod & KMOD_SHIFT)
+                    if(is_keymod_shift(event))
                         mode_position(data);
-                    else
+                    else if(is_keymod(event, KMOD_NONE))
                         mode_move(data);
                     break;
 
@@ -325,10 +325,10 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_t:
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         data->from_game_list = 0;
                         mode_training(data);
-                    }else{
+                    }else if(is_keymod(event, KMOD_NONE)){
                         mode_tag(data);
                     }
                     break;
@@ -339,7 +339,7 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_m:
-                    tmp = (event.key.keysym.mod & KMOD_SHIFT);
+                    tmp = is_keymod_shift(event);
                     mc = data->machine_list[tmp];
                     if(mc->running){
                         machine_stop(data, tmp);
@@ -355,7 +355,7 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_SPACE:
-                    tmp = (event.key.keysym.mod & KMOD_SHIFT);
+                    tmp = is_keymod_shift(event);
                     Square src, dst;
                     mc = data->machine_list[tmp];
                     if(mc->running){
@@ -378,7 +378,7 @@ mode_normal(WindowData *data)
                     break;
 
                 case SDLK_o:
-                    tmp = (event.key.keysym.mod & KMOD_SHIFT);
+                    tmp = is_keymod_shift(event);
                     if(data->notation_mode != ModeExplorer){
                         if(explorer_start(data, tmp)){
                             data->notation_mode = ModeExplorer;

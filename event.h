@@ -18,5 +18,8 @@ void handle_resize(WindowData *data, SDL_Event *e);
 void handle_non_input_events(SDL_Event *event, WindowData *data, int *loop);
 void handle_position_change(WindowData *data);
 void push_user_event();
+int is_keymod(SDL_Event event, int mod);
+int is_keymod_shift(SDL_Event event);
+int is_keymod_ctrl(SDL_Event event);
 
 #endif

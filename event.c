@@ -159,3 +159,19 @@ push_user_event()
     event.type = SDL_USEREVENT;
     SDL_PushEvent(&event);
 }
+
+int
+is_keymod(SDL_Event event, int mod)
+{
+    return event.key.keysym.mod == mod;
+}
+
+int is_keymod_shift(SDL_Event event)
+{
+    return is_keymod(event, KMOD_LSHIFT) || is_keymod(event, KMOD_RSHIFT);
+}
+
+int is_keymod_ctrl(SDL_Event event)
+{
+    return is_keymod(event, KMOD_LCTRL) || is_keymod(event, KMOD_RCTRL);
+}

@@ -119,7 +119,7 @@ mode_game_list(WindowData *data)
                     game_list_read_pgn(&data->game_list, f);
                     fclose(f);
                     data->game_list_sorting = Ascending;
-                    if(!(event.key.keysym.mod & KMOD_SHIFT)){
+                    if(!is_keymod_shift(event)){
                         game_list_reverse(&data->game_list);
                         data->game_list_sorting = Descending;
                     }
@@ -151,7 +151,7 @@ mode_game_list(WindowData *data)
                     break;
 
                 case SDLK_t:
-                    if(event.key.keysym.mod & KMOD_SHIFT){
+                    if(is_keymod_shift(event)){
                         game_list_game_load(data, 0);
                         loop = 0;
                         data->notation_mode = ModeMoves;
