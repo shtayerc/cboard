@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.9
+chess_utils v0.7.10
 
 Copyright (c) 2023 David Murko
 
@@ -531,6 +531,9 @@ void game_variation_delete(Game *g);
 
 //if current line is not main it changes positions with main
 void game_variation_promote(Game *g);
+
+//add moves from parent variation to current line until they are valid
+void game_variation_insert(Game *g);
 
 //find move with given board, first the main variation is checked
 //if not found function alse searches subvariations
@@ -2652,6 +2655,37 @@ game_variation_promote(Game *g)
     //free ex sub variation
     free(v->move_list);
     free(v);
+}
+
+void
+game_variation_insert(Game *g)
+{
+    int i,j;
+    Board b;
+    Move m;
+    Status status;
+
+    if(g->line_current == g->line_main)
+        return;
+
+    Variation *v = g->line_current;
+    Variation *parent = v->prev;
+
+    j = variation_index_find(v, parent);
+    if(j == -1)
+        return;
+
+    b = variation_move_get(v)->board;
+    for(i = j + 2; i < parent->move_count; i++){
+        m = parent->move_list[i];
+        status = board_move_status(&b, m.src, m.dst, m.prom_piece);
+        if(status != Invalid){
+            b = variation_move_get(v)->board;
+            board_move_do(&b, m.src, m.dst, m.prom_piece, status);
+            variation_move_add(v, m.src, m.dst, m.prom_piece, &b, m.san);
+        }else
+            break;
+    }
 }
 
 void
