@@ -296,6 +296,15 @@ mode_normal(WindowData *data)
                     draw_render(data);
                     break;
 
+                case SDLK_i:
+                    undo_add(data);
+                    if (!game_line_is_main(&data->game)) {
+                        variation_delete_next_moves(data->game.line_current);
+                        game_variation_insert(&data->game);
+                        draw_render(data);
+                    }
+                    break;
+
                 case SDLK_u:
                     undo_do(data);
                     draw_render(data);

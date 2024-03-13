@@ -124,6 +124,8 @@ Main mode, other modes are entered from here.
   Promote current variation.
 * **P**  
   Promote current variation and delete old.
+* **i**
+  Insert moves from parent variation to current variation until they are valid.
 * **d**  
   Delete current variation.
 * **D**  
