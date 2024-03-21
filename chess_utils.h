@@ -1,7 +1,7 @@
 /*
-chess_utils v0.7.10
+chess_utils v0.7.11
 
-Copyright (c) 2023 David Murko
+Copyright (c) 2024 David Murko
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -1194,13 +1194,12 @@ board_is_equal(Board *b1, Board *b2, int strict)
             || b1->castling[1][0] != b2->castling[1][0]
             || b1->castling[1][1] != b2->castling[1][1])
         return 0;
-    int i;
-    for(i = 0; i <= h1; i++){
-        if(!(i && 0x88))
-            continue;
-
-        if(b1->position[i] != b2->position[i])
-            return 0;
+    int i,j;
+    for(j = 0; j <= a1; j += 16){
+        for(i = 0; i <= 7; i++){
+            if(b1->position[i+j] != b2->position[i+j])
+                return 0;
+        }
     }
     return 1;
 }
@@ -1548,7 +1547,7 @@ board_move_san_status(Board *b, const char *san, Square *src, Square *dst,
     char san_str[SAN_LEN];
     snprintf(san_str, SAN_LEN, "%s", san);
     trimmove(san_str);
-    Piece piece;
+    Piece piece = Empty;
     Status status = Invalid;
     *src = none;
     *prom_piece = Empty;
@@ -2579,7 +2578,8 @@ game_variation_promote(Game *g)
     Variation *tmp_v;
     Variation **tmp_list;
     int tmp_count;
-    int i, j, l;
+    int i, j;
+    int l = -1;
 
     //find move and variation index of promoted variation
     for(i = 0; i < parent->move_count; i++){
