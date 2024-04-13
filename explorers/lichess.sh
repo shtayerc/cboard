@@ -27,7 +27,7 @@ games_get() {
 moves_get() {
     opening="$(response_query '.opening | "\(.eco) \(.name)"')\n"
     [ "$opening" = "null null\n" ] && opening=""
-    moves="$(response_query '.moves[] | "\(.san) (\(.white+.black+.draws)) [\((.white/(.white+.draws+.black)*100) | round)% | \((.draws/(.white+.draws+.black)*100) | round)% | \((.black/(.white+.draws+.black))*100 | round)%]"')"
+    moves="$(response_query '.moves[] | "\(.san) (\(.white+.black+.draws)) [\((.white/(.white+.draws+.black)*100) | round)%% | \((.draws/(.white+.draws+.black)*100) | round)%% | \((.black/(.white+.draws+.black))*100 | round)%%]"')"
     moves="${opening}${moves}"
     echo "${moves:-No moves found}"
 }
