@@ -67,7 +67,7 @@ machine_write(void *p)
             write(mc->fd_input, fen, strlen(fen));
             write(mc->fd_input, "\ngo infinite\n", 13);
         }
-        sleep(0.4);
+        msleep(400);
     }
     return 1;
 }

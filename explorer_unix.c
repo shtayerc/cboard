@@ -42,7 +42,7 @@ explorer_write(void *p)
             e->event = -1;
             write(e->fd_input, cmd, strlen(cmd)+1);
         }
-        sleep(0.4);
+        msleep(400);
     }
     return 1;
 }

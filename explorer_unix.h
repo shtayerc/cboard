@@ -3,6 +3,7 @@
 #define _EXPLORER_UNIX_H_
 
 #include "window.h"
+#include "unix.h"
 
 typedef struct WindowData WindowData;
 

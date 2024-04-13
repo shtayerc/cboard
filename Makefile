@@ -4,12 +4,12 @@ SHAREDIR?=$(PREFIX)/share/cboard
 MANDIR?=$(PREFIX)/share/man
 APPDIR?=$(PREFIX)/share/applications
 
-CC=cc
+CC?=clang
 FILES=*.c
 EXE=cboard
 LIBS=-lSDL2 -lSDL2_image -lSDL2_ttf
 WINLIBS=-lmingw32 -lSDL2main
-FLAGS=-Wextra -Wall -Wformat-security -Wno-format-truncation
+FLAGS=-Wextra -Wall -Wformat-security
 
 OBJECTS=$(FILES:.c=.o)
 cboard: $(FILES) *.h
@@ -41,7 +41,7 @@ install:
 	mkdir -m 755 -p $(DESTDIR)$(SHAREDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
 	install -m 755 cboard $(DESTDIR)$(BINDIR)/cboard
 	install -m 644 cboard.1 $(DESTDIR)$(MANDIR)/man1/cboard.1
-	cp -R --preserve=mode resources/* $(DESTDIR)$(SHAREDIR)
+	cp -R resources/* $(DESTDIR)$(SHAREDIR)
 	@if [ "$(shell uname)" = "Linux" ]; then \
 		install -m 644 cboard.desktop $(DESTDIR)$(APPDIR)/cboard.desktop; \
 	fi
