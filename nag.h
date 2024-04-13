@@ -6,8 +6,8 @@
 
 extern const char nag_map[][NAG_LEN];
 
-void nag_move_next(Game *g);
-void nag_move_prev(Game *g);
-void nag_position_next(Game *g);
-void nag_position_prev(Game *g);
+void nag_move_next(Game* g);
+void nag_move_prev(Game* g);
+void nag_position_next(Game* g);
+void nag_position_prev(Game* g);
 #endif

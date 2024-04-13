@@ -10,27 +10,27 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <unistd.h>
 #include <signal.h>
+#include <unistd.h>
 #endif
 
-typedef struct{
+typedef struct {
     char output[BUFFER_LEN];
     int running;
     char fen[FEN_LEN];
-    char **row_list;
+    char** row_list;
     int row_count;
     int fen_changed;
     int event;
-    #ifdef _WIN32
+#ifdef _WIN32
     HANDLE fd_input;
     HANDLE fd_output;
     HANDLE pid;
-    #else
+#else
     int fd_input;
     int fd_output;
     int pid;
-    #endif
+#endif
 } Explorer;
 
 #ifdef _WIN32
@@ -42,13 +42,13 @@ typedef struct{
 
 typedef struct WindowData WindowData;
 
-void explorer_draw(WindowData *data);
-void explorer_init(Explorer *e);
-void explorer_free(Explorer *e);
-void explorer_row_add(Explorer *e, char *row);
-void explorer_row_free(Explorer *e);
-void explorer_position(WindowData *data);
-void explorer_event(WindowData *data, int event, int clear);
-void explorer_parse_str(Explorer *e, char *str);
+void explorer_draw(WindowData* data);
+void explorer_init(Explorer* e);
+void explorer_free(Explorer* e);
+void explorer_row_add(Explorer* e, char* row);
+void explorer_row_free(Explorer* e);
+void explorer_position(WindowData* data);
+void explorer_event(WindowData* data, int event, int clear);
+void explorer_parse_str(Explorer* e, char* str);
 
 #endif

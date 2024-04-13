@@ -1,18 +1,17 @@
 #include "window.h"
 
 int
-file_exists(const char *filename)
-{
-    FILE *f = fopen(filename, "r");
-    if(f == NULL)
+file_exists(const char* filename) {
+    FILE* f = fopen(filename, "r");
+    if (f == NULL) {
         return 0;
+    }
     fclose(f);
     return 1;
 }
 
 Config
-config_init()
-{
+config_init() {
     Config config = {
         .path_max_len = 512,
         .status_max_len = 200,
@@ -47,40 +46,39 @@ config_init()
         .message_duration = 2000, //miliseconds
         .machine_cmd_list = {NULL, NULL},
         .machine_uci_list = {NULL, NULL},
-        .colors = {
-            [ColorSquareWhite] = {240, 217, 181, SDL_ALPHA_OPAQUE},
-            [ColorSquareBlack] = {181, 136, 99, SDL_ALPHA_OPAQUE},
-            [ColorSquareInactive] = {163, 163, 163, SDL_ALPHA_OPAQUE},
-            [ColorSquareActive] = {202, 109, 55, SDL_ALPHA_OPAQUE},
-            [ColorSquareWhiteLast] = {206, 210, 107, SDL_ALPHA_OPAQUE},
-            [ColorSquareBlackLast] = {171, 162, 58, SDL_ALPHA_OPAQUE},
-            [ColorStatusBackground] = {85, 85, 85, SDL_ALPHA_OPAQUE},
-            [ColorStatusFont] = {255, 255, 255, 255},
-            [ColorNotationBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
-            [ColorNotationFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
-            [ColorNotationActiveBackground] = {255, 255, 255, SDL_ALPHA_OPAQUE},
-            [ColorNotationActiveFont] = {38, 36, 33, SDL_ALPHA_OPAQUE},
-            [ColorCommentFont] = {0, 221, 255, SDL_ALPHA_OPAQUE},
-            [ColorVariationFont] = {153, 153, 153, SDL_ALPHA_OPAQUE},
-            [ColorMachineBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
-            [ColorMachineFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
-        },
+        .colors =
+            {
+                [ColorSquareWhite] = {240, 217, 181, SDL_ALPHA_OPAQUE},
+                [ColorSquareBlack] = {181, 136, 99, SDL_ALPHA_OPAQUE},
+                [ColorSquareInactive] = {163, 163, 163, SDL_ALPHA_OPAQUE},
+                [ColorSquareActive] = {202, 109, 55, SDL_ALPHA_OPAQUE},
+                [ColorSquareWhiteLast] = {206, 210, 107, SDL_ALPHA_OPAQUE},
+                [ColorSquareBlackLast] = {171, 162, 58, SDL_ALPHA_OPAQUE},
+                [ColorStatusBackground] = {85, 85, 85, SDL_ALPHA_OPAQUE},
+                [ColorStatusFont] = {255, 255, 255, 255},
+                [ColorNotationBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
+                [ColorNotationFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+                [ColorNotationActiveBackground] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+                [ColorNotationActiveFont] = {38, 36, 33, SDL_ALPHA_OPAQUE},
+                [ColorCommentFont] = {0, 221, 255, SDL_ALPHA_OPAQUE},
+                [ColorVariationFont] = {153, 153, 153, SDL_ALPHA_OPAQUE},
+                [ColorMachineBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
+                [ColorMachineFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+            },
         .explorer_exe_list = {NULL, NULL},
     };
     return config;
 }
 
 void
-window_data_init(WindowData *data)
-{
+window_data_init(WindowData* data) {
     int i;
     data->conf = config_init();
     data->status.str = calloc(sizeof(char), data->conf.status_max_len);
     data->status.mode = calloc(sizeof(char), data->conf.status_max_len);
     data->status.info = calloc(sizeof(char), data->conf.status_max_len);
     data->filename = malloc(sizeof(char) * data->conf.status_max_len);
-    snprintf(data->filename, data->conf.status_max_len, "%s",
-            data->conf.default_filename);
+    snprintf(data->filename, data->conf.status_max_len, "%s", data->conf.default_filename);
     data->number = malloc(sizeof(char) * data->conf.number_len);
     snprintf(data->number, data->conf.number_len, "a");
     data->custom_text = calloc(sizeof(char), data->conf.status_max_len);
@@ -107,7 +105,7 @@ window_data_init(WindowData *data)
     data->hidden = none;
     game_list_init(&data->game_list);
     explorer_init(&data->explorer);
-    for(i = 0; i < MACHINE_COUNT; i++){
+    for (i = 0; i < MACHINE_COUNT; i++) {
         data->machine_list[i] = calloc(sizeof(Machine), 1);
         data->machine_list[i]->running = 0;
     }
@@ -115,33 +113,26 @@ window_data_init(WindowData *data)
 }
 
 void
-window_open(WindowData *data)
-{
+window_open(WindowData* data) {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_DisplayMode dm;
     SDL_GetDisplayMode(0, 0, &dm);
-    data->window = SDL_CreateWindow(data->conf.window_title,
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            dm.w, dm.h,
-            SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE|SDL_WINDOW_BORDERLESS);
+    data->window = SDL_CreateWindow(data->conf.window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, dm.w,
+                                    dm.h, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-    SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width,
-            data->conf.minimal_height);
-    data->renderer = SDL_CreateRenderer(data->window, -1,
-            SDL_RENDERER_ACCELERATED);
+    SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width, data->conf.minimal_height);
+    data->renderer = SDL_CreateRenderer(data->window, -1, SDL_RENDERER_ACCELERATED);
     data->font = FC_CreateFont();
-    if(!file_exists(data->conf.font_path)){
+    if (!file_exists(data->conf.font_path)) {
         data->conf.font_path = "./resources/DejaVuSansCondensed.ttf";
     }
-    FC_LoadFont(data->font, data->renderer, data->conf.font_path,
-            data->conf.font_size, data->conf.colors[ColorStatusFont],
-            TTF_STYLE_NORMAL);
+    FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->conf.font_size,
+                data->conf.colors[ColorStatusFont], TTF_STYLE_NORMAL);
     data->font_height = FC_GetLineHeight(data->font);
 }
 
 void
-window_data_free(WindowData *data)
-{
+window_data_free(WindowData* data) {
     int i;
     free(data->status.str);
     free(data->status.mode);
@@ -156,7 +147,7 @@ window_data_free(WindowData *data)
     game_list_free(&data->game_list);
     explorer_free(&data->explorer);
     FC_FreeFont(data->font);
-    for(i = 0; i < MACHINE_COUNT; i++){
+    for (i = 0; i < MACHINE_COUNT; i++) {
         free(data->machine_list[i]);
     }
     vs_free(&data->vs);
@@ -166,8 +157,7 @@ window_data_free(WindowData *data)
 }
 
 void
-window_resize(WindowData *data, int width, int height)
-{
+window_resize(WindowData* data, int width, int height) {
     data->window_width = width;
     data->window_height = height;
 
@@ -182,7 +172,7 @@ window_resize(WindowData *data, int width, int height)
     data->layout.board.y = 0;
     data->layout.board.h = data->layout.status.y;
     data->layout.board.w = data->conf.square_size * 8;
-    if(data->layout.board.h < data->layout.board.w){
+    if (data->layout.board.h < data->layout.board.w) {
         data->layout.board.w = data->layout.board.h;
         data->layout.square.h = data->layout.board.w / 8;
         data->conf.square_size = data->layout.square.h;
@@ -191,8 +181,7 @@ window_resize(WindowData *data, int width, int height)
     data->layout.machine.x = 0;
     data->layout.machine.y = data->layout.board.w;
     data->layout.machine.w = data->layout.board.w;
-    data->layout.machine.h = height - data->layout.board.w
-        - data->layout.status.h;
+    data->layout.machine.h = height - data->layout.board.w - data->layout.status.h;
     data->layout.square.w = data->layout.square.h;
 
     data->layout.notation.x = data->layout.square.h * 8;
@@ -206,32 +195,24 @@ window_resize(WindowData *data, int width, int height)
 }
 
 void
-draw(WindowData *data)
-{
+draw(WindowData* data) {
     background_draw(data);
     foreground_draw(data);
     machine_draw(data);
 
-    switch(data->notation_mode){
-    case ModeMoves:
-        notation_draw(data);
-        break;
+    switch (data->notation_mode) {
+        case ModeMoves: notation_draw(data); break;
 
-    case ModeGameList:
-        game_list_draw(data);
-        break;
+        case ModeGameList: game_list_draw(data); break;
 
-    case ModeExplorer:
-        explorer_draw(data);
-        break;
+        case ModeExplorer: explorer_draw(data); break;
 
-    case ModeCustomText:
-        custom_text_draw(data);
-        break;
+        case ModeCustomText: custom_text_draw(data); break;
     }
     status_draw(data);
-    if(data->piece != Empty)
+    if (data->piece != Empty) {
         piece_mouse_position(data);
+    }
 
     //For some reason on slower hardware the last drawn thing is not visible.
     //We solve this by drawing point off screen.
@@ -239,9 +220,7 @@ draw(WindowData *data)
 }
 
 void
-draw_render(WindowData *data)
-{
+draw_render(WindowData* data) {
     draw(data);
     SDL_RenderPresent(data->renderer);
 }
-

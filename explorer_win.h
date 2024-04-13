@@ -6,10 +6,10 @@
 
 typedef struct WindowData WindowData;
 
-int explorer_read(void *p);
-int explorer_write(void *p);
-int explorer_start(WindowData *data, index int);
-void explorer_stop(WindowData *data);
+int explorer_read(void* p);
+int explorer_write(void* p);
+int explorer_start(WindowData* data, index int);
+void explorer_stop(WindowData* data);
 
 #endif
 #endif
