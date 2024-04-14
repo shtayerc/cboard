@@ -13,7 +13,7 @@ piece_load(WindowData* data) {
         snprintf(path, data->conf.path_max_len, path_format, data->conf.piece_path, i / 6 ? 'w' : 'b',
                  piece_str[i % 6]);
         if (!file_exists(path)) {
-            data->conf.piece_path = "./resources/alpha/";
+            data->conf.piece_path = FALLBACK_PATH "/alpha/";
             snprintf(path, data->conf.path_max_len, path_format, data->conf.piece_path, i / 6 ? 'w' : 'b',
                      piece_str[i % 6]);
         }

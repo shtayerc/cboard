@@ -40,10 +40,10 @@ install: cboard
 install:
 	mkdir -m 755 -p $(DESTDIR)$(SHAREDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
 	install -m 755 cboard $(DESTDIR)$(BINDIR)/cboard
-	install -m 644 cboard.1 $(DESTDIR)$(MANDIR)/man1/cboard.1
-	cp -R resources/* $(DESTDIR)$(SHAREDIR)
+	install -m 644 ../cboard.1 $(DESTDIR)$(MANDIR)/man1/cboard.1
+	cp -R ../resources/* $(DESTDIR)$(SHAREDIR)
 	@if [ "$(shell uname)" = "Linux" ]; then \
-		install -m 644 cboard.desktop $(DESTDIR)$(APPDIR)/cboard.desktop; \
+		install -m 644 ../cboard.desktop $(DESTDIR)$(APPDIR)/cboard.desktop; \
 	fi
 
 uninstall:

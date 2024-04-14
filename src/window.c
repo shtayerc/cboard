@@ -124,7 +124,7 @@ window_open(WindowData* data) {
     data->renderer = SDL_CreateRenderer(data->window, -1, SDL_RENDERER_ACCELERATED);
     data->font = FC_CreateFont();
     if (!file_exists(data->conf.font_path)) {
-        data->conf.font_path = "./resources/DejaVuSansCondensed.ttf";
+        data->conf.font_path = FALLBACK_PATH "/DejaVuSansCondensed.ttf";
     }
     FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->conf.font_size,
                 data->conf.colors[ColorStatusFont], TTF_STYLE_NORMAL);
