@@ -433,7 +433,7 @@ mode_training(WindowData* data) {
                         if (data->piece != Empty) {
                             dst = chessboard_mouse_square(data);
                             if (game_move_is_present(&data->game, data->hidden, dst, Empty)) {
-                                chessboard_focus_present(data, data->hidden, dst, Empty);
+                                chessboard_vs_focus(data, &vs_index, data->hidden, dst, Empty);
                                 chessboard_vs_next(data, &vs_index);
                             }
                         }
@@ -463,6 +463,7 @@ mode_training(WindowData* data) {
                                 vs_index = 0;
                                 gl_index = 0;
                                 data->game.line_current = v;
+                                variation_move_current_reset(v);
                                 game_move_index_set(&data->game, move_number);
                                 if (data->from_game_list) {
                                     game_list_game_load(data, 0);
@@ -475,6 +476,7 @@ mode_training(WindowData* data) {
                             if (!strcmp(data->status.info, "Repeat")) {
                                 not_move = 1;
                                 data->game.line_current = v;
+                                variation_move_current_reset(v);
                                 game_move_index_set(&data->game, move_number);
                                 vs_index = 0;
                             }
@@ -520,7 +522,7 @@ mode_training(WindowData* data) {
                             }
 
                             if (game_move_is_present(&data->game, src, dst, prom_piece)) {
-                                chessboard_focus_present(data, src, dst, prom_piece);
+                                chessboard_vs_focus(data, &vs_index, src, dst, prom_piece);
                                 chessboard_vs_next(data, &vs_index);
                                 data->status.info[0] = '\0';
                                 old_pos = 0;
@@ -538,7 +540,7 @@ mode_training(WindowData* data) {
     }
 }
 
-void
+int
 chessboard_focus_present(WindowData* data, Square src, Square dst, Piece prom_piece) {
     Move* m;
     int i;
@@ -557,7 +559,20 @@ chessboard_focus_present(WindowData* data, Square src, Square dst, Piece prom_pi
             && m->variation_list[i]->move_list[1].prom_piece == prom_piece) {
             data->game.line_current = m->variation_list[i];
             data->game.line_current->move_current = 1;
+            return 1;
         }
+    }
+    return 0;
+}
+
+void
+chessboard_vs_focus(WindowData* data, int* vs_index, Square src, Square dst, Piece prom_piece) {
+    Color color = game_move_get(&data->game)->board.turn;
+    if (chessboard_focus_present(data, src, dst, prom_piece)) {
+        *vs_index = 0;
+        vs_free(&data->vs);
+        vs_init(&data->vs);
+        vs_generate_first(&data->vs, data->game.line_current, color);
     }
 }
 
