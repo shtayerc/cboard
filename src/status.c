@@ -29,6 +29,8 @@ mode_filename_edit(WindowData* data) {
                                 } else {
                                     data->rotation = RotationWhite;
                                 }
+                                window_set_title(data);
+                                window_update_title(data);
                             }
                             draw_render(data);
                             break;

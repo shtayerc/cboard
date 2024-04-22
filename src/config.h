@@ -12,6 +12,8 @@
 #define MACHINE_COUNT                      2
 #define EXPLORER_BUFFER_LEN                1024 * 10
 #define EXPLORER_EXE_COUNT                 2
+#define WINDOW_TITLE_LEN                   205
+#define WINDOW_TITLE_PREFIX                "Cboard"
 #define UNDO_COUNT                         5
 #define FALLBACK_PATH                      "../resources"
 #define PIECE_PATH                         PREFIX "/share/cboard/alpha"

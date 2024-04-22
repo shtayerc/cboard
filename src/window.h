@@ -52,7 +52,7 @@ typedef struct {
     int minimal_width;
     int minimal_height;
     int minimal_square;
-    char* window_title;
+    char window_title[WINDOW_TITLE_LEN];
     char* normal_status;
     char* edit_status;
     char* annotate_status;
@@ -146,6 +146,8 @@ void window_data_init(WindowData* data);
 void window_open(WindowData* data);
 void window_data_free(WindowData* data);
 void window_resize(WindowData* data, int width, int height);
+void window_set_title(WindowData* data);
+void window_update_title(WindowData* data);
 void draw(WindowData* data);
 void draw_render(WindowData* data);
 

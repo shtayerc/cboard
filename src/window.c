@@ -22,7 +22,6 @@ config_init() {
         .minimal_width = 600,
         .minimal_height = 400,
         .minimal_square = 30,
-        .window_title = "Cboard",
         .normal_status = "[NORMAL]",
         .edit_status = "[EDIT]",
         .annotate_status = "[COMMENT]",
@@ -117,6 +116,7 @@ window_open(WindowData* data) {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_DisplayMode dm;
     SDL_GetDisplayMode(0, 0, &dm);
+    window_set_title(data);
     data->window = SDL_CreateWindow(data->conf.window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, dm.w,
                                     dm.h, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
@@ -192,6 +192,18 @@ window_resize(WindowData* data, int width, int height) {
     data->notation_scroll.shown = data->layout.notation.h;
     data->game_list_scroll.step = data->layout.notation.h / 2;
     data->game_list_scroll.shown = data->layout.notation.h;
+}
+
+void
+window_set_title(WindowData* data)
+{
+    snprintf(data->conf.window_title, WINDOW_TITLE_LEN, "%s %s", WINDOW_TITLE_PREFIX, data->filename);
+}
+
+void
+window_update_title(WindowData* data)
+{
+    SDL_SetWindowTitle(data->window, data->conf.window_title);
 }
 
 void
