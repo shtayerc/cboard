@@ -30,7 +30,7 @@ mode_game_search(WindowData* data) {
                             game_list_search_str(&data->game_list, &new_gl, data->status.info);
                             game_list_free(&data->game_list);
                             data->game_list = new_gl;
-                            data->game_list_current = 0;
+                            game_list_current_init(data);
                             loop = 0;
                             data->status.info[0] = '\0';
                             draw_render(data);
@@ -74,9 +74,7 @@ mode_game_list(WindowData* data) {
 
                         case SDLK_DOWN:
                         case SDLK_j:
-                            if (data->game_list_current + 1 < data->game_list.count) {
-                                data->game_list_current++;
-                            }
+                            game_list_current_next(data);
                             game_list_focus_current_game(data);
                             draw_render(data);
                             break;
@@ -93,9 +91,7 @@ mode_game_list(WindowData* data) {
 
                         case SDLK_UP:
                         case SDLK_k:
-                            if (data->game_list_current - 1 >= 0) {
-                                data->game_list_current--;
-                            }
+                            game_list_current_prev(data);
                             game_list_focus_current_game(data);
                             draw_render(data);
 
@@ -112,11 +108,10 @@ mode_game_list(WindowData* data) {
                             game_list_read_pgn(&data->game_list, f);
                             fclose(f);
                             data->game_list_sorting = Ascending;
-                            if (!is_keymod_shift(event)) {
-                                game_list_reverse(&data->game_list);
+                            if (is_keymod_shift(event)) {
                                 data->game_list_sorting = Descending;
                             }
-                            data->game_list_current = 0;
+                            game_list_current_init(data);
                             draw_render(data);
                             break;
 
@@ -126,10 +121,7 @@ mode_game_list(WindowData* data) {
                             fclose(f);
                             game_list_free(&data->game_list);
                             data->game_list = new_gl;
-                            data->game_list_current = 0;
-                            if (data->game_list_sorting == Descending) {
-                                game_list_reverse(&data->game_list);
-                            }
+                            game_list_current_init(data);
                             draw_render(data);
                             break;
 
@@ -176,19 +168,87 @@ mode_game_list(WindowData* data) {
 }
 
 void
+game_list_current_init(WindowData* data)
+{
+    data->game_list_current = data->game_list_sorting == Ascending ? 0 : data->game_list.count - 1;
+}
+
+void
+game_list_current_next(WindowData* data)
+{
+    if (data->game_list_sorting == Ascending) {
+        if (data->game_list_current + 1 < data->game_list.count) {
+            data->game_list_current++;
+        }
+    } else if (data->game_list_sorting == Descending) {
+        if (data->game_list_current - 1 >= 0) {
+            data->game_list_current--;
+        }
+    }
+}
+
+void
+game_list_current_prev(WindowData* data)
+{
+    if (data->game_list_sorting == Ascending) {
+        if (data->game_list_current - 1 >= 0) {
+            data->game_list_current--;
+        }
+    } else if (data->game_list_sorting == Descending) {
+        if (data->game_list_current + 1 < data->game_list.count) {
+            data->game_list_current++;
+        }
+    }
+}
+
+int
+game_list_current_relative(WindowData* data)
+{
+    if (data->game_list_sorting == Descending) {
+        return data->game_list.count - data->game_list_current;
+    }
+    return data->game_list_current;
+}
+
+int
+game_list_loop(WindowData* data, int* i, int* i_count)
+{
+    if (data->game_list_sorting == Ascending) {
+        if (*i == -1) {
+            *i = 0;
+            *i_count = data->game_list.count;
+        } else {
+            *i += 1;
+        }
+        return *i < *i_count;
+    } else if (data->game_list_sorting == Descending) {
+        if (*i == -1) {
+            *i = data->game_list.count -1;
+            *i_count = 0;
+        } else {
+            *i -= 1;
+        }
+        return *i >= *i_count;
+    }
+    return 0;
+}
+
+void
 game_list_draw(WindowData* data) {
     SDL_Rect game_current;
     SDL_Color c = data->conf.colors[ColorNotationBackground];
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &data->layout.notation);
-    int i, x, y, color;
+    int i, x, y, color, i_count;
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
     if (data->game_list.count == 0) {
         FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont], "No games");
         return;
     }
-    for (i = 0; i < data->game_list.count; i++) {
+    i = -1; //let game_list_loop know that we want pre loop init
+
+    while (game_list_loop(data, &i, &i_count)) {
         color = !strcmp(data->game_list.list[i].tag_value, "1");
         if (i == data->game_list_current) {
             c = data->conf.colors[color ? ColorCommentFont : ColorNotationActiveBackground];
@@ -217,26 +277,9 @@ game_list_draw(WindowData* data) {
 }
 
 void
-game_list_reverse(GameList* gl) {
-    int start = 0;
-    int end = gl->count - 1;
-    GameRow tmp;
-    if (end <= start) {
-        return;
-    }
-    while (start < end) {
-        tmp = gl->list[start];
-        gl->list[start] = gl->list[end];
-        gl->list[end] = tmp;
-        start++;
-        end--;
-    }
-}
-
-void
 game_list_focus_current_game(WindowData* data) {
     int y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
-    y += data->font_height * data->game_list_current;
+    y += data->font_height * game_list_current_relative(data);
     int top = data->layout.notation.y + NOTATION_PADDING_TOP;
     int bot = data->layout.notation.y + data->layout.notation.h;
     if (y + data->font_height > bot) {

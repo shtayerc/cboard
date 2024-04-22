@@ -9,7 +9,10 @@
 void game_list_draw(WindowData* data);
 void mode_game_search(WindowData* data);
 void mode_game_list(WindowData* data);
-void game_list_reverse(GameList* gl);
+void game_list_current_init(WindowData* data);
+void game_list_current_next(WindowData* data);
+void game_list_current_prev(WindowData* data);
+int game_list_current_relative(WindowData* data);
 void game_list_focus_current_game(WindowData* data);
 void game_list_game_load(WindowData* data, int index);
 
