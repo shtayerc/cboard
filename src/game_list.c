@@ -170,14 +170,14 @@ mode_game_list(WindowData* data) {
 void
 game_list_current_init(WindowData* data)
 {
-    data->game_list_current = data->game_list_sorting == Ascending ? 0 : data->game_list.count - 1;
+    data->game_list_current = data->game_list_sorting == Ascending ? 0 : data->game_list.ai.count - 1;
 }
 
 void
 game_list_current_next(WindowData* data)
 {
     if (data->game_list_sorting == Ascending) {
-        if (data->game_list_current + 1 < data->game_list.count) {
+        if (data->game_list_current + 1 < data->game_list.ai.count) {
             data->game_list_current++;
         }
     } else if (data->game_list_sorting == Descending) {
@@ -195,7 +195,7 @@ game_list_current_prev(WindowData* data)
             data->game_list_current--;
         }
     } else if (data->game_list_sorting == Descending) {
-        if (data->game_list_current + 1 < data->game_list.count) {
+        if (data->game_list_current + 1 < data->game_list.ai.count) {
             data->game_list_current++;
         }
     }
@@ -205,7 +205,7 @@ int
 game_list_current_relative(WindowData* data)
 {
     if (data->game_list_sorting == Descending) {
-        return data->game_list.count - data->game_list_current;
+        return data->game_list.ai.count - data->game_list_current;
     }
     return data->game_list_current;
 }
@@ -216,14 +216,14 @@ game_list_loop(WindowData* data, int* i, int* i_count)
     if (data->game_list_sorting == Ascending) {
         if (*i == -1) {
             *i = 0;
-            *i_count = data->game_list.count;
+            *i_count = data->game_list.ai.count;
         } else {
             *i += 1;
         }
         return *i < *i_count;
     } else if (data->game_list_sorting == Descending) {
         if (*i == -1) {
-            *i = data->game_list.count -1;
+            *i = data->game_list.ai.count -1;
             *i_count = 0;
         } else {
             *i -= 1;
@@ -242,7 +242,7 @@ game_list_draw(WindowData* data) {
     int i, x, y, color, i_count;
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
-    if (data->game_list.count == 0) {
+    if (data->game_list.ai.count == 0) {
         FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont], "No games");
         return;
     }
@@ -272,7 +272,7 @@ game_list_draw(WindowData* data) {
     }
     //we set scroll length without scroll_set_length, because game_list length
     //is predictable
-    data->game_list_scroll.length = data->font_height * data->game_list.count;
+    data->game_list_scroll.length = data->font_height * data->game_list.ai.count;
     scroll_set_max(&data->game_list_scroll, data->font_height);
 }
 

@@ -491,7 +491,7 @@ mode_training(WindowData* data) {
                                     vs_init(&data->vs);
                                     vs_generate_next(&data->vs, v, &vs_tmp, color);
                                     vs_free(&vs_tmp);
-                                } else if (data->from_game_list && gl_index + 1 < data->game_list.count) {
+                                } else if (data->from_game_list && gl_index + 1 < data->game_list.ai.count) {
                                     vs_index = 0;
                                     vs_free(&data->vs);
                                     vs_init(&data->vs);

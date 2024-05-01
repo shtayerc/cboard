@@ -1,5 +1,5 @@
 /*
-chess_utils v0.7.13
+chess_utils v0.8.0
 
 Copyright (c) 2024 David Murko
 
@@ -110,6 +110,11 @@ typedef enum { Centipawn, Mate, NoType = -1 } UciScoreType;
 //
 
 typedef struct {
+    int count;
+    int size;
+} ArrayInfo;
+
+typedef struct {
     char key[TAG_LEN];
     char value[TAG_LEN];
 } Tag;
@@ -164,7 +169,7 @@ typedef struct {
 
 typedef struct {
     GameRow* list;
-    int count;
+    ArrayInfo ai;
 } GameList;
 
 typedef struct {
@@ -189,6 +194,13 @@ extern const char* CASTLE_STR_LONG;
 extern const char* piece_map[];
 extern const OffsetIndex offset_map[];
 extern const int piece_offset[][9];
+
+//
+//ARRAYINFO UTILS
+//
+
+void ai_init(ArrayInfo* ai, int size);
+void* ai_realloc(ArrayInfo* ai, void* ptr, int new_size);
 
 //
 //STRING UTILS
@@ -426,7 +438,7 @@ Variation* variation_clone(Variation* v, Variation* prev);
 int variation_board_find(Variation* v, Board* b, Variation** found);
 
 //reset move_current counter of all recursive variations to 1
-void variation_move_current_reset(Variation *v);
+void variation_move_current_reset(Variation* v);
 
 //
 // VARIATION SEQUENCE FUNCTIONS
@@ -628,6 +640,31 @@ const int piece_offset[][9] = {{16, 32, 17, 15, 0, 0, 0, 0, 0},         {-16, -3
                                {-18, -33, -31, -14, 18, 33, 31, 14, 0}, {-17, -15, 17, 15, 0, 0, 0, 0, 0},
                                {-16, 1, 16, -1, 0, 0, 0, 0, 0},         {-17, -16, -15, 1, 17, 16, 15, -1, 0},
                                {-17, -16, -15, 1, 17, 16, 15, -1, 0}}; //offset
+
+void
+ai_init(ArrayInfo* ai, int size) {
+    ai->count = 0;
+    ai->size = size;
+}
+
+void*
+ai_realloc(ArrayInfo* ai, void* ptr, int new_size) {
+    if (ptr == NULL || ai->size == 0) {
+        if (new_size > ai->size) {
+            ai->size = new_size;
+        }
+        return malloc(ai->size);
+    }
+
+    int resize = 0;
+    for (; new_size > ai->size; ai->size *= 2) {
+        resize = 1;
+    }
+    if (resize) {
+        return realloc(ptr, ai->size);
+    }
+    return ptr;
+}
 
 char*
 strtok_r(char* str, const char* delim, char** nextp) {
@@ -2198,7 +2235,7 @@ variation_board_find(Variation* v, Board* b, Variation** found) {
 }
 
 void
-variation_move_current_reset(Variation *v) {
+variation_move_current_reset(Variation* v) {
     v->move_current = 1;
     int i, j;
     for (i = 0; i < v->move_count; i++) {
@@ -3109,12 +3146,12 @@ uci_line_parse(const char* str, int len, Board* b, int* depth, int* multipv, Uci
 void
 game_list_init(GameList* gl) {
     gl->list = NULL;
-    gl->count = 0;
+    ai_init(&gl->ai, sizeof(GameRow) * 256);
 }
 
 void
 game_list_free(GameList* gl) {
-    if (gl->list == NULL || gl->count == 0) {
+    if (gl->list == NULL || gl->ai.count == 0) {
         return;
     }
     free(gl->list);
@@ -3122,9 +3159,9 @@ game_list_free(GameList* gl) {
 
 void
 game_list_add(GameList* gl, GameRow* gr) {
-    gl->count++;
-    gl->list = (GameRow*)realloc(gl->list, sizeof(GameRow) * gl->count);
-    gl->list[gl->count - 1] = *gr;
+    gl->ai.count++;
+    gl->list = (GameRow*)ai_realloc(&gl->ai, gl->list, sizeof(GameRow) * gl->ai.count);
+    gl->list[gl->ai.count - 1] = *gr;
 }
 
 void
@@ -3176,7 +3213,7 @@ void
 game_list_search_str(GameList* gl, GameList* new_gl, const char* str) {
     game_list_init(new_gl);
     int i;
-    for (i = 0; i < gl->count; i++) {
+    for (i = 0; i < gl->ai.count; i++) {
         if (isubstr(gl->list[i].title, str)) {
             game_list_add(new_gl, &gl->list[i]);
         }
@@ -3211,7 +3248,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
     board_fen_import(&b_start, FEN_DEFAULT);
     game_list_init(new_gl);
 
-    for (i = 0; i < gl->count; i++) {
+    for (i = 0; i < gl->ai.count; i++) {
         while (i < gl->list[i].index) {
             pgn_read_next(f, 1);
             i++;

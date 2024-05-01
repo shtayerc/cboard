@@ -141,7 +141,7 @@ main(int argc, char* argv[]) {
             game_list_read_pgn(&data.game_list, file);
             data.game_list_sorting = Descending;
             game_list_current_init(&data);
-            if (data.game_list.count == 1) {
+            if (data.game_list.ai.count == 1) {
                 snprintf(data.number, data.conf.number_len, "%s", "0");
                 fseek(file, 0, SEEK_SET);
                 if (!pgn_read_file(file, &data.game, 0)) {
