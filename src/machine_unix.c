@@ -28,10 +28,6 @@ machine_write(void* p) {
     int i;
     fen[0] = '\0';
 
-    board_fen_import(&mc->board, mc->fen);
-    machine_line_init(mc, &mc->board);
-    mc->running = 1;
-
     write(mc->fd_input, "uci\n", 4);
     read(mc->fd_output, mc->output, MACHINE_OUTPUT_LEN);
     while (strstr(mc->output, "uciok") == NULL) {
@@ -51,8 +47,6 @@ machine_write(void* p) {
         }
     }
 
-    //board_fen_import(&mc->board, mc->fen);
-    //machine_line_init(mc, &mc->board);
     SDL_Thread* thread = SDL_CreateThread(machine_read, NULL, (void*)md);
     SDL_DetachThread(thread);
     while (mc->running) {
@@ -102,6 +96,11 @@ machine_start(WindowData* data, int index) {
         MachineData* md = &mc->md;
         md->index = index;
         md->data = data;
+
+        board_fen_import(&mc->board, mc->fen);
+        machine_line_init(mc, &mc->board);
+        mc->running = 1;
+
         SDL_Thread* thread = SDL_CreateThread(machine_write, NULL, (void*)md);
         SDL_DetachThread(thread);
     }
