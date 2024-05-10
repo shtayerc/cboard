@@ -313,3 +313,14 @@ machine_resize(WindowData* data, int index) {
         window_resize(data, data->window_width, data->window_height);
     }
 }
+
+int
+machine_running_count(WindowData* data) {
+    int count = 0;
+    for (int i = 0; i < MACHINE_COUNT; i++) {
+        if (data->machine_list[i]->running) {
+            count++;
+        }
+    }
+    return count;
+}

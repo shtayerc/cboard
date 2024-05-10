@@ -330,6 +330,10 @@ mode_normal(WindowData* data) {
                                 mc->output[0] = '\0';
                             } else {
                                 machine_start(data, tmp);
+                                SDL_DisableScreenSaver();
+                            }
+                            if (!machine_running_count(data)) {
+                                SDL_EnableScreenSaver();
                             }
                             draw_render(data);
                             break;

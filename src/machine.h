@@ -49,5 +49,6 @@ void machine_config_load(WindowData* data);
 void machine_config_free(WindowData* data);
 void machine_set_line_count(WindowData* data, int index);
 void machine_resize(WindowData* data, int index);
+int machine_running_count(WindowData* data);
 
 #endif
