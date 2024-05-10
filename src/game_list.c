@@ -107,9 +107,9 @@ mode_game_list(WindowData* data) {
                             }
                             game_list_read_pgn(&data->game_list, f);
                             fclose(f);
-                            data->game_list_sorting = Ascending;
+                            data->game_list_sorting = Descending;
                             if (is_keymod_shift(event)) {
-                                data->game_list_sorting = Descending;
+                                data->game_list_sorting = Ascending;
                             }
                             game_list_current_init(data);
                             draw_render(data);
