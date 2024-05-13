@@ -146,6 +146,13 @@ notation_coord_index_move(WindowData* data, Move* m) {
 }
 
 void
+notation_background_draw(WindowData* data) {
+    SDL_Color c = data->conf.colors[ColorNotationBackground];
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
+    SDL_RenderFillRect(data->renderer, &data->layout.notation);
+}
+
+void
 notation_draw_tags(WindowData* data, int* x, int* y, int x_start) {
     int word_width;
     char word[TAG_LEN * 2];
@@ -163,9 +170,7 @@ notation_draw_tags(WindowData* data, int* x, int* y, int x_start) {
 
 void
 notation_draw(WindowData* data) {
-    SDL_Color c = data->conf.colors[ColorNotationBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.notation);
+    notation_background_draw(data);
     nt_move_coord_index = 0;
     nt_move_coord_len = 0;
     int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
@@ -521,9 +526,7 @@ notation_focus_current_move(WindowData* data) {
 
 void
 custom_text_draw(WindowData* data) {
-    SDL_Color c = data->conf.colors[ColorNotationBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.notation);
+    notation_background_draw(data);
     int x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     int y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
     FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont], data->custom_text);

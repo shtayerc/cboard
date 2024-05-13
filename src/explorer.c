@@ -2,9 +2,7 @@
 
 void
 explorer_draw(WindowData* data) {
-    SDL_Color c = data->conf.colors[ColorNotationBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.notation);
+    notation_background_draw(data);
     int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
     int y = data->layout.notation.y + NOTATION_PADDING_TOP;
     int i, x;

@@ -236,9 +236,8 @@ game_list_loop(WindowData* data, int* i, int* i_count)
 void
 game_list_draw(WindowData* data) {
     SDL_Rect game_current;
-    SDL_Color c = data->conf.colors[ColorNotationBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.notation);
+    SDL_Color c;
+    notation_background_draw(data);
     int i, x, y, color, i_count;
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
     y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;

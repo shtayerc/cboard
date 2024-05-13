@@ -29,6 +29,7 @@ int notation_click(WindowData* data);
 int notation_coord_index_click(WindowData* data);
 int notation_coord_index_move(WindowData* data, Move* m);
 void notation_draw_tags(WindowData* data, int* x, int* y, int x_start);
+void notation_background_draw(WindowData* data);
 void notation_draw(WindowData* data);
 void mode_annotate(WindowData* data, Move* move);
 void mode_move(WindowData* data);
