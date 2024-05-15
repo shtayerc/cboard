@@ -54,6 +54,8 @@ Main mode, other modes are entered from here.
   Quit.
 * **g**  
   Enter GAME_LIST mode.
+* **G**  
+  Toggle Game list statistics.
 * **e**  
   Enter EDIT mode.
 * **f**  

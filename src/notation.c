@@ -528,6 +528,33 @@ void
 custom_text_draw(WindowData* data) {
     notation_background_draw(data);
     int x = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    int y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
+    int y = data->layout.notation.y + NOTATION_PADDING_TOP;
     FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont], data->custom_text);
+}
+
+void
+game_list_stat_position(WindowData* data) {
+    gls_free(&data->game_list_stat);
+    gls_init(&data->game_list_stat);
+    FILE* f = fopen(data->filename, "r");
+    gls_read_pgn(&data->game_list_stat, &data->game_list, f, &game_move_get(&data->game)->board);
+    fclose(f);
+}
+
+void
+game_list_stat_draw(WindowData* data) {
+    notation_background_draw(data);
+    int x = data->layout.notation.x + NOTATION_PADDING_LEFT;
+    int y = data->layout.notation.y + NOTATION_PADDING_TOP;
+    GameListStatRow* row;
+
+    for (int i = 0; i < data->game_list_stat.ai.count; i++) {
+        row = &data->game_list_stat.list[i];
+        FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont],
+                "%s (%d) [%d%% | %d%% | %d%%]", row->san, row->count,
+                row->white_win * 100 / row->count,
+                row->draw * 100 / row->count,
+                row->black_win *100 / row->count);
+        y += data->font_height;
+    }
 }

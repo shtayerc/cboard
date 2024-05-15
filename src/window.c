@@ -103,6 +103,7 @@ window_data_init(WindowData* data) {
     data->piece = Empty;
     data->hidden = none;
     game_list_init(&data->game_list);
+    gls_init(&data->game_list_stat);
     explorer_init(&data->explorer);
     for (i = 0; i < MACHINE_COUNT; i++) {
         data->machine_list[i] = calloc(sizeof(Machine), 1);
@@ -217,6 +218,8 @@ draw(WindowData* data) {
         case ModeMoves: notation_draw(data); break;
 
         case ModeGameList: game_list_draw(data); break;
+
+        case ModeGameListStat: game_list_stat_draw(data); break;
 
         case ModeExplorer: explorer_draw(data); break;
 

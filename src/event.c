@@ -148,6 +148,9 @@ void
 handle_position_change(WindowData* data) {
     machine_position(data);
     explorer_position(data);
+    if (data->notation_mode == ModeGameListStat) {
+        game_list_stat_position(data);
+    }
 }
 
 void

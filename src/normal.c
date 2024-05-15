@@ -319,7 +319,17 @@ mode_normal(WindowData* data) {
 
                         case SDLK_g:
                             data->hidden = none;
-                            mode_game_list(data);
+                            if (is_keymod_shift(event)) {
+                                if (data->notation_mode != ModeGameListStat) {
+                                    game_list_stat_position(data);
+                                    data->notation_mode = ModeGameListStat;
+                                } else {
+                                    data->notation_mode = ModeMoves;
+                                }
+                                draw_render(data);
+                            } else {
+                                mode_game_list(data);
+                            }
                             break;
 
                         case SDLK_m:

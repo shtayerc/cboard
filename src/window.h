@@ -92,6 +92,7 @@ typedef enum {
     ModeMoves,
     ModeGameList,
     ModeExplorer,
+    ModeGameListStat,
     ModeCustomText,
 } NotationMode;
 
@@ -124,6 +125,7 @@ struct WindowData {
     Config conf;
     Game game;
     GameList game_list;
+    GameListStat game_list_stat;
     int game_list_current;
     Sorting game_list_sorting;
     Game* undo_list[UNDO_COUNT];
