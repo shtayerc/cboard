@@ -1,5 +1,5 @@
 /*
-chess_utils v0.8.0
+chess_utils v0.8.1
 
 Copyright (c) 2024 David Murko
 
@@ -171,6 +171,22 @@ typedef struct {
     GameRow* list;
     ArrayInfo ai;
 } GameList;
+
+typedef struct {
+    Square src;
+    Square dst;
+    Piece prom_piece;
+    char san[SAN_LEN];
+    int count;
+    int white_win;
+    int black_win;
+    int draw;
+} GameListStatRow;
+
+typedef struct {
+    GameListStatRow* list;
+    ArrayInfo ai;
+} GameListStat;
 
 typedef struct {
     int index;
@@ -618,6 +634,20 @@ void game_list_search_str(GameList* gl, GameList* new_gl, const char* str);
 //gl should be sorted by index ascending
 void game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b);
 
+void gls_init(GameListStat* gls);
+
+void gls_free(GameListStat* gls);
+
+void gls_add(GameListStat* gls, GameListStatRow* row);
+
+void gls_aggregate_move(GameListStat* gls, Square src, Square dst, Piece prom_piece, char* san, char* result);
+
+void gls_read_pgn(GameListStat* gls, GameList* gl, FILE* f, Board* b);
+
+void glsr_init(GameListStatRow* row);
+
+void glsr_aggregate(GameListStatRow* row, char* result);
+
 #ifdef __cplusplus
 }
 #endif
@@ -630,6 +660,10 @@ const char* FEN_DEFAULT = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 
 const char* PIECE_STR = ".pnbrqkPNBRQK";
 const char* CASTLE_STR_SHORT = "O-O";
 const char* CASTLE_STR_LONG = "O-O-O";
+const char* RESULT_NONE = "*";
+const char* RESULT_WHITE_WIN = "1-0";
+const char* RESULT_BLACK_WIN = "0-1";
+const char* RESULT_DRAW = "1/2-1/2";
 const char* piece_map[] = {"", "", "N", "B", "R", "Q", "K", "", "N", "B", "R", "Q", "K"};
 
 const OffsetIndex offset_map[] = {OffsetNone,  OffsetBlackPawn, OffsetKnight,    OffsetBishop, OffsetRook,
@@ -2377,7 +2411,7 @@ game_tag_init(Game* g) {
     game_tag_set(g, "Round", "");
     game_tag_set(g, "White", "");
     game_tag_set(g, "Black", "");
-    game_tag_set(g, "Result", "*");
+    game_tag_set(g, "Result", RESULT_NONE);
 }
 
 void
@@ -2712,7 +2746,8 @@ void
 pgn_read_next(FILE* f, int tags) {
     char *tmp, *saveptr;
     char buffer[BUFFER_LEN];
-    char result[10] = "*";
+    char result[10];
+    snprintf(result, 10, "%s", RESULT_NONE);
     Tag tag;
     while (fgets(buffer, BUFFER_LEN, f)) {
         trimendl(buffer);
@@ -2745,7 +2780,7 @@ pgn_read_file(FILE* f, Game* g, int index) {
     char comment[COMMENT_LEN];
     char san[SAN_LEN];
     char result[10];
-    snprintf(result, 10, "*");
+    snprintf(result, 10, "%s", RESULT_NONE);
     char* tmp;
     char* saveptr;
     int i, comment_start, comment_end, variation_start, variation_end;
@@ -3200,7 +3235,7 @@ game_list_read_pgn(GameList* gl, FILE* f) {
             game_tag_set(&g, "Event", "");
             game_tag_set(&g, "Round", "");
             game_tag_set(&g, "Date", "");
-            game_tag_set(&g, "Result", "*");
+            game_tag_set(&g, "Result", RESULT_NONE);
 #ifdef ADDITIONAL_TAG
             game_tag_remove(&g, ADDITIONAL_TAG);
 #endif
@@ -3257,7 +3292,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
         b_tmp = b_start;
         game_init(&g, &b_tmp);
         v = g.line_main;
-        snprintf(result, 10, "*");
+        snprintf(result, 10, "%s", RESULT_NONE);
         skip = 0;
         skip_var = 0;
         tags = 1;
@@ -3394,6 +3429,258 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
             }
         }
         game_free(&g);
+    }
+}
+
+void
+gls_init(GameListStat* gls) {
+    gls->list = NULL;
+    ai_init(&gls->ai, sizeof(GameListStatRow) * 32);
+}
+
+void
+gls_free(GameListStat* gls) {
+    if (gls->list == NULL || gls->ai.count == 0) {
+        return;
+    }
+    free(gls->list);
+}
+
+void
+gls_add(GameListStat* gls, GameListStatRow* row) {
+    gls->ai.count++;
+    gls->list = (GameListStatRow*)ai_realloc(&gls->ai, gls->list, sizeof(GameListStatRow) * gls->ai.count);
+    gls->list[gls->ai.count - 1] = *row;
+}
+
+void
+gls_count_move(GameListStat* gls, Square src, Square dst, Piece prom_piece, char* san, char* result) {
+    GameListStatRow stat_row;
+    int move_index = -1;
+    for (int i = 0; i < gls->ai.count; i++) {
+        if (gls->list[i].src == src && gls->list[i].dst == dst && gls->list[i].prom_piece == prom_piece) {
+            move_index = i;
+            break;
+        }
+    }
+    if (move_index == -1) {
+        glsr_init(&stat_row);
+        stat_row.src = src;
+        stat_row.dst = dst;
+        stat_row.prom_piece = prom_piece;
+        snprintf(stat_row.san, SAN_LEN, "%s", san);
+        gls_add(gls, &stat_row);
+        move_index = gls->ai.count - 1;
+    }
+    glsr_aggregate(&gls->list[move_index], result);
+}
+
+void
+gls_read_pgn(GameListStat* gls, GameList* gl, FILE* f, Board* b) {
+    char buffer[BUFFER_LEN];
+    char fen[FEN_LEN];
+    char word[WORD_LEN];
+    char san[SAN_LEN];
+    char result[10];
+    char* tmp;
+    char* saveptr;
+    int i, j, comment_start, comment_end, variation_start, variation_end, skip, skip_var;
+    int tags;
+    int comments;
+    int anglebrackets; //pgn standard
+    int nags;
+    int stat;
+    Tag tag;
+    Status status;
+    Square src, dst;
+    Piece prom_piece;
+    Board b_tmp, b_start;
+    Variation *v, *new_v;
+    Move* m;
+    Game g;
+    Square wp_start[] = {a2, b2, c2, d2, e2, f2, g2, h2};
+    Square bp_start[] = {a7, b7, c7, d7, e7, f7, g7, h7};
+
+    board_fen_import(&b_start, FEN_DEFAULT);
+
+    for (i = 0; i < gl->ai.count; i++) {
+        while (i < gl->list[i].index) {
+            pgn_read_next(f, 1);
+            i++;
+        }
+        snprintf(fen, FEN_LEN, "%s", FEN_DEFAULT);
+        b_tmp = b_start;
+        game_init(&g, &b_tmp);
+        v = g.line_main;
+        snprintf(result, 10, "%s", RESULT_NONE);
+        skip = 0;
+        skip_var = 0;
+        tags = 1;
+        comments = 0;
+        anglebrackets = 0;
+        nags = 0;
+        stat = 0;
+        while (fgets(buffer, BUFFER_LEN, f)) {
+            trimendl(buffer);
+            if (tags) { //parse tags
+                if (tag_extract(buffer, &tag)) {
+                    if (!strcmp(tag.key, "Result")) {
+                        snprintf(result, 10, "%s", tag.value);
+                    }
+                    if (!strcmp(tag.key, "FEN")) {
+                        snprintf(fen, FEN_LEN, "%s", tag.value);
+                    }
+                }
+            } else { //parse moves
+                tmp = strtok_r(buffer, " ", &saveptr);
+                while (tmp != NULL && !(comments == 0 && !strcmp(tmp, result))) {
+
+                    variation_start = 0;
+                    variation_end = 0;
+                    comment_start = charcount(tmp, '{');
+                    comment_end = charcount(tmp, '}');
+
+                    comments += comment_start;
+
+                    if (comments == 0) {
+                        variation_start = charcount(tmp, '(');
+                        variation_end = charcount(tmp, ')');
+                        anglebrackets += charcount(tmp, '<');
+                        nags = charcount(tmp, '$');
+                    }
+
+                    if (comment_start) {
+                        variation_start = charcount_before(tmp, '(', '{');
+                    }
+
+                    if (comment_end) {
+                        variation_end = charcount_after(tmp, ')', '}');
+                    }
+
+                    if (variation_start && !skip) {
+                        if (!skip_var) {
+                            m = &v->move_list[v->move_current - 1];
+                            b_tmp = m->board;
+                            m->variation_count++;
+                            m->variation_list = (Variation**)realloc(m->variation_list,
+                                                                     sizeof(Variation*) * m->variation_count);
+                            new_v = (Variation*)malloc(sizeof(Variation));
+                            variation_init(new_v, &b_tmp);
+                            m->variation_list[m->variation_count - 1] = new_v;
+                            new_v->prev = v;
+                            v = new_v;
+                        } else {
+                            skip_var++;
+                        }
+                    }
+
+                    //parse SAN moves
+                    if (comments == 0 && anglebrackets == 0 && charcount(tmp, '.') < 2 && nags == 0 && !skip
+                        && !skip_var) {
+                        snprintf(word, WORD_LEN, "%s", tmp);
+                        trimmove(word);
+                        if (str_is_move(word)) {
+                            if (b_tmp.move_number > b->move_number + MOVENUM_OVERCHECK) {
+                                if (v == g.line_main) {
+                                    skip = 1;
+                                } else {
+                                    skip_var++;
+                                }
+                            }
+                            status = board_move_san_status(&b_tmp, word, &src, &dst, &prom_piece);
+                            if (status == Invalid) {
+                                skip = 1;
+                            }
+                            board_move_san_export(&b_tmp, src, dst, prom_piece, san, SAN_LEN, status);
+                            if (stat) {
+                                gls_count_move(gls, src, dst, prom_piece, san, result);
+                                stat = 0;
+                                skip = 1;
+                            }
+                            board_move_do(&b_tmp, src, dst, prom_piece, status);
+                            if (board_is_equal(b, &b_tmp, 0)) {
+                                stat = 1;
+                            }
+                            for (j = 0; j < 8 && !skip && !stat; j++) {
+                                if ((b->position[bp_start[j]] == BlackPawn
+                                     && b->position[bp_start[j]] != b_tmp.position[bp_start[j]])
+                                    || (b->position[wp_start[j]] == WhitePawn
+                                        && b->position[wp_start[j]] != b_tmp.position[wp_start[j]])) {
+                                    if (v == g.line_main) {
+                                        skip = 1;
+                                    } else {
+                                        skip_var = 1;
+                                    }
+                                    break;
+                                }
+                            }
+                            variation_move_add(v, src, dst, prom_piece, &b_tmp, san);
+                        }
+                    }
+
+                    while (variation_end-- && !skip) {
+                        if (--skip_var <= 0) {
+                            skip_var = 0;
+                            v->move_current = 1;
+                            v = v->prev;
+                            b_tmp = v->move_list[v->move_current].board;
+                        }
+                    }
+
+                    comments -= comment_end;
+                    if (comments == 0) {
+                        if (comment_end > 0) {
+                            anglebrackets -= charcount_after(tmp, '>', '}');
+                        } else {
+                            anglebrackets -= charcount(tmp, '>');
+                        }
+                    }
+                    tmp = strtok_r(NULL, " ", &saveptr);
+                }
+            }
+            //if empty line
+            if (strlen(buffer) == 0) {
+                if (tags) {
+                    board_fen_import(&b_tmp, fen);
+                    if (board_is_equal(b, &b_tmp, 0)) {
+                        stat = 1;
+                    }
+                    tags = 0;
+                    word[0] = '\0';
+                } else {
+                    break;
+                }
+            }
+        }
+        game_free(&g);
+    }
+}
+
+void
+glsr_init(GameListStatRow* row) {
+    row->src = none;
+    row->dst = none;
+    row->prom_piece = Empty;
+    row->san[0] = '\0';
+    row->count = 0;
+    row->white_win = 0;
+    row->black_win = 0;
+    row->draw = 0;
+}
+
+void
+glsr_aggregate(GameListStatRow* row, char* result) {
+    if (!strcmp(result, RESULT_WHITE_WIN)) {
+        (row->white_win)++;
+    }
+    if (!strcmp(result, RESULT_BLACK_WIN)) {
+        (row->black_win)++;
+    }
+    if (!strcmp(result, RESULT_DRAW)) {
+        (row->draw)++;
+    }
+    if (strcmp(result, RESULT_NONE)) {
+        (row->count)++;
     }
 }
 
