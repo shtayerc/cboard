@@ -1,4 +1,5 @@
 #include <time.h>
+#include <math.h>
 #include "notation.h"
 
 MoveCoord* nt_move_coords;
@@ -552,9 +553,9 @@ game_list_stat_draw(WindowData* data) {
         row = &data->game_list_stat.list[i];
         FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont],
                 "%s (%d) [%d%% | %d%% | %d%%]", row->san, row->count,
-                row->white_win * 100 / row->count,
-                row->draw * 100 / row->count,
-                row->black_win *100 / row->count);
+                (int)round((float)row->white_win / (float)row->count * 100),
+                (int)round((float)row->draw / (float)row->count * 100),
+                (int)round((float)row->black_win / (float)row->count * 100));
         y += data->font_height;
     }
 }
