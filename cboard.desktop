@@ -7,3 +7,4 @@ Exec=/usr/bin/cboard %f
 Name=Cboard
 MimeType=application/x-chess-pgn;
 Categories=Game;BoardGame;
+Icon=/usr/share/cboard/alpha/wp.png
