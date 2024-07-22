@@ -132,9 +132,9 @@ Main mode, other modes are entered from here.
   Delete current variation.
 * **D**  
   Delete remaining moves after current move.
-* **PageUp**  
+* **PageUp**, **Ctrl-u**  
   Scroll notation up.
-* **PageDown**  
+* **PageDown**, **Ctrl-d**
   Scroll notation down.
 
 <a name="game_list"></a>

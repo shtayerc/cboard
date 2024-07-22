@@ -282,7 +282,11 @@ mode_normal(WindowData* data) {
                             break;
 
                         case SDLK_u:
-                            undo_do(data);
+                            if (is_keymod_ctrl(event)) {
+                                scroll_up(&data->notation_scroll);
+                            } else if (is_keymod(event, KMOD_NONE)) {
+                                undo_do(data);
+                            }
                             draw_render(data);
                             break;
 
@@ -290,6 +294,8 @@ mode_normal(WindowData* data) {
                             undo_add(data);
                             if (is_keymod_shift(event)) {
                                 variation_delete_next_moves(data->game.line_current);
+                            } else if (is_keymod_ctrl(event)) {
+                                scroll_down(&data->notation_scroll);
                             } else if (is_keymod(event, KMOD_NONE)) {
                                 game_variation_delete(&data->game);
                                 handle_position_change(data);
