@@ -517,7 +517,7 @@ notation_focus_current_move(WindowData* data) {
         return;
     }
     int bot = data->layout.notation.y + data->layout.notation.h;
-    if (nt_move_coords[index].y > bot) {
+    if (nt_move_coords[index].y + data->font_height > bot) {
         data->notation_scroll.value -= nt_move_coords[index].y - bot;
         data->notation_scroll.value -= data->font_height;
     } else if (nt_move_coords[index].y < 0) {
