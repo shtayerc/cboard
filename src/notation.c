@@ -538,7 +538,7 @@ game_list_stat_position(WindowData* data) {
     gls_free(&data->game_list_stat);
     gls_init(&data->game_list_stat);
     FILE* f = fopen(data->filename, "r");
-    gls_read_pgn(&data->game_list_stat, &data->game_list, f, &game_move_get(&data->game)->board);
+    gls_read_pgn_sort(&data->game_list_stat, &data->game_list, f, &game_move_get(&data->game)->board);
     fclose(f);
 }
 
