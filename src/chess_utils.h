@@ -1,5 +1,5 @@
 /*
-chess_utils v0.8.1
+chess_utils v0.8.2
 
 Copyright (c) 2024 David Murko
 
@@ -640,9 +640,9 @@ void gls_free(GameListStat* gls);
 
 void gls_add(GameListStat* gls, GameListStatRow* row);
 
-void gls_aggregate_move(GameListStat* gls, Square src, Square dst, Piece prom_piece, char* san, char* result);
-
 void gls_read_pgn(GameListStat* gls, GameList* gl, FILE* f, Board* b);
+
+void gls_read_pgn_sort(GameListStat* gls, GameList* gl, FILE* f, Board* b);
 
 void glsr_init(GameListStatRow* row);
 
@@ -3653,6 +3653,21 @@ gls_read_pgn(GameListStat* gls, GameList* gl, FILE* f, Board* b) {
             }
         }
         game_free(&g);
+    }
+}
+
+void
+gls_read_pgn_sort(GameListStat* gls, GameList* gl, FILE* f, Board* b) {
+    gls_read_pgn(gls, gl, f, b);
+    GameListStatRow tmp;
+    for (int i = 0; i < gls->ai.count - 1; i++) {
+        for (int j = 0; j < gls->ai.count - i - 1; j++) {
+            if (gls->list[i + 1].count > gls->list[i].count) {
+                tmp = gls->list[i];
+                gls->list[i] = gls->list[i + 1];
+                gls->list[i + 1] = tmp;
+            }
+        }
     }
 }
 
