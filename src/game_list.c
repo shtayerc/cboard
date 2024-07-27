@@ -146,6 +146,20 @@ mode_game_list(WindowData* data) {
                             }
                             break;
 
+                        case SDLK_d:
+                            if (is_keymod_ctrl(event)) {
+                                scroll_down(&data->game_list_scroll);
+                                draw_render(data);
+                            }
+                            break;
+
+                        case SDLK_u:
+                            if (is_keymod_ctrl(event)) {
+                                scroll_up(&data->game_list_scroll);
+                                draw_render(data);
+                            }
+                            break;
+
                         case SDLK_RETURN:
                             game_list_game_load(data, -1);
                             loop = 0;

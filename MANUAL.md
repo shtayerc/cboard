@@ -134,7 +134,7 @@ Main mode, other modes are entered from here.
   Delete remaining moves after current move.
 * **PageUp**, **Ctrl-u**  
   Scroll notation up.
-* **PageDown**, **Ctrl-d**
+* **PageDown**, **Ctrl-d**  
   Scroll notation down.
 
 <a name="game_list"></a>
@@ -162,9 +162,9 @@ Main mode, other modes are entered from here.
   Enter TEXINPUT search mode.
 * **c**  
   Insert game title in comment after current move.
-* **PageUp**  
+* **PageUp**, **Ctrl-u**  
   Scroll game list up.
-* **PageDown**  
+* **PageDown**, **Ctrl-d**  
   Scroll game list down.
 
 <a name="textinput"></a>
