@@ -155,8 +155,6 @@ promotion_selection_draw(WindowData* data, Square sq, Color color) {
         SDL_RenderFillRect(data->renderer, &data->layout.square);
         piece_draw(data, data->layout.square.x, data->layout.square.y, cb_piece_texture[texture[i]]);
     }
-
-    SDL_RenderPresent(data->renderer);
 }
 
 int
@@ -191,9 +189,8 @@ mode_promotion(WindowData* data, Color color) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 0);
             switch (event.type) {
-                case SDL_WINDOWEVENT: promotion_draw(data, dst, color); break;
-
-                case SDL_MOUSEMOTION: promotion_selection_draw(data, dst, color); break;
+                case SDL_WINDOWEVENT:
+                case SDL_MOUSEMOTION: promotion_draw(data, dst, color); break;
 
                 case SDL_MOUSEBUTTONUP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
