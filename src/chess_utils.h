@@ -1,5 +1,5 @@
 /*
-chess_utils v0.8.2
+chess_utils v0.8.3
 
 Copyright (c) 2024 David Murko
 
@@ -3662,10 +3662,10 @@ gls_read_pgn_sort(GameListStat* gls, GameList* gl, FILE* f, Board* b) {
     GameListStatRow tmp;
     for (int i = 0; i < gls->ai.count - 1; i++) {
         for (int j = 0; j < gls->ai.count - i - 1; j++) {
-            if (gls->list[i + 1].count > gls->list[i].count) {
-                tmp = gls->list[i];
-                gls->list[i] = gls->list[i + 1];
-                gls->list[i + 1] = tmp;
+            if (gls->list[j + 1].count > gls->list[j].count) {
+                tmp = gls->list[j];
+                gls->list[j] = gls->list[j + 1];
+                gls->list[j + 1] = tmp;
             }
         }
     }
