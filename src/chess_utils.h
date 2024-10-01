@@ -1,5 +1,5 @@
 /*
-chess_utils v0.8.3
+chess_utils v0.8.4
 
 Copyright (c) 2024 David Murko
 
@@ -3279,14 +3279,15 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
     Game g;
     Square wp_start[] = {a2, b2, c2, d2, e2, f2, g2, h2};
     Square bp_start[] = {a7, b7, c7, d7, e7, f7, g7, h7};
+    int game_index = 0;
 
     board_fen_import(&b_start, FEN_DEFAULT);
     game_list_init(new_gl);
 
     for (i = 0; i < gl->ai.count; i++) {
-        while (i < gl->list[i].index) {
+        while (game_index < gl->list[i].index) {
             pgn_read_next(f, 1);
-            i++;
+            game_index++;
         }
         snprintf(fen, FEN_LEN, "%s", FEN_DEFAULT);
         b_tmp = b_start;
@@ -3429,6 +3430,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
             }
         }
         game_free(&g);
+        game_index++;
     }
 }
 
@@ -3500,13 +3502,14 @@ gls_read_pgn(GameListStat* gls, GameList* gl, FILE* f, Board* b) {
     Game g;
     Square wp_start[] = {a2, b2, c2, d2, e2, f2, g2, h2};
     Square bp_start[] = {a7, b7, c7, d7, e7, f7, g7, h7};
+    int game_index = 0;
 
     board_fen_import(&b_start, FEN_DEFAULT);
 
     for (i = 0; i < gl->ai.count; i++) {
-        while (i < gl->list[i].index) {
+        while (game_index < gl->list[i].index) {
             pgn_read_next(f, 1);
-            i++;
+            game_index++;
         }
         snprintf(fen, FEN_LEN, "%s", FEN_DEFAULT);
         b_tmp = b_start;
@@ -3653,6 +3656,7 @@ gls_read_pgn(GameListStat* gls, GameList* gl, FILE* f, Board* b) {
             }
         }
         game_free(&g);
+        game_index++;
     }
 }
 
