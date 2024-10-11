@@ -1,7 +1,7 @@
 #ifndef _GAME_LIST_H_
 #define _GAME_LIST_H_
 
-#include "chess_utils_define.h"
+#include "chess_utils.h"
 #include "event.h"
 #include "message.h"
 #include "window.h"
@@ -15,5 +15,6 @@ void game_list_current_prev(WindowData* data);
 int game_list_current_relative(WindowData* data);
 void game_list_focus_current_game(WindowData* data);
 void game_list_game_load(WindowData* data, int index);
+void tag_list_title(TagList* tl, char * title);
 
 #endif

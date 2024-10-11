@@ -18,5 +18,6 @@
 #define FALLBACK_PATH                      "../resources"
 #define PIECE_PATH                         PREFIX "/share/cboard/alpha"
 #define FONT_PATH                          PREFIX "/share/cboard/DejaVuSansCondensed.ttf"
+#define GAMETITLE_LEN                      4096
 
 #endif

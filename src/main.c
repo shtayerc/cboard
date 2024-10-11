@@ -17,7 +17,7 @@
 #include "window.h"
 
 #define CHESS_UTILS_IMPLEMENTATION
-#include "chess_utils_define.h"
+#include "chess_utils.h"
 
 #define VERSION "0.3"
 

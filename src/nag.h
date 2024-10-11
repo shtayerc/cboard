@@ -1,6 +1,6 @@
 #ifndef _NAG_H_
 #define _NAG_H_
-#include "chess_utils_define.h"
+#include "chess_utils.h"
 #define NAG_LEN 10
 #define NAG_MAX 256
 

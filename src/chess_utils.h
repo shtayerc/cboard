@@ -1,5 +1,5 @@
 /*
-chess_utils v0.8.4
+chess_utils v0.9.0
 
 Copyright (c) 2024 David Murko
 
@@ -44,7 +44,6 @@ extern "C" {
 #define MOVENUM_LEN       10
 #define PGN_LINE_LEN      80
 #define SQUARE_LEN        3
-#define GAMETITLE_LEN     4096
 //max difference of move number between transpositions
 #define MOVENUM_OVERCHECK 6
 
@@ -120,6 +119,11 @@ typedef struct {
 } Tag;
 
 typedef struct {
+    Tag* list;
+    ArrayInfo ai;
+} TagList;
+
+typedef struct {
     Piece position[128];
     int half_move;
     int move_number;
@@ -155,15 +159,11 @@ struct Move {
 typedef struct {
     Variation* line_main;
     Variation* line_current;
-    Tag* tag_list;
-    int tag_count;
+    TagList* tag_list;
 } Game;
 
 typedef struct {
-    char title[GAMETITLE_LEN];
-#ifdef ADDITIONAL_TAG
-    char tag_value[TAG_LEN];
-#endif
+    TagList* tag_list;
     int index;
 } GameRow;
 
@@ -271,6 +271,34 @@ int tag_extract(const char* str, Tag* tag);
 //Escape double quotes in str with backslash. If length of escaped string is
 //too short, then escaped is set to empty string.
 void tag_escape_value(const char* str, char* escaped, int len);
+
+//initialize tag list
+void tag_list_init(TagList* tl);
+
+//free tag list if not empty
+void tag_list_free(TagList* tl);
+
+//given Tag is appended to TagList
+void tag_list_add(TagList* tl, Tag* tag);
+
+//create 7 required tags (Event, Site, Date, Round, White, Black, Result)
+void tag_list_default(TagList* tl);
+
+//returns pointer to deep copy of given TagList
+TagList* tag_list_clone(TagList* tl);
+
+//returns index of TagList element with given key or -1 if not found
+int tag_list_find(TagList* tl, const char* key);
+
+//value of Tag with given key is replaced if it exists.
+//If key does not exists new Tag is created
+void tag_list_set(TagList* tl, const char* key, const char* value);
+
+//returns Tag for given key
+Tag* tag_list_get(TagList* tl, const char* key);
+
+//remove Tag with given key from TagList
+void tag_list_delete(TagList* tl, const char* key);
 
 //
 //BOARD UTILS
@@ -497,28 +525,6 @@ void vs_print(VariationSequence* vs);
 //GAME FUNCTIONS
 //
 
-//initialize tag_list and create 7 required tags (Event, Site, Date, Round,
-//White, Black, Result)
-void game_tag_init(Game* g);
-
-//free tag_list if not empty
-void game_tag_free(Game* g);
-
-//return index of g->tag_list for given key
-int game_tag_index(Game* g, const char* key);
-
-//given Tag is appended to g->tag_list
-void game_tag_add(Game* g, Tag* tag);
-
-//remove Tag with given key
-void game_tag_remove(Game* g, const char* key);
-
-//returns Tag for given key
-Tag* game_tag_get(Game* g, const char* key);
-
-//value of Tag with key is replaced - if key does not exists new Tag is created
-void game_tag_set(Game* g, const char* key, const char* value);
-
 //initialize game with 1 Variation with given Board and initialize 7 tags
 //if b is NULL then FEN_DEFAULT Board is used
 void game_init(Game* g, Board* b);
@@ -614,6 +620,15 @@ void uci_line_parse(const char* str, int len, Board* b, int* depth, int* multipv
 //
 //GAME LIST FUNCTIONS
 //
+
+//initialize GameRow and also allocate and init TagList
+void game_row_init(GameRow* gr);
+
+//free given GameRow and TagList
+void game_row_free(GameRow* gr);
+
+//copies GameRow properties and deep copy TagList
+void game_row_copy(GameRow* gr_src, GameRow* gr_dst);
 
 //initialize empty GameList
 void game_list_init(GameList* gl);
@@ -1023,6 +1038,94 @@ tag_escape_value(const char* str, char* escaped, int len) {
         escaped[i++] = str[j];
     }
     escaped[i] = '\0';
+}
+
+void
+tag_list_init(TagList* tl) {
+    tl->list = NULL;
+    ai_init(&tl->ai, sizeof(Tag) * 32);
+}
+
+void
+tag_list_default(TagList* tl) {
+    tag_list_set(tl, "Event", "");
+    tag_list_set(tl, "Site", "");
+    tag_list_set(tl, "Date", "");
+    tag_list_set(tl, "Round", "");
+    tag_list_set(tl, "White", "");
+    tag_list_set(tl, "Black", "");
+    tag_list_set(tl, "Result", RESULT_NONE);
+}
+
+void
+tag_list_free(TagList* tl) {
+    if (tl->list == NULL || tl->ai.count == 0) {
+        return;
+    }
+    free(tl->list);
+}
+
+void
+tag_list_add(TagList* tl, Tag* tag) {
+    tl->ai.count++;
+    tl->list = (Tag*)ai_realloc(&tl->ai, tl->list, sizeof(Tag) * tl->ai.count);
+    tl->list[tl->ai.count - 1] = *tag;
+}
+
+TagList*
+tag_list_clone(TagList* tl) {
+    TagList* new_tl = malloc(sizeof(TagList));
+    tag_list_init(new_tl);
+    for (int i = 0; i < tl->ai.count; i++) {
+        tag_list_add(new_tl, &tl->list[i]);
+    }
+    return new_tl;
+}
+
+int
+tag_list_find(TagList* tl, const char* key) {
+    for (int i = 0; i < tl->ai.count; i++) {
+        if (!strcmp(tl->list[i].key, key)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void
+tag_list_set(TagList* tl, const char* key, const char* value) {
+    Tag tag;
+    int index = tag_list_find(tl, key);
+    if (index == -1) {
+        snprintf(tag.key, TAG_LEN, "%s", key);
+        snprintf(tag.value, TAG_LEN, "%s", value);
+        tag_list_add(tl, &tag);
+    } else {
+        snprintf(tl->list[index].value, TAG_LEN, "%s", value);
+    }
+}
+
+Tag*
+tag_list_get(TagList* tl, const char* key) {
+    int index = tag_list_find(tl, key);
+    if (index == -1) {
+        return NULL;
+    }
+    return &tl->list[index];
+}
+
+void
+tag_list_delete(TagList* tl, const char* key) {
+    int index = tag_list_find(tl, key);
+    if (index == -1) {
+        return;
+    }
+
+    for (int j = 1; j + index < tl->ai.count; j++) {
+        tl->list[index + (j - 1)] = tl->list[index + j];
+    }
+    tl->ai.count--;
+    //TODO: memory resize
 }
 
 Square
@@ -2402,94 +2505,21 @@ vs_print(VariationSequence* vs) {
 }
 
 void
-game_tag_init(Game* g) {
-    g->tag_list = (Tag*)malloc(sizeof(Tag));
-    g->tag_count = 0;
-    game_tag_set(g, "Event", "");
-    game_tag_set(g, "Site", "");
-    game_tag_set(g, "Date", "");
-    game_tag_set(g, "Round", "");
-    game_tag_set(g, "White", "");
-    game_tag_set(g, "Black", "");
-    game_tag_set(g, "Result", RESULT_NONE);
-}
-
-void
-game_tag_free(Game* g) {
-    if (g->tag_count > 0) {
-        free(g->tag_list);
-    }
-}
-
-int
-game_tag_index(Game* g, const char* key) {
-    int i;
-    for (i = 0; i < g->tag_count; i++) {
-        if (!strcmp(g->tag_list[i].key, key)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-void
-game_tag_add(Game* g, Tag* tag) {
-    int last = g->tag_count;
-    g->tag_count++;
-    g->tag_list = (Tag*)realloc(g->tag_list, sizeof(Tag) * g->tag_count);
-    g->tag_list[last] = *tag;
-}
-
-void
-game_tag_remove(Game* g, const char* key) {
-    int i = game_tag_index(g, key);
-    if (i == -1) {
-        return;
-    }
-
-    int j;
-    for (j = 1; j + i < g->tag_count; j++) {
-        g->tag_list[i + (j - 1)] = g->tag_list[i + j];
-    }
-    g->tag_count--;
-    g->tag_list = (Tag*)realloc(g->tag_list, sizeof(Tag) * g->tag_count);
-}
-
-Tag*
-game_tag_get(Game* g, const char* key) {
-    int index = game_tag_index(g, key);
-    if (index == -1) {
-        return NULL;
-    }
-    return &g->tag_list[index];
-}
-
-void
-game_tag_set(Game* g, const char* key, const char* value) {
-    Tag tag;
-    int index = game_tag_index(g, key);
-    if (index == -1) {
-        snprintf(tag.key, TAG_LEN, "%s", key);
-        snprintf(tag.value, TAG_LEN, "%s", value);
-        game_tag_add(g, &tag);
-    } else {
-        snprintf(g->tag_list[index].value, TAG_LEN, "%s", value);
-    }
-}
-
-void
 game_init(Game* g, Board* b) {
     g->line_main = (Variation*)malloc(sizeof(Variation));
     g->line_current = g->line_main;
     variation_init(g->line_main, b);
-    game_tag_init(g);
+    g->tag_list = (TagList*)malloc(sizeof(TagList));
+    tag_list_init(g->tag_list);
+    tag_list_default(g->tag_list);
 }
 
 void
 game_free(Game* g) {
     variation_free(g->line_main);
-    game_tag_free(g);
     free(g->line_main);
+    tag_list_free(g->tag_list);
+    free(g->tag_list);
 }
 
 Game*
@@ -2497,9 +2527,7 @@ game_clone(Game* g) {
     Game* clone = (Game*)malloc(sizeof(Game));
     clone->line_main = variation_clone(g->line_main, NULL);
     clone->line_current = variation_equivalent_find(g->line_main, clone->line_main, g->line_current);
-    clone->tag_count = g->tag_count;
-    clone->tag_list = (Tag*)malloc(clone->tag_count * sizeof(Tag));
-    memcpy(clone->tag_list, g->tag_list, g->tag_count * sizeof(Tag));
+    clone->tag_list = tag_list_clone(g->tag_list);
     return clone;
 }
 
@@ -2812,7 +2840,7 @@ pgn_read_file(FILE* f, Game* g, int index) {
         }
 
         if (tag_extract(buffer, &tag)) {
-            game_tag_set(g, tag.key, tag.value);
+            tag_list_set(g->tag_list, tag.key, tag.value);
             if (!strcmp(tag.key, "Result")) {
                 snprintf(result, 10, "%s", tag.value);
             }
@@ -3013,11 +3041,11 @@ pgn_write_file(FILE* f, Game* g) {
     char escaped[TAG_LEN];
     line[0] = '\0';
 
-    for (i = 0; i < g->tag_count; i++) {
-        tag_escape_value(g->tag_list[i].value, escaped, TAG_LEN);
-        fprintf(f, "[%s \"%s\"]\n", g->tag_list[i].key, escaped);
-        if (!strcmp(g->tag_list[i].key, "Result")) {
-            snprintf(result, 10, "%s", g->tag_list[i].value);
+    for (i = 0; i < g->tag_list->ai.count; i++) {
+        tag_escape_value(g->tag_list->list[i].value, escaped, TAG_LEN);
+        fprintf(f, "[%s \"%s\"]\n", g->tag_list->list[i].key, escaped);
+        if (!strcmp(g->tag_list->list[i].key, "Result")) {
+            snprintf(result, 10, "%s", g->tag_list->list[i].value);
         }
     }
 
@@ -3179,6 +3207,28 @@ uci_line_parse(const char* str, int len, Board* b, int* depth, int* multipv, Uci
 }
 
 void
+game_row_init(GameRow* gr) {
+    gr->tag_list = malloc(sizeof(TagList));
+    tag_list_init(gr->tag_list);
+    gr->index = -1;
+}
+
+void
+game_row_free(GameRow* gr) {
+    if (gr->tag_list != NULL) {
+        tag_list_free(gr->tag_list);
+        free(gr->tag_list);
+        gr->tag_list = NULL;
+    }
+}
+
+void
+game_row_copy(GameRow* gr_src, GameRow* gr_dst) {
+    gr_dst->index = gr_src->index;
+    gr_dst->tag_list = tag_list_clone(gr_src->tag_list);
+}
+
+void
 game_list_init(GameList* gl) {
     gl->list = NULL;
     ai_init(&gl->ai, sizeof(GameRow) * 256);
@@ -3188,6 +3238,9 @@ void
 game_list_free(GameList* gl) {
     if (gl->list == NULL || gl->ai.count == 0) {
         return;
+    }
+    for (int i = 0; i < gl->ai.count; i++) {
+        game_row_free(&gl->list[i]);
     }
     free(gl->list);
 }
@@ -3204,53 +3257,37 @@ game_list_read_pgn(GameList* gl, FILE* f) {
     char buffer[BUFFER_LEN];
     int index = 0;
     Tag tag;
-    GameRow gr;
-    Game g;
-    game_tag_init(&g);
+    GameRow gr = {NULL, -1};
     game_list_init(gl);
 
     while (fgets(buffer, BUFFER_LEN, f)) {
         trimendl(buffer);
         if (tag_extract(buffer, &tag)) {
-            game_tag_set(&g, tag.key, tag.value);
-        } else {
-            snprintf(gr.title, GAMETITLE_LEN, "%s-%s/%s[%s]/%s (%s)", game_tag_get(&g, "White")->value,
-                     game_tag_get(&g, "Black")->value, game_tag_get(&g, "Event")->value,
-                     game_tag_get(&g, "Round")->value, game_tag_get(&g, "Date")->value,
-                     game_tag_get(&g, "Result")->value);
-            gr.index = index++;
-#ifdef ADDITIONAL_TAG
-            Tag* tmp_tag = game_tag_get(&g, ADDITIONAL_TAG);
-            gr.tag_value[0] = '\0';
-            if (tmp_tag != NULL) {
-                snprintf(gr.tag_value, TAG_LEN, "%s", tmp_tag->value);
+            if (gr.tag_list == NULL) {
+                game_row_init(&gr);
             }
-#endif
+            tag_list_add(gr.tag_list, &tag);
+        } else {
+            gr.index = index++;
             game_list_add(gl, &gr);
+            gr.tag_list = NULL;
             pgn_read_next(f, 0);
-
-            //reset tags
-            game_tag_set(&g, "White", "");
-            game_tag_set(&g, "Black", "");
-            game_tag_set(&g, "Event", "");
-            game_tag_set(&g, "Round", "");
-            game_tag_set(&g, "Date", "");
-            game_tag_set(&g, "Result", RESULT_NONE);
-#ifdef ADDITIONAL_TAG
-            game_tag_remove(&g, ADDITIONAL_TAG);
-#endif
         }
     }
-    game_tag_free(&g);
 }
 
 void
 game_list_search_str(GameList* gl, GameList* new_gl, const char* str) {
     game_list_init(new_gl);
-    int i;
+    int i, j;
+    GameRow gr;
     for (i = 0; i < gl->ai.count; i++) {
-        if (isubstr(gl->list[i].title, str)) {
-            game_list_add(new_gl, &gl->list[i]);
+        for (j = 0; j < gl->list[i].tag_list->ai.count; j++) {
+            if (isubstr(gl->list[i].tag_list->list[j].value, str)) {
+                game_row_copy(&gl->list[i], &gr);
+                game_list_add(new_gl, &gr);
+                break;
+            }
         }
     }
 }
@@ -3277,6 +3314,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
     Variation *v, *new_v;
     Move* m;
     Game g;
+    GameRow gr;
     Square wp_start[] = {a2, b2, c2, d2, e2, f2, g2, h2};
     Square bp_start[] = {a7, b7, c7, d7, e7, f7, g7, h7};
     int game_index = 0;
@@ -3374,7 +3412,8 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
                             board_move_san_export(&b_tmp, src, dst, prom_piece, san, SAN_LEN, status);
                             board_move_do(&b_tmp, src, dst, prom_piece, status);
                             if (board_is_equal(b, &b_tmp, 0)) {
-                                game_list_add(new_gl, &gl->list[i]);
+                                game_row_copy(&gl->list[i], &gr);
+                                game_list_add(new_gl, &gr);
                                 skip = 1;
                             }
                             for (j = 0; j < 8 && !skip; j++) {
@@ -3419,7 +3458,8 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
                 if (tags) {
                     board_fen_import(&b_tmp, fen);
                     if (board_is_equal(b, &b_tmp, 0)) {
-                        game_list_add(new_gl, &gl->list[i]);
+                        game_row_copy(&gl->list[i], &gr);
+                        game_list_add(new_gl, &gr);
                         skip = 1;
                     }
                     tags = 0;

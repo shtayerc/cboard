@@ -158,8 +158,9 @@ notation_draw_tags(WindowData* data, int* x, int* y, int x_start) {
     int word_width;
     char word[TAG_LEN * 2];
     int i;
-    for (i = 0; i < data->game.tag_count; i++) {
-        snprintf(word, TAG_LEN * 2, "[%s \"%s\"]", data->game.tag_list[i].key, data->game.tag_list[i].value);
+    for (i = 0; i < data->game.tag_list->ai.count; i++) {
+        snprintf(word, TAG_LEN * 2, "[%s \"%s\"]", data->game.tag_list->list[i].key,
+                 data->game.tag_list->list[i].value);
         word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_TITLE;
         notation_handle_line_break(data, x, y, word_width, x_start);
         FC_DrawColor(data->font, data->renderer, *x, *y, data->conf.colors[ColorNotationFont], word);
@@ -324,7 +325,7 @@ mode_tag_edit(WindowData* data, Tag* tag) {
                             if (U8_strlen(tag->value) == 0 && strcmp(tag->key, "Event") && strcmp(tag->key, "Site")
                                 && strcmp(tag->key, "Date") && strcmp(tag->key, "Round") && strcmp(tag->key, "White")
                                 && strcmp(tag->key, "Black") && strcmp(tag->key, "Result")) {
-                                game_tag_remove(&data->game, tag->key);
+                                tag_list_delete(data->game.tag_list, tag->key);
                             }
                             data->status.info[0] = '\0';
                             draw_render(data);
@@ -361,10 +362,10 @@ mode_tag(WindowData* data) {
 
                         case SDLK_RETURN:
                             cursor_remove(&pos, data->status.info);
-                            tag = game_tag_get(&data->game, data->status.info);
+                            tag = tag_list_get(data->game.tag_list, data->status.info);
                             if (tag == NULL) {
-                                game_tag_set(&data->game, data->status.info, "");
-                                tag = game_tag_get(&data->game, data->status.info);
+                                tag_list_set(data->game.tag_list, data->status.info, "");
+                                tag = tag_list_get(data->game.tag_list, data->status.info);
                             }
                             mode_tag_edit(data, tag);
                             loop = 0;
@@ -427,9 +428,9 @@ game_init_default(Game* g, Board* b) {
     board_fen_export(b, fen);
     game_init(g, b);
     if (strcmp(fen, FEN_DEFAULT)) {
-        game_tag_set(g, "FEN", fen);
+        tag_list_set(g->tag_list, "FEN", fen);
     }
-    game_tag_set(g, "Date", date);
+    tag_list_set(g->tag_list, "Date", date);
 }
 
 void

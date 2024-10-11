@@ -130,8 +130,9 @@ mode_game_list(WindowData* data) {
                             if (comment != NULL) {
                                 free(comment);
                             }
+                            comment = malloc(sizeof(char) * GAMETITLE_LEN);
                             index = data->game_list_current;
-                            comment = strdup(data->game_list.list[index].title);
+                            tag_list_title(data->game_list.list[index].tag_list, comment);
                             game_move_get(&data->game)->comment = comment;
                             draw_render(data);
                             break;
@@ -251,6 +252,8 @@ void
 game_list_draw(WindowData* data) {
     SDL_Rect game_current;
     SDL_Color c;
+    char title[GAMETITLE_LEN];
+    Tag* tag;
     notation_background_draw(data);
     int i, x, y, color, i_count;
     x = data->layout.notation.x + NOTATION_PADDING_LEFT;
@@ -262,7 +265,10 @@ game_list_draw(WindowData* data) {
     i = -1; //let game_list_loop know that we want pre loop init
 
     while (game_list_loop(data, &i, &i_count)) {
-        color = !strcmp(data->game_list.list[i].tag_value, "1");
+        tag = tag_list_get(data->game_list.list[i].tag_list, "Color");
+        color = tag != NULL && !strcmp(tag->value, "1");
+        //color = !strcmp(tag_list_get(data->game_list.list[i].tag_list, "Color")->value, "1");
+        tag_list_title(data->game_list.list[i].tag_list, title);
         if (i == data->game_list_current) {
             c = data->conf.colors[color ? ColorCommentFont : ColorNotationActiveBackground];
             game_current.x = x;
@@ -271,12 +277,10 @@ game_list_draw(WindowData* data) {
             game_current.h = data->font_height;
             SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
             SDL_RenderFillRect(data->renderer, &game_current);
-            FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationActiveFont],
-                         data->game_list.list[i].title);
+            FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationActiveFont], title);
         } else {
             FC_DrawColor(data->font, data->renderer, x, y,
-                         data->conf.colors[color ? ColorCommentFont : ColorNotationFont],
-                         data->game_list.list[i].title);
+                         data->conf.colors[color ? ColorCommentFont : ColorNotationFont], title);
         }
         y += data->font_height;
         if (y > data->layout.notation.y + data->layout.notation.h) {
@@ -316,4 +320,12 @@ game_list_game_load(WindowData* data, int index) {
     fclose(f);
     data->notation_scroll.value = 0;
     game_board_find(&data->game, &tmp_b);
+}
+
+void
+tag_list_title(TagList* tl, char * title) {
+    snprintf(title, GAMETITLE_LEN, "%s-%s/%s[%s]/%s (%s)", tag_list_get(tl, "White")->value,
+             tag_list_get(tl, "Black")->value, tag_list_get(tl, "Event")->value,
+             tag_list_get(tl, "Round")->value, tag_list_get(tl, "Date")->value,
+             tag_list_get(tl, "Result")->value);
 }
