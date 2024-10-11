@@ -183,14 +183,12 @@ mode_game_list(WindowData* data) {
 }
 
 void
-game_list_current_init(WindowData* data)
-{
+game_list_current_init(WindowData* data) {
     data->game_list_current = data->game_list_sorting == Ascending ? 0 : data->game_list.ai.count - 1;
 }
 
 void
-game_list_current_next(WindowData* data)
-{
+game_list_current_next(WindowData* data) {
     if (data->game_list_sorting == Ascending) {
         if (data->game_list_current + 1 < data->game_list.ai.count) {
             data->game_list_current++;
@@ -203,8 +201,7 @@ game_list_current_next(WindowData* data)
 }
 
 void
-game_list_current_prev(WindowData* data)
-{
+game_list_current_prev(WindowData* data) {
     if (data->game_list_sorting == Ascending) {
         if (data->game_list_current - 1 >= 0) {
             data->game_list_current--;
@@ -217,8 +214,7 @@ game_list_current_prev(WindowData* data)
 }
 
 int
-game_list_current_relative(WindowData* data)
-{
+game_list_current_relative(WindowData* data) {
     if (data->game_list_sorting == Descending) {
         return data->game_list.ai.count - data->game_list_current;
     }
@@ -226,8 +222,7 @@ game_list_current_relative(WindowData* data)
 }
 
 int
-game_list_loop(WindowData* data, int* i, int* i_count)
-{
+game_list_loop(WindowData* data, int* i, int* i_count) {
     if (data->game_list_sorting == Ascending) {
         if (*i == -1) {
             *i = 0;
@@ -238,7 +233,7 @@ game_list_loop(WindowData* data, int* i, int* i_count)
         return *i < *i_count;
     } else if (data->game_list_sorting == Descending) {
         if (*i == -1) {
-            *i = data->game_list.ai.count -1;
+            *i = data->game_list.ai.count - 1;
             *i_count = 0;
         } else {
             *i -= 1;
@@ -267,7 +262,6 @@ game_list_draw(WindowData* data) {
     while (game_list_loop(data, &i, &i_count)) {
         tag = tag_list_get(data->game_list.list[i].tag_list, "Color");
         color = tag != NULL && !strcmp(tag->value, "1");
-        //color = !strcmp(tag_list_get(data->game_list.list[i].tag_list, "Color")->value, "1");
         tag_list_title(data->game_list.list[i].tag_list, title);
         if (i == data->game_list_current) {
             c = data->conf.colors[color ? ColorCommentFont : ColorNotationActiveBackground];
@@ -323,9 +317,8 @@ game_list_game_load(WindowData* data, int index) {
 }
 
 void
-tag_list_title(TagList* tl, char * title) {
+tag_list_title(TagList* tl, char* title) {
     snprintf(title, GAMETITLE_LEN, "%s-%s/%s[%s]/%s (%s)", tag_list_get(tl, "White")->value,
-             tag_list_get(tl, "Black")->value, tag_list_get(tl, "Event")->value,
-             tag_list_get(tl, "Round")->value, tag_list_get(tl, "Date")->value,
-             tag_list_get(tl, "Result")->value);
+             tag_list_get(tl, "Black")->value, tag_list_get(tl, "Event")->value, tag_list_get(tl, "Round")->value,
+             tag_list_get(tl, "Date")->value, tag_list_get(tl, "Result")->value);
 }
