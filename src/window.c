@@ -73,7 +73,6 @@ void
 window_data_init(WindowData* data) {
     int i;
     data->conf = config_init();
-    data->status.str = calloc(sizeof(char), data->conf.status_max_len);
     data->status.mode = calloc(sizeof(char), data->conf.status_max_len);
     data->status.info = calloc(sizeof(char), data->conf.status_max_len);
     data->filename = malloc(sizeof(char) * data->conf.status_max_len);
@@ -136,7 +135,6 @@ window_open(WindowData* data) {
 void
 window_data_free(WindowData* data) {
     int i;
-    free(data->status.str);
     free(data->status.mode);
     free(data->status.info);
     free(data->filename);

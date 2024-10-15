@@ -114,8 +114,7 @@ status_draw(WindowData* data) {
     SDL_Color c = data->conf.colors[ColorStatusBackground];
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &data->layout.status);
-    snprintf(data->status.str, data->conf.status_max_len, "%s %s[%s] %s", data->status.mode, data->filename,
-             data->number, data->status.info);
     FC_DrawColor(data->font, data->renderer, data->layout.status.x + STATUS_PADDING_LEFT, data->layout.status.y,
-                 data->conf.colors[ColorStatusFont], data->status.str);
+                 data->conf.colors[ColorStatusFont], "%s %s[%s] %s", data->status.mode, data->filename,
+                 data->number, data->status.info);
 }

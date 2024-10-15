@@ -81,7 +81,6 @@ typedef struct {
 } Config;
 
 typedef struct {
-    char* str;
     char* mode;
     char* info;
 } StatusLine;
