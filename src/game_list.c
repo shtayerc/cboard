@@ -250,11 +250,14 @@ game_list_draw(WindowData* data) {
     char title[GAMETITLE_LEN];
     Tag* tag;
     notation_background_draw(data);
-    int i, x, y, color, i_count;
-    x = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
+    int i, color, i_count;
+    game_current.x = data->layout.notation.x + NOTATION_PADDING_LEFT;
+    game_current.y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
+    game_current.w = data->layout.notation.w;
+    game_current.h = data->font_height;
     if (data->game_list.ai.count == 0) {
-        FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont], "No games");
+        FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
+                     data->conf.colors[ColorNotationFont], "No games");
         return;
     }
     i = -1; //let game_list_loop know that we want pre loop init
@@ -265,19 +268,16 @@ game_list_draw(WindowData* data) {
         tag_list_title(data->game_list.list[i].tag_list, title);
         if (i == data->game_list_current) {
             c = data->conf.colors[color ? ColorCommentFont : ColorNotationActiveBackground];
-            game_current.x = x;
-            game_current.y = y;
-            game_current.w = data->layout.notation.w;
-            game_current.h = data->font_height;
             SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
             SDL_RenderFillRect(data->renderer, &game_current);
-            FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationActiveFont], title);
+            FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
+                         data->conf.colors[ColorNotationActiveFont], title);
         } else {
-            FC_DrawColor(data->font, data->renderer, x, y,
+            FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
                          data->conf.colors[color ? ColorCommentFont : ColorNotationFont], title);
         }
-        y += data->font_height;
-        if (y > data->layout.notation.y + data->layout.notation.h) {
+        game_current.y += data->font_height;
+        if (game_current.y > data->layout.notation.y + data->layout.notation.h) {
             break;
         }
     }
