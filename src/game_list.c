@@ -277,10 +277,15 @@ game_list_draw(WindowData* data) {
                          data->conf.colors[color ? ColorCommentFont : ColorNotationFont], title);
         }
         game_current.y += data->font_height;
-        if (game_current.y > data->layout.notation.y + data->layout.notation.h) {
+        if (game_current.y > data->layout.notation.y + data->layout.notation.h - data->font_height) {
             break;
         }
     }
+    c = data->conf.colors[ColorStatusBackground];
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
+    SDL_RenderFillRect(data->renderer, &game_current);
+    FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
+                 data->conf.colors[ColorStatusFont], "#%d", data->game_list.ai.count);
     //we set scroll length without scroll_set_length, because game_list length
     //is predictable
     data->game_list_scroll.length = data->font_height * data->game_list.ai.count;
