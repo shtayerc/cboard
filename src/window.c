@@ -189,8 +189,10 @@ window_resize(WindowData* data, int width, int height) {
     data->layout.notation.w = width - data->layout.notation.x;
     data->layout.notation.h = height - data->layout.status.h;
     data->notation_scroll.step = data->layout.notation.h / 2;
+    data->notation_scroll.step -= data->notation_scroll.step % data->font_height;
     data->notation_scroll.shown = data->layout.notation.h;
     data->game_list_scroll.step = data->layout.notation.h / 2;
+    data->game_list_scroll.step -= data->game_list_scroll.step % data->font_height;
     data->game_list_scroll.shown = data->layout.notation.h;
 }
 
