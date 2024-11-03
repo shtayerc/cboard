@@ -380,6 +380,9 @@ mode_normal(WindowData* data) {
                         case SDLK_o:
                             tmp = is_keymod_shift(event);
                             if (data->notation_mode != ModeExplorer) {
+                                if (data->explorer.running) {
+                                    explorer_stop(data);
+                                }
                                 if (explorer_start(data, tmp)) {
                                     data->notation_mode = ModeExplorer;
                                 }
