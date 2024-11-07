@@ -169,6 +169,7 @@ main(int argc, char* argv[]) {
         game_board_find(&data.game, &board);
     }
     window_resize(&data, data.conf.default_width, data.conf.default_height);
+    SDL_MaximizeWindow(data.window);
     snprintf(data.status.mode, data.conf.status_max_len, "%s", data.conf.normal_status);
     handle_position_change(&data);
     piece_load(&data);

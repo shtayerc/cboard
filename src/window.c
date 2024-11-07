@@ -118,7 +118,7 @@ window_open(WindowData* data) {
     SDL_GetDisplayMode(0, 0, &dm);
     window_set_title(data);
     data->window = SDL_CreateWindow(data->conf.window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, dm.w,
-                                    dm.h, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
+                dm.h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
     SDL_EnableScreenSaver();
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width, data->conf.minimal_height);
