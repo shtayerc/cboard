@@ -138,6 +138,7 @@ main(int argc, char* argv[]) {
         }
     } else {
         if (file != NULL) {
+            game_list_init(&data.game_list);
             game_list_read_pgn(&data.game_list, file);
             data.game_list_sorting = Descending;
             game_list_current_init(&data);

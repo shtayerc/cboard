@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.0
+chess_utils v0.9.1
 
 Copyright (c) 2024 David Murko
 
@@ -104,6 +104,7 @@ typedef enum { Invalid, Valid, Castling, EnPassant, Promotion } Status;
 
 typedef enum { Centipawn, Mate, NoType = -1 } UciScoreType;
 
+typedef enum { OperatorEquals, OperatorContains} TagFilterOperator;
 //
 //STRUCTS
 //
@@ -168,8 +169,19 @@ typedef struct {
 } GameRow;
 
 typedef struct {
+    Tag tag;
+    TagFilterOperator op;
+} TagFilter;
+
+typedef struct {
+    TagFilter* list;
+    ArrayInfo ai;
+} TagFilterList;
+
+typedef struct {
     GameRow* list;
     ArrayInfo ai;
+    TagFilterList* filter_list;
 } GameList;
 
 typedef struct {
@@ -299,6 +311,8 @@ Tag* tag_list_get(TagList* tl, const char* key);
 
 //remove Tag with given key from TagList
 void tag_list_delete(TagList* tl, const char* key);
+
+int tag_list_filter_is_valid(TagList* tl, TagFilterList* tfl);
 
 //
 //BOARD UTILS
@@ -638,6 +652,28 @@ void game_list_free(GameList* gl);
 
 //append GameRow to GameList
 void game_list_add(GameList* gl, GameRow* gr);
+
+void game_list_filter(GameList* gl, GameList *new_gl);
+
+void game_list_filter_get(GameList* gl, const char* key, TagFilterOperator op);
+
+//add new or set existing TagFilter in GameList with given parameters.
+//GameList.filter_list TagFilterList is lazily initialized.
+void game_list_filter_set(GameList* gl, const char* key, TagFilterOperator op, const char* value);
+
+void game_list_filter_delete(GameList* gl, const char* key, TagFilterOperator op);
+
+void tfl_init(TagFilterList* tfl);
+
+void tfl_free(TagFilterList* tfl);
+
+void tfl_add(TagFilterList* tfl, TagFilter* tf);
+
+int tfl_find(TagFilterList* tfl, const char* key, TagFilterOperator op);
+
+void tfl_delete(TagFilterList* tfl, const char* key, TagFilterOperator op);
+
+TagFilterList* tfl_clone(TagFilterList* tfl);
 
 //read GameRows from pgn file
 void game_list_read_pgn(GameList* gl, FILE* f);
@@ -1126,6 +1162,31 @@ tag_list_delete(TagList* tl, const char* key) {
     }
     tl->ai.count--;
     //TODO: memory resize
+}
+
+int
+tag_list_filter_is_valid(TagList* tl, TagFilterList* tfl) {
+    for (int j = 0; j < tfl->ai.count; j++) {
+        for (int i = 0; i < tl->ai.count; i++) {
+            if (strcmp(tl->list[i].key, tfl->list[j].tag.key)) {
+                continue;
+            }
+            switch (tfl->list[j].op) {
+                case OperatorEquals:
+                    if (!strcmp(tl->list[i].value, tfl->list[j].tag.value)) {
+                        return 1;
+                    }
+                    break;
+
+                case OperatorContains:
+                    if (isubstr(tl->list[i].value, tfl->list[j].tag.value)) {
+                        return 1;
+                    }
+                    break;
+            }
+        }
+    }
+    return 0;
 }
 
 Square
@@ -3231,18 +3292,22 @@ game_row_copy(GameRow* gr_src, GameRow* gr_dst) {
 void
 game_list_init(GameList* gl) {
     gl->list = NULL;
+    gl->filter_list = NULL;
     ai_init(&gl->ai, sizeof(GameRow) * 256);
 }
 
 void
 game_list_free(GameList* gl) {
-    if (gl->list == NULL || gl->ai.count == 0) {
-        return;
-    }
     for (int i = 0; i < gl->ai.count; i++) {
         game_row_free(&gl->list[i]);
     }
-    free(gl->list);
+    if (gl->filter_list != NULL) {
+        tfl_free(gl->filter_list);
+        free(gl->filter_list);
+    }
+    if (gl->list != NULL) {
+        free(gl->list);
+    }
 }
 
 void
@@ -3253,12 +3318,42 @@ game_list_add(GameList* gl, GameRow* gr) {
 }
 
 void
+game_list_filter(GameList* gl, GameList *new_gl) {
+    game_list_init(new_gl);
+    GameRow gr;
+    for (int i = 0; i < gl->ai.count; i++) {
+        if (tag_list_filter_is_valid(gl->list[i].tag_list, gl->filter_list)) {
+            game_row_copy(&gl->list[i], &gr);
+            game_list_add(new_gl, &gr);
+        }
+    }
+    new_gl->filter_list = tfl_clone(gl->filter_list);
+}
+
+void
+game_list_filter_set(GameList* gl, const char* key, TagFilterOperator op, const char* value) {
+    if (gl->filter_list == NULL) {
+        gl->filter_list = (TagFilterList*)malloc(sizeof(TagFilterList));
+        tfl_init(gl->filter_list);
+    }
+    int index = gl->filter_list->list == NULL ? -1 : tfl_find(gl->filter_list, key, op);
+    TagFilter tf;
+    if (index == -1) {
+        snprintf(tf.tag.key, TAG_LEN, "%s", key);
+        snprintf(tf.tag.value, TAG_LEN, "%s", value);
+        tf.op = op;
+        tfl_add(gl->filter_list, &tf);
+    } else {
+        snprintf(gl->filter_list->list[index].tag.value, TAG_LEN, "%s", value);
+    }
+}
+
+void
 game_list_read_pgn(GameList* gl, FILE* f) {
     char buffer[BUFFER_LEN];
     int index = 0;
     Tag tag;
     GameRow gr = {NULL, -1};
-    game_list_init(gl);
 
     while (fgets(buffer, BUFFER_LEN, f)) {
         trimendl(buffer);
@@ -3269,7 +3364,11 @@ game_list_read_pgn(GameList* gl, FILE* f) {
             tag_list_add(gr.tag_list, &tag);
         } else {
             gr.index = index++;
-            game_list_add(gl, &gr);
+            if (gl->filter_list != NULL && !tag_list_filter_is_valid(gr.tag_list, gl->filter_list)) {
+                game_row_free(&gr);
+            } else {
+                game_list_add(gl, &gr);
+            }
             gr.tag_list = NULL;
             pgn_read_next(f, 0);
         }
@@ -3289,6 +3388,9 @@ game_list_search_str(GameList* gl, GameList* new_gl, const char* str) {
                 break;
             }
         }
+    }
+    if (gl->filter_list != NULL) {
+        new_gl->filter_list = tfl_clone(gl->filter_list);
     }
 }
 
@@ -3471,7 +3573,63 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
         }
         game_free(&g);
         game_index++;
+        if (gl->filter_list != NULL) {
+            new_gl->filter_list = tfl_clone(gl->filter_list);
+        }
     }
+}
+
+void
+tfl_init(TagFilterList* tfl) {
+    tfl->list = NULL;
+    ai_init(&tfl->ai, sizeof(TagFilter) * 10);
+}
+
+void
+tfl_free(TagFilterList* tfl) {
+    if (tfl->list == NULL || tfl->ai.count == 0) {
+        return;
+    }
+    free(tfl->list);
+}
+
+void
+tfl_add(TagFilterList* tfl, TagFilter* tf) {
+    tfl->ai.count++;
+    tfl->list = (TagFilter*)ai_realloc(&tfl->ai, tfl->list, sizeof(TagFilter) * tfl->ai.count);
+    tfl->list[tfl->ai.count - 1] = *tf;
+}
+
+int
+tfl_find(TagFilterList* tfl, const char* key, TagFilterOperator op) {
+    for (int i = 0; i < tfl->ai.count; i++) {
+        if (!strcmp(tfl->list[i].tag.key, key) && tfl->list[i].op == op) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void
+tfl_delete(TagFilterList* tfl, const char* key, TagFilterOperator op) {
+    int index = tfl_find(tfl, key, op);
+    if (index == -1) {
+        return;
+    }
+    for (int j = 1; j + index < tfl->ai.count; j++) {
+        tfl->list[index + (j - 1)] = tfl->list[index + j];
+    }
+    tfl->ai.count--;
+}
+
+TagFilterList*
+tfl_clone(TagFilterList* tfl) {
+    TagFilterList* new_tfl = malloc(sizeof(TagFilterList));
+    tfl_init(new_tfl);
+    for (int i = 0; i < tfl->ai.count; i++) {
+        tfl_add(new_tfl, &tfl->list[i]);
+    }
+    return new_tfl;
 }
 
 void

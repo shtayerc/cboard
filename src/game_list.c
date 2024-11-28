@@ -105,6 +105,7 @@ mode_game_list(WindowData* data) {
                                 message_add(data, &event, "Error reading file");
                                 break;
                             }
+                            game_list_init(&data->game_list);
                             game_list_read_pgn(&data->game_list, f);
                             fclose(f);
                             data->game_list_sorting = Descending;
