@@ -153,6 +153,7 @@ main(int argc, char* argv[]) {
                 tmp_event = (SDL_Event*)malloc(sizeof(SDL_Event));
                 tmp_event->type = SDL_KEYUP;
                 tmp_event->key.keysym.sym = SDLK_g;
+                tmp_event->key.keysym.mod = KMOD_NONE;
             }
         }
     }
