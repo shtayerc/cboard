@@ -104,7 +104,7 @@ typedef enum { Invalid, Valid, Castling, EnPassant, Promotion } Status;
 
 typedef enum { Centipawn, Mate, NoType = -1 } UciScoreType;
 
-typedef enum { OperatorEquals, OperatorContains} TagFilterOperator;
+typedef enum { OperatorEquals, OperatorContains, OperatorNone} TagFilterOperator;
 //
 //STRUCTS
 //
@@ -655,11 +655,11 @@ void game_list_add(GameList* gl, GameRow* gr);
 
 void game_list_filter(GameList* gl, GameList *new_gl);
 
-void game_list_filter_get(GameList* gl, const char* key, TagFilterOperator op);
-
 //add new or set existing TagFilter in GameList with given parameters.
 //GameList.filter_list TagFilterList is lazily initialized.
 void game_list_filter_set(GameList* gl, const char* key, TagFilterOperator op, const char* value);
+
+TagFilter* game_list_filter_get(GameList* gl, const char* key, TagFilterOperator op);
 
 void game_list_filter_delete(GameList* gl, const char* key, TagFilterOperator op);
 
@@ -1173,20 +1173,23 @@ tag_list_filter_is_valid(TagList* tl, TagFilterList* tfl) {
             }
             switch (tfl->list[j].op) {
                 case OperatorEquals:
-                    if (!strcmp(tl->list[i].value, tfl->list[j].tag.value)) {
-                        return 1;
+                    if (strcmp(tl->list[i].value, tfl->list[j].tag.value)) {
+                        return 0;
                     }
                     break;
 
                 case OperatorContains:
-                    if (isubstr(tl->list[i].value, tfl->list[j].tag.value)) {
-                        return 1;
+                    if (!isubstr(tl->list[i].value, tfl->list[j].tag.value)) {
+                        return 0;
                     }
                     break;
+
+                default:
+                    return 0;
             }
         }
     }
-    return 0;
+    return (tfl->ai.count > 0);
 }
 
 Square
@@ -3346,6 +3349,26 @@ game_list_filter_set(GameList* gl, const char* key, TagFilterOperator op, const 
     } else {
         snprintf(gl->filter_list->list[index].tag.value, TAG_LEN, "%s", value);
     }
+}
+
+TagFilter*
+game_list_filter_get(GameList* gl, const char* key, TagFilterOperator op) {
+    if (gl->filter_list == NULL) {
+        return NULL;
+    }
+    int index = tfl_find(gl->filter_list, key, op);
+    if (index == -1) {
+        return NULL;
+    }
+    return &gl->filter_list->list[index];
+}
+
+void
+game_list_filter_delete(GameList* gl, const char* key, TagFilterOperator op) {
+    if (gl->filter_list == NULL) {
+        return;
+    }
+    tfl_delete(gl->filter_list, key, op);
 }
 
 void
