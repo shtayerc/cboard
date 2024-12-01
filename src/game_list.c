@@ -43,6 +43,115 @@ mode_game_search(WindowData* data) {
 }
 
 void
+mode_game_filter(WindowData* data) {
+    int loop = 1;
+    SDL_Event event;
+    int pos = 0;
+    char key[TAG_LEN];
+    TagFilterOperator op;
+    TagFilter* tag_filter;
+    char* saveptr;
+    char* tmp;
+    cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
+    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.tag_filter_status);
+    draw_render(data);
+    while (loop) {
+        if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            if (event.type != SDL_KEYUP || event.key.keysym.sym != SDLK_ESCAPE) {
+                handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
+            }
+            switch (event.type) {
+                case SDL_KEYUP:
+                    switch (event.key.keysym.sym) {
+                        case SDLK_ESCAPE:
+                            loop = 0;
+                            data->status.info[0] = '\0';
+                            snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.game_list_status);
+                            draw_render(data);
+                            break;
+
+                        case SDLK_RETURN:
+                            cursor_remove(&pos, data->status.info);
+                            snprintf(key, TAG_LEN, "%s", strtok_r(data->status.info, " ", &saveptr));
+                            tmp = strtok_r(NULL, " ", &saveptr);
+                            if (tmp != NULL) {
+                                op = char2tfo(tmp[0]);
+                                switch (op) {
+                                    case OperatorEquals:
+                                    case OperatorContains:
+                                        tag_filter = game_list_filter_get(&data->game_list, key, op);
+                                        if (tag_filter == NULL) {
+                                            game_list_filter_set(&data->game_list, key, op, "");
+                                            tag_filter = game_list_filter_get(&data->game_list, key, op);
+                                        }
+                                        mode_game_filter_edit(data, tag_filter);
+                                        data->status.info[0] = '\0';
+                                        loop = 0;
+                                        break;
+
+                                    default:
+                                        snprintf(
+                                            data->status.info,
+                                            data->conf.status_max_len,
+                                            "%s %c",
+                                            key,
+                                            tfo2char(op)
+                                        );
+                                        tmp = NULL;
+                                        break;
+                                }
+                            }
+
+                            if (tmp == NULL) {
+                                pos = U8_strlen(data->status.info);
+                                cursor_add(&pos, data->status.info, TAG_LEN, data);
+                            }
+                            draw_render(data);
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
+
+void
+mode_game_filter_edit(WindowData* data, TagFilter* tag_filter) {
+    int loop = 1;
+    SDL_Event event;
+    GameList new_gl;
+    int pos = U8_strlen(tag_filter->tag.value);
+    cursor_add(&pos, tag_filter->tag.value, TAG_LEN, data);
+    draw_render(data);
+    while (loop) {
+        if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, tag_filter->tag.value, TAG_LEN);
+            switch (event.type) {
+                case SDL_KEYUP:
+                    switch (event.key.keysym.sym) {
+                        case SDLK_ESCAPE:
+                            cursor_remove(&pos, tag_filter->tag.value);
+                            if (strlen(tag_filter->tag.value) == 0) {
+                                game_list_filter_delete(&data->game_list, tag_filter->tag.key, tag_filter->op);
+                            }
+                            for (int i = 0; i < data->game_list.filter_list->ai.count; i++) {
+                                game_list_filter(&data->game_list, &new_gl);
+                                game_list_free(&data->game_list);
+                                data->game_list = new_gl;
+                                game_list_current_init(data);
+                            }
+                            draw_render(data);
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
+
+void
 mode_game_list(WindowData* data) {
     int loop = 1;
     FILE* f;
@@ -51,6 +160,7 @@ mode_game_list(WindowData* data) {
     int index = 0;
     char* comment;
     SDL_Event event;
+    TagFilterList* filter_list = NULL;
     snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.game_list_status);
     machine_stop(data, 0);
     machine_stop(data, 1);
@@ -105,7 +215,14 @@ mode_game_list(WindowData* data) {
                                 message_add(data, &event, "Error reading file");
                                 break;
                             }
+                            if (data->game_list.filter_list->ai.count > 0) {
+                                filter_list = tfl_clone(data->game_list.filter_list);
+                            }
+                            game_list_free(&data->game_list);
                             game_list_init(&data->game_list);
+                            if (filter_list != NULL) {
+                                data->game_list.filter_list = filter_list;
+                            }
                             game_list_read_pgn(&data->game_list, f);
                             fclose(f);
                             data->game_list_sorting = Descending;
@@ -160,6 +277,11 @@ mode_game_list(WindowData* data) {
                                 scroll_up(&data->game_list_scroll);
                                 draw_render(data);
                             }
+                            break;
+
+                        case SDLK_f:
+                            mode_game_filter(data);
+                            draw_render(data);
                             break;
 
                         case SDLK_RETURN:
@@ -285,8 +407,21 @@ game_list_draw(WindowData* data) {
     c = data->conf.colors[ColorStatusBackground];
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
     SDL_RenderFillRect(data->renderer, &game_current);
-    FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
+    FC_Rect rect;
+    rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
                  data->conf.colors[ColorStatusFont], "#%d", data->game_list.ai.count);
+    game_current.x += rect.w;
+    if (data->game_list.filter_list != NULL) {
+        for (i = 0; i < data->game_list.filter_list->ai.count; i++) {
+            rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
+                                data->conf.colors[ColorStatusFont], " [%s %c \"%s\"]", 
+                                data->game_list.filter_list->list[i].tag.key,
+                                tfo2char(data->game_list.filter_list->list[i].op),
+                                data->game_list.filter_list->list[i].tag.value
+                                );
+            game_current.x += rect.w;
+        }
+    }
     //we set scroll length without scroll_set_length, because game_list length
     //is predictable
     data->game_list_scroll.length = data->font_height * data->game_list.ai.count;
@@ -327,4 +462,28 @@ tag_list_title(TagList* tl, char* title) {
     snprintf(title, GAMETITLE_LEN, "%s-%s/%s[%s]/%s (%s)", tag_list_get(tl, "White")->value,
              tag_list_get(tl, "Black")->value, tag_list_get(tl, "Event")->value, tag_list_get(tl, "Round")->value,
              tag_list_get(tl, "Date")->value, tag_list_get(tl, "Result")->value);
+}
+
+char
+tfo2char(TagFilterOperator op) {
+    switch (op) {
+        case OperatorEquals:
+            return '=';
+        case OperatorContains:
+            return '~';
+        case OperatorNone:
+            return ' ';
+    }
+    return ' ';
+}
+
+TagFilterOperator
+char2tfo(char ch) {
+    switch (ch) {
+        case '=':
+            return OperatorEquals;
+        case '~':
+            return OperatorContains;
+    }
+    return OperatorNone;
 }

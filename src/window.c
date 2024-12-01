@@ -35,6 +35,7 @@ config_init() {
         .san_status = "[SAN]",
         .training_status = "[TRAINING]",
         .game_list_status = "[GAME LIST]",
+        .tag_filter_status = "[TAG FILTER]",
         .cursor = "│",
         .piece_path = PIECE_PATH,
         .font_path = FONT_PATH,

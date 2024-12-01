@@ -3,7 +3,7 @@
 
 #define STATUS_PADDING_LEFT                4
 #define NOTATION_PADDING_LEFT              4
-#define NOTATION_PADDING_TOP               5
+#define NOTATION_PADDING_TOP               4
 #define NOTATION_PADDING_MOVE              5
 #define NOTATION_PADDING_MOVE_TOP          10
 #define NOTATION_PADDING_TITLE             8

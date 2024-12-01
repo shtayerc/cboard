@@ -8,6 +8,8 @@
 
 void game_list_draw(WindowData* data);
 void mode_game_search(WindowData* data);
+void mode_game_filter(WindowData* data);
+void mode_game_filter_edit(WindowData* data, TagFilter* tag_filter);
 void mode_game_list(WindowData* data);
 void game_list_current_init(WindowData* data);
 void game_list_current_next(WindowData* data);
@@ -16,5 +18,7 @@ int game_list_current_relative(WindowData* data);
 void game_list_focus_current_game(WindowData* data);
 void game_list_game_load(WindowData* data, int index);
 void tag_list_title(TagList* tl, char * title);
+char tfo2char(TagFilterOperator op);
+TagFilterOperator char2tfo(char ch);
 
 #endif

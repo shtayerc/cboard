@@ -66,6 +66,7 @@ typedef struct {
     char* san_status;
     char* training_status;
     char* game_list_status;
+    char* tag_filter_status;
     char* cursor;
     char* piece_path;
     char* font_path;

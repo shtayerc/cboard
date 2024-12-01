@@ -195,6 +195,9 @@ Search current position.
 .B j, Arrow Down
 Move to next game.
 .TP
+.B f
+Enter TEXTINPUT tag filter mode.
+.TP
 .B k, Arrow Up
 Move to previous game.
 .TP
@@ -209,6 +212,22 @@ Scroll game list up.
 .TP
 .B PageDown, Ctrl+d
 Scroll game list down.
+.SS TAG_FILTER
+TEXTINPUT mode. First the tag name and operator is inputted. Tag nam
+Tag name and operator are split by single space.
+If it already exists, it will be edited - otherwise new tag filter is created.
+.TP
+.B Return
+Confirm tag name and operator. And enter TEXTINPUT mode for editing tag filters.
+Tag filter will be removed if its value is empty string.
+.TP
+.B OPERATORS
+.TP
+.B =
+Exact match.
+.TP
+.B ~
+Case insensitive substring.
 .SS TEXTINPUT
 Pressed keys are inserted as text.
 .TP
@@ -288,7 +307,7 @@ If it already exists, it will be edited - otherwise new tag is created.
 .TP
 .B Return
 Confirm tag name. And enter TEXTINPUT mode for editing tags.
-Tag will be removed it its value is empty string (except for required 7 tags).
+Tag will be removed if its value is empty string (except for required 7 tags).
 .SS TRAINING
 TEXTINPUT mode. Notation is hidden.
 After user plays move that exists in notation the opponents move will be
