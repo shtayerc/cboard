@@ -80,6 +80,8 @@ mode_game_filter(WindowData* data) {
                                 switch (op) {
                                     case OperatorEquals:
                                     case OperatorContains:
+                                    case OperatorGreater:
+                                    case OperatorLower:
                                         tag_filter = game_list_filter_get(&data->game_list, key, op);
                                         if (tag_filter == NULL) {
                                             game_list_filter_set(&data->game_list, key, op, "");
@@ -471,6 +473,10 @@ tfo2char(TagFilterOperator op) {
             return '=';
         case OperatorContains:
             return '~';
+        case OperatorGreater:
+            return '>';
+        case OperatorLower:
+            return '<';
         case OperatorNone:
             return ' ';
     }
@@ -484,6 +490,10 @@ char2tfo(char ch) {
             return OperatorEquals;
         case '~':
             return OperatorContains;
+        case '>':
+            return OperatorGreater;
+        case '<':
+            return OperatorLower;
     }
     return OperatorNone;
 }
