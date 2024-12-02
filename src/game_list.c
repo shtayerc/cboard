@@ -217,7 +217,7 @@ mode_game_list(WindowData* data) {
                                 message_add(data, &event, "Error reading file");
                                 break;
                             }
-                            if (data->game_list.filter_list->ai.count > 0) {
+                            if (data->game_list.filter_list != NULL && data->game_list.filter_list->ai.count > 0) {
                                 filter_list = tfl_clone(data->game_list.filter_list);
                             }
                             game_list_free(&data->game_list);
