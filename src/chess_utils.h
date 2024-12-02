@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.1
+chess_utils v0.9.2
 
 Copyright (c) 2024 David Murko
 
@@ -104,7 +104,7 @@ typedef enum { Invalid, Valid, Castling, EnPassant, Promotion } Status;
 
 typedef enum { Centipawn, Mate, NoType = -1 } UciScoreType;
 
-typedef enum { OperatorEquals, OperatorContains, OperatorNone} TagFilterOperator;
+typedef enum { OperatorEquals, OperatorContains, OperatorGreater, OperatorLower, OperatorNone} TagFilterOperator;
 //
 //STRUCTS
 //
@@ -1180,6 +1180,18 @@ tag_list_filter_is_valid(TagList* tl, TagFilterList* tfl) {
 
                 case OperatorContains:
                     if (!isubstr(tl->list[i].value, tfl->list[j].tag.value)) {
+                        return 0;
+                    }
+                    break;
+
+                case OperatorGreater:
+                    if (strcmp(tl->list[i].value, tfl->list[j].tag.value) <= 0) {
+                        return 0;
+                    }
+                    break;
+
+                case OperatorLower:
+                    if (strcmp(tl->list[i].value, tfl->list[j].tag.value) >= 0) {
                         return 0;
                     }
                     break;
