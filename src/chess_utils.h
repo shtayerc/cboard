@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.2
+chess_utils v0.9.3
 
 Copyright (c) 2024 David Murko
 
@@ -190,6 +190,7 @@ typedef struct {
     Piece prom_piece;
     char san[SAN_LEN];
     int count;
+    int count_finished;
     int white_win;
     int black_win;
     int draw;
@@ -3707,6 +3708,7 @@ gls_count_move(GameListStat* gls, Square src, Square dst, Piece prom_piece, char
         gls_add(gls, &stat_row);
         move_index = gls->ai.count - 1;
     }
+    printf("%s %d\n", san, move_index);
     glsr_aggregate(&gls->list[move_index], result);
 }
 
@@ -3931,9 +3933,10 @@ glsr_aggregate(GameListStatRow* row, char* result) {
     if (!strcmp(result, RESULT_DRAW)) {
         (row->draw)++;
     }
-    if (strcmp(result, RESULT_NONE)) {
-        (row->count)++;
+    if (!strcmp(result, RESULT_NONE)) {
+        (row->count_finished)++;
     }
+    (row->count)++;
 }
 
 #endif // CHESS_UTILS_IMPLEMENTATION
