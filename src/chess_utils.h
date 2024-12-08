@@ -3708,7 +3708,6 @@ gls_count_move(GameListStat* gls, Square src, Square dst, Piece prom_piece, char
         gls_add(gls, &stat_row);
         move_index = gls->ai.count - 1;
     }
-    printf("%s %d\n", san, move_index);
     glsr_aggregate(&gls->list[move_index], result);
 }
 
