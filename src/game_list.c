@@ -227,9 +227,9 @@ mode_game_list(WindowData* data) {
                             }
                             game_list_read_pgn(&data->game_list, f);
                             fclose(f);
-                            data->game_list_sorting = Descending;
+                            data->game_list_sorting = SortDescending;
                             if (is_keymod_shift(event)) {
-                                data->game_list_sorting = Ascending;
+                                data->game_list_sorting = SortAscending;
                             }
                             game_list_current_init(data);
                             draw_render(data);
@@ -309,16 +309,16 @@ mode_game_list(WindowData* data) {
 
 void
 game_list_current_init(WindowData* data) {
-    data->game_list_current = data->game_list_sorting == Ascending ? 0 : data->game_list.ai.count - 1;
+    data->game_list_current = data->game_list_sorting == SortAscending ? 0 : data->game_list.ai.count - 1;
 }
 
 void
 game_list_current_next(WindowData* data) {
-    if (data->game_list_sorting == Ascending) {
+    if (data->game_list_sorting == SortAscending) {
         if (data->game_list_current + 1 < data->game_list.ai.count) {
             data->game_list_current++;
         }
-    } else if (data->game_list_sorting == Descending) {
+    } else if (data->game_list_sorting == SortDescending) {
         if (data->game_list_current - 1 >= 0) {
             data->game_list_current--;
         }
@@ -327,11 +327,11 @@ game_list_current_next(WindowData* data) {
 
 void
 game_list_current_prev(WindowData* data) {
-    if (data->game_list_sorting == Ascending) {
+    if (data->game_list_sorting == SortAscending) {
         if (data->game_list_current - 1 >= 0) {
             data->game_list_current--;
         }
-    } else if (data->game_list_sorting == Descending) {
+    } else if (data->game_list_sorting == SortDescending) {
         if (data->game_list_current + 1 < data->game_list.ai.count) {
             data->game_list_current++;
         }
@@ -340,7 +340,7 @@ game_list_current_prev(WindowData* data) {
 
 int
 game_list_current_relative(WindowData* data) {
-    if (data->game_list_sorting == Descending) {
+    if (data->game_list_sorting == SortDescending) {
         return data->game_list.ai.count - data->game_list_current;
     }
     return data->game_list_current;
@@ -348,7 +348,7 @@ game_list_current_relative(WindowData* data) {
 
 int
 game_list_loop(WindowData* data, int* i, int* i_count) {
-    if (data->game_list_sorting == Ascending) {
+    if (data->game_list_sorting == SortAscending) {
         if (*i == -1) {
             *i = 0;
             *i_count = data->game_list.ai.count;
@@ -356,7 +356,7 @@ game_list_loop(WindowData* data, int* i, int* i_count) {
             *i += 1;
         }
         return *i < *i_count;
-    } else if (data->game_list_sorting == Descending) {
+    } else if (data->game_list_sorting == SortDescending) {
         if (*i == -1) {
             *i = data->game_list.ai.count - 1;
             *i_count = 0;

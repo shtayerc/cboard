@@ -90,7 +90,7 @@ window_data_init(WindowData* data) {
     data->notation_hidden = 0;
     data->notation_mode = ModeMoves;
     scroll_init(&data->game_list_scroll);
-    data->game_list_sorting = Ascending;
+    data->game_list_sorting = SortAscending;
     game_list_current_init(data);
     data->machine_hidden = 0;
     undo_init(data->undo_list);

@@ -140,7 +140,7 @@ main(int argc, char* argv[]) {
         if (file != NULL) {
             game_list_init(&data.game_list);
             game_list_read_pgn(&data.game_list, file);
-            data.game_list_sorting = Descending;
+            data.game_list_sorting = SortDescending;
             game_list_current_init(&data);
             if (data.game_list.ai.count == 1) {
                 snprintf(data.number, data.conf.number_len, "%s", "0");

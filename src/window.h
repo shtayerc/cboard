@@ -96,8 +96,6 @@ typedef enum {
     ModeCustomText,
 } NotationMode;
 
-typedef enum { Ascending, Descending } Sorting;
-
 typedef struct WindowData WindowData;
 typedef struct Machine Machine;
 
@@ -127,7 +125,7 @@ struct WindowData {
     GameList game_list;
     GameListStat game_list_stat;
     int game_list_current;
-    Sorting game_list_sorting;
+    SortDirection game_list_sorting;
     Game* undo_list[UNDO_COUNT];
     int undo_current;
     Game* redo_list[UNDO_COUNT];
