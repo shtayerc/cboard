@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.3
+chess_utils v0.9.4
 
 Copyright (c) 2024 David Murko
 
@@ -105,6 +105,9 @@ typedef enum { Invalid, Valid, Castling, EnPassant, Promotion } Status;
 typedef enum { Centipawn, Mate, NoType = -1 } UciScoreType;
 
 typedef enum { OperatorEquals, OperatorContains, OperatorGreater, OperatorLower, OperatorNone} TagFilterOperator;
+
+typedef enum { SortAscending, SortDescending } SortDirection;
+
 //
 //STRUCTS
 //
@@ -645,6 +648,9 @@ void game_row_free(GameRow* gr);
 //copies GameRow properties and deep copy TagList
 void game_row_copy(GameRow* gr_src, GameRow* gr_dst);
 
+int game_row_cmp_file_asc(const void* gr1, const void* gr2);
+int game_row_cmp_file_desc(const void* gr1, const void* gr2);
+
 //initialize empty GameList
 void game_list_init(GameList* gl);
 
@@ -653,6 +659,8 @@ void game_list_free(GameList* gl);
 
 //append GameRow to GameList
 void game_list_add(GameList* gl, GameRow* gr);
+
+void game_list_sort(GameList* gl, const char* key, SortDirection sort);
 
 void game_list_filter(GameList* gl, GameList *new_gl);
 
@@ -683,7 +691,6 @@ void game_list_read_pgn(GameList* gl, FILE* f);
 void game_list_search_str(GameList* gl, GameList* new_gl, const char* str);
 
 //fill GameList new_gl with GameRows containing given Board
-//gl should be sorted by index ascending
 void game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b);
 
 void gls_init(GameListStat* gls);
@@ -3305,6 +3312,16 @@ game_row_copy(GameRow* gr_src, GameRow* gr_dst) {
     gr_dst->tag_list = tag_list_clone(gr_src->tag_list);
 }
 
+int
+game_row_cmp_file_asc(const void* gr1, const void* gr2) {
+    return (((GameRow*)gr1)->index - ((GameRow*)gr2)->index);
+}
+
+int
+game_row_cmp_file_desc(const void* gr1, const void* gr2) {
+    return (((GameRow*)gr2)->index - ((GameRow*)gr1)->index);
+}
+
 void
 game_list_init(GameList* gl) {
     gl->list = NULL;
@@ -3331,6 +3348,17 @@ game_list_add(GameList* gl, GameRow* gr) {
     gl->ai.count++;
     gl->list = (GameRow*)ai_realloc(&gl->ai, gl->list, sizeof(GameRow) * gl->ai.count);
     gl->list[gl->ai.count - 1] = *gr;
+}
+
+void
+game_list_sort(GameList* gl, const char* key, SortDirection sort) {
+    if (!strcmp(key, "File")) {
+        if (sort == SortAscending) {
+            qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_file_asc);
+        } else if (sort == SortDescending) {
+            qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_file_desc);
+        }
+    }
 }
 
 void
@@ -3460,6 +3488,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
     board_fen_import(&b_start, FEN_DEFAULT);
     game_list_init(new_gl);
 
+    qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_file_asc);
     for (i = 0; i < gl->ai.count; i++) {
         while (game_index < gl->list[i].index) {
             pgn_read_next(f, 1);
