@@ -231,6 +231,7 @@ mode_game_list(WindowData* data) {
                             if (is_keymod_shift(event)) {
                                 data->game_list_sorting = SortAscending;
                             }
+                            game_list_sort(&data->game_list, "File", data->game_list_sorting);
                             game_list_current_init(data);
                             draw_render(data);
                             break;
@@ -309,63 +310,37 @@ mode_game_list(WindowData* data) {
 
 void
 game_list_current_init(WindowData* data) {
-    data->game_list_current = data->game_list_sorting == SortAscending ? 0 : data->game_list.ai.count - 1;
+    data->game_list_current = 0;
 }
 
 void
 game_list_current_next(WindowData* data) {
-    if (data->game_list_sorting == SortAscending) {
-        if (data->game_list_current + 1 < data->game_list.ai.count) {
-            data->game_list_current++;
-        }
-    } else if (data->game_list_sorting == SortDescending) {
-        if (data->game_list_current - 1 >= 0) {
-            data->game_list_current--;
-        }
+    if (data->game_list_current + 1 < data->game_list.ai.count) {
+        data->game_list_current++;
     }
 }
 
 void
 game_list_current_prev(WindowData* data) {
-    if (data->game_list_sorting == SortAscending) {
-        if (data->game_list_current - 1 >= 0) {
-            data->game_list_current--;
-        }
-    } else if (data->game_list_sorting == SortDescending) {
-        if (data->game_list_current + 1 < data->game_list.ai.count) {
-            data->game_list_current++;
-        }
+    if (data->game_list_current - 1 >= 0) {
+        data->game_list_current--;
     }
 }
 
 int
 game_list_current_relative(WindowData* data) {
-    if (data->game_list_sorting == SortDescending) {
-        return data->game_list.ai.count - data->game_list_current;
-    }
     return data->game_list_current;
 }
 
 int
 game_list_loop(WindowData* data, int* i, int* i_count) {
-    if (data->game_list_sorting == SortAscending) {
-        if (*i == -1) {
-            *i = 0;
-            *i_count = data->game_list.ai.count;
-        } else {
-            *i += 1;
-        }
-        return *i < *i_count;
-    } else if (data->game_list_sorting == SortDescending) {
-        if (*i == -1) {
-            *i = data->game_list.ai.count - 1;
-            *i_count = 0;
-        } else {
-            *i -= 1;
-        }
-        return *i >= *i_count;
+    if (*i == -1) {
+        *i = 0;
+        *i_count = data->game_list.ai.count;
+    } else {
+        *i += 1;
     }
-    return 0;
+    return *i < *i_count;
 }
 
 void
