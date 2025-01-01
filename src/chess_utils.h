@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.5
+chess_utils v0.9.6
 
 Copyright (c) 2024 David Murko
 
@@ -226,6 +226,7 @@ extern const char* CASTLE_STR_LONG;
 extern const char* piece_map[];
 extern const OffsetIndex offset_map[];
 extern const int piece_offset[][9];
+extern char cmp_tag[TAG_LEN];
 
 //
 //ARRAYINFO UTILS
@@ -651,6 +652,10 @@ void game_row_copy(GameRow* gr_src, GameRow* gr_dst);
 int game_row_cmp_file_asc(const void* gr1, const void* gr2);
 int game_row_cmp_file_desc(const void* gr1, const void* gr2);
 
+//requires global variable cmp_tag to specify which tag to compare
+int game_row_cmp_tag_asc(const void* gr1, const void* gr2);
+int game_row_cmp_tag_desc(const void* gr1, const void* gr2);
+
 //initialize empty GameList
 void game_list_init(GameList* gl);
 
@@ -724,6 +729,7 @@ const char* RESULT_WHITE_WIN = "1-0";
 const char* RESULT_BLACK_WIN = "0-1";
 const char* RESULT_DRAW = "1/2-1/2";
 const char* piece_map[] = {"", "", "N", "B", "R", "Q", "K", "", "N", "B", "R", "Q", "K"};
+char cmp_tag[TAG_LEN] = {'\0'};
 
 const OffsetIndex offset_map[] = {OffsetNone,  OffsetBlackPawn, OffsetKnight,    OffsetBishop, OffsetRook,
                                   OffsetQueen, OffsetKing,      OffsetWhitePawn, OffsetKnight, OffsetBishop,
@@ -3322,6 +3328,20 @@ game_row_cmp_file_desc(const void* gr1, const void* gr2) {
     return (((GameRow*)gr2)->index - ((GameRow*)gr1)->index);
 }
 
+int
+game_row_cmp_tag_asc(const void* gr1, const void* gr2) {
+    Tag* tag1 = tag_list_get(((GameRow*)gr1)->tag_list, cmp_tag);
+    Tag* tag2 = tag_list_get(((GameRow*)gr2)->tag_list, cmp_tag);
+    return strcmp(tag1 != NULL ? tag1->value : "", tag2 != NULL ? tag2->value : "");
+}
+
+int
+game_row_cmp_tag_desc(const void* gr1, const void* gr2) {
+    Tag* tag1 = tag_list_get(((GameRow*)gr1)->tag_list, cmp_tag);
+    Tag* tag2 = tag_list_get(((GameRow*)gr2)->tag_list, cmp_tag);
+    return strcmp(tag2 != NULL ? tag2->value : "", tag1 != NULL ? tag1->value : "");
+}
+
 void
 game_list_init(GameList* gl) {
     gl->list = NULL;
@@ -3357,6 +3377,13 @@ game_list_sort(GameList* gl, const char* key, SortDirection sort) {
             qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_file_asc);
         } else if (sort == SortDescending) {
             qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_file_desc);
+        }
+    } else {
+        snprintf(cmp_tag, TAG_LEN, "%s", key);
+        if (sort == SortAscending) {
+            qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_tag_asc);
+        } else if (sort == SortDescending) {
+            qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_tag_desc);
         }
     }
 }
