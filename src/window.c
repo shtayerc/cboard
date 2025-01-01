@@ -90,7 +90,10 @@ window_data_init(WindowData* data) {
     data->notation_hidden = 0;
     data->notation_mode = ModeMoves;
     scroll_init(&data->game_list_scroll);
-    data->game_list_sorting = SortAscending;
+    data->game_list_sort_tag = calloc(sizeof(char), TAG_LEN);
+    snprintf(data->game_list_sort_tag, TAG_LEN, "File");
+    data->game_list_sort_direction = calloc(sizeof(char), TAG_LEN);
+    snprintf(data->game_list_sort_direction, TAG_LEN, "Desc");
     game_list_current_init(data);
     data->machine_hidden = 0;
     undo_init(data->undo_list);
@@ -141,6 +144,8 @@ window_data_free(WindowData* data) {
     free(data->filename);
     free(data->number);
     free(data->custom_text);
+    free(data->game_list_sort_tag);
+    free(data->game_list_sort_direction);
     machine_config_free(data);
     undo_free(data->undo_list);
     undo_free(data->redo_list);

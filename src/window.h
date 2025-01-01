@@ -125,7 +125,8 @@ struct WindowData {
     GameList game_list;
     GameListStat game_list_stat;
     int game_list_current;
-    SortDirection game_list_sorting;
+    char* game_list_sort_tag;
+    char* game_list_sort_direction;
     Game* undo_list[UNDO_COUNT];
     int undo_current;
     Game* redo_list[UNDO_COUNT];

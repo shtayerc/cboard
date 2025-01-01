@@ -75,7 +75,7 @@ mode_game_filter(WindowData* data) {
                             cursor_remove(&pos, data->status.info);
                             snprintf(key, TAG_LEN, "%s", strtok_r(data->status.info, " ", &saveptr));
                             tmp = strtok_r(NULL, " ", &saveptr);
-                            if (tmp != NULL) {
+                            if (tmp != NULL && strcmp(tmp, "sort")) {
                                 op = char2tfo(tmp[0]);
                                 switch (op) {
                                     case OperatorEquals:
@@ -103,12 +103,49 @@ mode_game_filter(WindowData* data) {
                                         tmp = NULL;
                                         break;
                                 }
+                            } else if (tmp != NULL && tmp != NULL && !strcmp(tmp, "sort")) {
+                                snprintf(data->game_list_sort_tag, TAG_LEN, "%s", key);
+                                mode_game_sort_edit(data);
+                                data->status.info[0] = '\0';
+                                loop = 0;
                             }
 
                             if (tmp == NULL) {
                                 pos = U8_strlen(data->status.info);
                                 cursor_add(&pos, data->status.info, TAG_LEN, data);
                             }
+                            draw_render(data);
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
+
+void
+mode_game_sort_edit(WindowData* data) {
+    int loop = 1;
+    SDL_Event event;
+    char old[TAG_LEN];
+    snprintf(old, TAG_LEN, "%s", data->game_list_sort_direction);
+    int pos = U8_strlen(data->game_list_sort_direction);
+    cursor_add(&pos, data->game_list_sort_direction, TAG_LEN, data);
+    draw_render(data);
+    while (loop) {
+        if (SDL_WaitEvent(&event)) {
+            handle_global_events(&event, data, &loop, 1);
+            handle_input_events(&event, data, &loop, &pos, data->game_list_sort_direction, TAG_LEN);
+            switch (event.type) {
+                case SDL_KEYUP:
+                    switch (event.key.keysym.sym) {
+                        case SDLK_ESCAPE:
+                            cursor_remove(&pos, data->game_list_sort_direction);
+                            if (str2sorting(data->game_list_sort_direction) == SortNone) {
+                                snprintf(data->game_list_sort_direction, TAG_LEN, "%s", old);
+                            }
+                            game_list_sort(&data->game_list, data->game_list_sort_tag,
+                                           str2sorting(data->game_list_sort_direction));
                             draw_render(data);
                             break;
                     }
@@ -227,11 +264,7 @@ mode_game_list(WindowData* data) {
                             }
                             game_list_read_pgn(&data->game_list, f);
                             fclose(f);
-                            data->game_list_sorting = SortDescending;
-                            if (is_keymod_shift(event)) {
-                                data->game_list_sorting = SortAscending;
-                            }
-                            game_list_sort(&data->game_list, "File", data->game_list_sorting);
+                            game_list_sort(&data->game_list, data->game_list_sort_tag, str2sorting(data->game_list_sort_direction));
                             game_list_current_init(data);
                             draw_render(data);
                             break;
@@ -388,6 +421,12 @@ game_list_draw(WindowData* data) {
     rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
                  data->conf.colors[ColorStatusFont], "#%d", data->game_list.ai.count);
     game_current.x += rect.w;
+
+    rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
+                        data->conf.colors[ColorStatusFont], " [%s sort \"%s\"]",
+                        data->game_list_sort_tag,
+                        data->game_list_sort_direction);
+    game_current.x += rect.w;
     if (data->game_list.filter_list != NULL) {
         for (i = 0; i < data->game_list.filter_list->ai.count; i++) {
             rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
@@ -471,4 +510,28 @@ char2tfo(char ch) {
             return OperatorLower;
     }
     return OperatorNone;
+}
+
+char*
+sorting2str(SortDirection sort) {
+    switch (sort) {
+        case SortDescending:
+            return "Desc";
+        case SortAscending:
+            return "Asc";
+        default:
+            break;
+    }
+    return "";
+}
+
+SortDirection
+str2sorting(char* sort) {
+    if (!strcmp(sort, "Asc")) {
+        return SortAscending;
+    }
+    if (!strcmp(sort, "Desc")) {
+        return SortDescending;
+    }
+    return SortNone;
 }
