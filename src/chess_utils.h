@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.4
+chess_utils v0.9.5
 
 Copyright (c) 2024 David Murko
 
@@ -106,7 +106,7 @@ typedef enum { Centipawn, Mate, NoType = -1 } UciScoreType;
 
 typedef enum { OperatorEquals, OperatorContains, OperatorGreater, OperatorLower, OperatorNone} TagFilterOperator;
 
-typedef enum { SortAscending, SortDescending } SortDirection;
+typedef enum { SortAscending, SortDescending, SortNone } SortDirection;
 
 //
 //STRUCTS
