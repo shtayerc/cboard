@@ -203,6 +203,8 @@ mode_game_list(WindowData* data) {
     snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.game_list_status);
     machine_stop(data, 0);
     machine_stop(data, 1);
+    game_list_sort(&data->game_list, data->game_list_sort_tag,
+                   str2sorting(data->game_list_sort_direction));
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
