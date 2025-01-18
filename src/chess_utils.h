@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.6
+chess_utils v0.9.8
 
 Copyright (c) 2024 David Murko
 
@@ -185,6 +185,8 @@ typedef struct {
     GameRow* list;
     ArrayInfo ai;
     TagFilterList* filter_list;
+    SortDirection sort;
+    char sort_key[TAG_LEN];
 } GameList;
 
 typedef struct {
@@ -3346,6 +3348,8 @@ void
 game_list_init(GameList* gl) {
     gl->list = NULL;
     gl->filter_list = NULL;
+    gl->sort = SortNone;
+    gl->sort_key[0] = '\0';
     ai_init(&gl->ai, sizeof(GameRow) * 256);
 }
 
@@ -3372,6 +3376,9 @@ game_list_add(GameList* gl, GameRow* gr) {
 
 void
 game_list_sort(GameList* gl, const char* key, SortDirection sort) {
+    if (gl->sort == sort && !strcmp(gl->sort_key, key)) {
+        return;
+    }
     if (!strcmp(key, "File")) {
         if (sort == SortAscending) {
             qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_file_asc);
@@ -3386,6 +3393,8 @@ game_list_sort(GameList* gl, const char* key, SortDirection sort) {
             qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_tag_desc);
         }
     }
+    gl->sort = sort;
+    snprintf(gl->sort_key, TAG_LEN, "%s", key);
 }
 
 void
@@ -3515,7 +3524,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
     board_fen_import(&b_start, FEN_DEFAULT);
     game_list_init(new_gl);
 
-    qsort(gl->list, gl->ai.count, sizeof(GameRow), game_row_cmp_file_asc);
+    game_list_sort(gl, "File", SortAscending);
     for (i = 0; i < gl->ai.count; i++) {
         while (game_index < gl->list[i].index) {
             pgn_read_next(f, 1);
@@ -3794,6 +3803,7 @@ gls_read_pgn(GameListStat* gls, GameList* gl, FILE* f, Board* b) {
     Square bp_start[] = {a7, b7, c7, d7, e7, f7, g7, h7};
     int game_index = 0;
 
+    game_list_sort(gl, "File", SortAscending);
     board_fen_import(&b_start, FEN_DEFAULT);
 
     for (i = 0; i < gl->ai.count; i++) {
@@ -3972,6 +3982,7 @@ glsr_init(GameListStatRow* row) {
     row->prom_piece = Empty;
     row->san[0] = '\0';
     row->count = 0;
+    row->count_finished = 0;
     row->white_win = 0;
     row->black_win = 0;
     row->draw = 0;
@@ -3988,7 +3999,7 @@ glsr_aggregate(GameListStatRow* row, char* result) {
     if (!strcmp(result, RESULT_DRAW)) {
         (row->draw)++;
     }
-    if (!strcmp(result, RESULT_NONE)) {
+    if (strcmp(result, RESULT_NONE)) {
         (row->count_finished)++;
     }
     (row->count)++;
