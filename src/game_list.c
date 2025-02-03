@@ -277,6 +277,7 @@ mode_game_list(WindowData* data) {
                             fclose(f);
                             game_list_free(&data->game_list);
                             data->game_list = new_gl;
+                            game_list_sort(&data->game_list, data->game_list_sort_tag, str2sorting(data->game_list_sort_direction));
                             game_list_current_init(data);
                             draw_render(data);
                             break;
