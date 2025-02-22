@@ -119,7 +119,8 @@ variation_draw(WindowData* data, Variation* v, int* x, int* y, int x_start, int 
 
 int
 notation_click(WindowData* data) {
-    return data->mouse.x > data->layout.notation.x && data->mouse.x < data->layout.notation.w + data->layout.notation.x
+    return data->notation_mode == ModeMoves && data->mouse.x > data->layout.notation.x
+           && data->mouse.x < data->layout.notation.w + data->layout.notation.x
            && data->mouse.y > data->layout.notation.y
            && data->mouse.y < data->layout.notation.h + data->layout.notation.y;
 }
