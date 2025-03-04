@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.8
+chess_utils v0.9.9
 
 Copyright (c) 2024 David Murko
 
@@ -3460,8 +3460,9 @@ game_list_read_pgn(GameList* gl, FILE* f) {
         if (tag_extract(buffer, &tag)) {
             if (gr.tag_list == NULL) {
                 game_row_init(&gr);
+                tag_list_default(gr.tag_list);
             }
-            tag_list_add(gr.tag_list, &tag);
+            tag_list_set(gr.tag_list, tag.key, tag.value);
         } else {
             gr.index = index++;
             if (gl->filter_list != NULL && !tag_list_filter_is_valid(gr.tag_list, gl->filter_list)) {
