@@ -2,6 +2,7 @@
 #define _CONFIG_H_
 
 #define STATUS_PADDING_LEFT                4
+#define FONT_STEP                          4
 #define NOTATION_PADDING_LEFT              4
 #define NOTATION_PADDING_TOP               4
 #define NOTATION_PADDING_MOVE              5

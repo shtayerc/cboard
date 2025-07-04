@@ -16,6 +16,7 @@ void game_list_current_init(WindowData* data);
 void game_list_current_next(WindowData* data);
 void game_list_current_prev(WindowData* data);
 int game_list_current_relative(WindowData* data);
+int game_list_get_max_y(WindowData* data);
 void game_list_focus_current_game(WindowData* data);
 void game_list_game_load(WindowData* data, int index);
 void tag_list_title(TagList* tl, char * title);

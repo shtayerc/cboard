@@ -73,7 +73,6 @@ typedef struct {
     char* config_path;
     char* rotate_str;
     char* default_filename;
-    int font_size;
     int message_duration;
     char** machine_cmd_list[MACHINE_COUNT];
     char** machine_uci_list[MACHINE_COUNT];
@@ -132,6 +131,7 @@ struct WindowData {
     Game* redo_list[UNDO_COUNT];
     int redo_current;
     Rotation rotation;
+    int font_size;
     int message;
     unsigned int message_timestamp;
     Piece piece;
@@ -149,6 +149,9 @@ void window_data_free(WindowData* data);
 void window_resize(WindowData* data, int width, int height);
 void window_set_title(WindowData* data);
 void window_update_title(WindowData* data);
+void font_init(WindowData* data);
+void font_free(WindowData* data);
+void font_resize(WindowData* data, int step);
 void draw(WindowData* data);
 void draw_render(WindowData* data);
 

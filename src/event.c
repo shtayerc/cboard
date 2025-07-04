@@ -139,6 +139,18 @@ handle_non_input_events(SDL_Event* event, WindowData* data, int* loop) {
                     window_resize(data, data->window_width, data->window_height);
                     draw_render(data);
                     break;
+
+                case '+':
+                    font_resize(data, FONT_STEP);
+                    window_resize(data, data->window_width, data->window_height);
+                    draw_render(data);
+                    break;
+
+                case '-':
+                    font_resize(data, -FONT_STEP);
+                    window_resize(data, data->window_width, data->window_height);
+                    draw_render(data);
+                    break;
             }
             break;
     }

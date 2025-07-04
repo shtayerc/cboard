@@ -122,6 +122,10 @@ Main mode, other modes are entered from here.
   Increase size of chessboard.
 * **Z**  
   Decrease size of chessboard.
+* **+**  
+  Increase font size.
+* **-**  
+  Decrease font size.
 * **p**  
   Promote current variation.
 * **P**  
@@ -160,6 +164,14 @@ Main mode, other modes are entered from here.
   Move to previous game.
 * **/**  
   Enter TEXINPUT search mode.
+* **z**  
+  Increase size of chessboard.
+* **Z**  
+  Decrease size of chessboard.
+* **+**  
+  Increase font size.
+* **-**  
+  Decrease font size.
 * **c**  
   Insert game title in comment after current move.
 * **PageUp**, **Ctrl-u**  

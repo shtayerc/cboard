@@ -209,7 +209,7 @@ mode_game_list(WindowData* data) {
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            if (event.type == SDL_KEYUP && event.key.keysym.sym != SDLK_r) {
+            if ((event.type == SDL_KEYUP || event.type == SDL_TEXTINPUT) && event.key.keysym.sym != SDLK_r) {
                 handle_non_input_events(&event, data, &loop);
             }
             switch (event.type) {
@@ -413,7 +413,7 @@ game_list_draw(WindowData* data) {
                          data->conf.colors[color ? ColorCommentFont : ColorNotationFont], title);
         }
         game_current.y += data->font_height;
-        if (game_current.y > data->layout.notation.y + data->layout.notation.h - data->font_height) {
+        if (game_current.y + data->font_height > game_list_get_max_y(data)) {
             break;
         }
     }
@@ -452,13 +452,17 @@ game_list_focus_current_game(WindowData* data) {
     int y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
     y += data->font_height * game_list_current_relative(data);
     int top = data->layout.notation.y + NOTATION_PADDING_TOP;
-    int bot = data->layout.notation.y + data->layout.notation.h;
+    int bot = game_list_get_max_y(data);
     if (y + data->font_height > bot) {
-        data->game_list_scroll.value -= y - bot;
         data->game_list_scroll.value -= data->font_height;
     } else if (y < top) {
         data->game_list_scroll.value -= y - NOTATION_PADDING_TOP;
     }
+}
+
+int
+game_list_get_max_y(WindowData* data) {
+    return data->layout.notation.y + data->layout.notation.h - data->font_height + 1;
 }
 
 void

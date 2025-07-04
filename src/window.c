@@ -42,7 +42,6 @@ config_init() {
         .config_path = "~/.config/cboard/config",
         .rotate_str = "black",
         .default_filename = "new_games.pgn",
-        .font_size = 16,
         .message_duration = 2000, //miliseconds
         .machine_cmd_list = {NULL, NULL},
         .machine_uci_list = {NULL, NULL},
@@ -105,6 +104,7 @@ window_data_init(WindowData* data) {
     data->message_timestamp = 0;
     data->piece = Empty;
     data->hidden = none;
+    data->font_size = 16;
     game_list_init(&data->game_list);
     gls_init(&data->game_list_stat);
     explorer_init(&data->explorer);
@@ -127,13 +127,32 @@ window_open(WindowData* data) {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width, data->conf.minimal_height);
     data->renderer = SDL_CreateRenderer(data->window, -1, SDL_RENDERER_ACCELERATED);
+    data->font = NULL;
+    font_init(data);
+}
+
+void
+font_init(WindowData* data) {
     data->font = FC_CreateFont();
     if (!file_exists(data->conf.font_path)) {
         data->conf.font_path = FALLBACK_PATH "/DejaVuSansCondensed.ttf";
     }
-    FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->conf.font_size,
+    FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->font_size,
                 data->conf.colors[ColorStatusFont], TTF_STYLE_NORMAL);
     data->font_height = FC_GetLineHeight(data->font);
+}
+
+void
+font_free(WindowData* data) {
+    if (data->font != NULL) {
+        FC_FreeFont(data->font);
+    }
+}
+
+void font_resize(WindowData* data, int step) {
+    data->font_size += step;
+    font_free(data);
+    font_init(data);
 }
 
 void
@@ -152,7 +171,7 @@ window_data_free(WindowData* data) {
     game_free(&data->game);
     game_list_free(&data->game_list);
     explorer_free(&data->explorer);
-    FC_FreeFont(data->font);
+    font_free(data);
     for (i = 0; i < MACHINE_COUNT; i++) {
         free(data->machine_list[i]);
     }
@@ -168,7 +187,7 @@ window_resize(WindowData* data, int width, int height) {
     data->window_height = height;
 
     data->layout.status.x = 0;
-    data->layout.status.h = 20;
+    data->layout.status.h = data->font_size + data->font_size / 4;
     data->layout.status.w = width;
     data->layout.status.y = height - data->layout.status.h;
 
