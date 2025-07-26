@@ -149,6 +149,7 @@ void window_data_free(WindowData* data);
 void window_resize(WindowData* data, int width, int height);
 void window_set_title(WindowData* data);
 void window_update_title(WindowData* data);
+void window_calculate_content_size(WindowData* data);
 void font_init(WindowData* data);
 void font_free(WindowData* data);
 void font_resize(WindowData* data, int step);
