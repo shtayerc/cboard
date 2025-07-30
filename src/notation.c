@@ -328,6 +328,9 @@ mode_tag_edit(WindowData* data, Tag* tag) {
                                 && strcmp(tag->key, "Black") && strcmp(tag->key, "Result")) {
                                 tag_list_delete(data->game.tag_list, tag->key);
                             }
+                            if (U8_strlen(tag->value) == 0 && !strcmp(tag->key, "Date")) {
+                                tag_list_init_date(data->game.tag_list);
+                            }
                             data->status.info[0] = '\0';
                             draw_render(data);
                             break;
@@ -420,18 +423,22 @@ mode_clipboard(WindowData* data) {
 void
 game_init_default(Game* g, Board* b) {
     char fen[FEN_LEN];
-    char date[20];
-    time_t rawtime;
-    struct tm* timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(date, 20, "%Y.%m.%d", timeinfo);
     board_fen_export(b, fen);
     game_init(g, b);
     if (strcmp(fen, FEN_DEFAULT)) {
         tag_list_set(g->tag_list, "FEN", fen);
     }
-    tag_list_set(g->tag_list, "Date", date);
+    tag_list_init_date(g->tag_list);
+}
+
+void tag_list_init_date(TagList* tl) {
+    time_t rawtime;
+    struct tm* timeinfo;
+    char date[20];
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(date, 20, "%Y.%m.%d", timeinfo);
+    tag_list_set(tl, "Date", date);
 }
 
 void

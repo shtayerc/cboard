@@ -38,6 +38,7 @@ void mode_tag_edit(WindowData* data, Tag* tag);
 void mode_tag(WindowData* data);
 void mode_clipboard(WindowData* data);
 void game_init_default(Game* g, Board* b);
+void tag_list_init_date(TagList* tl);
 void undo_init(Game* list[]);
 void undo_add(WindowData* data);
 void undo_do(WindowData* data);
