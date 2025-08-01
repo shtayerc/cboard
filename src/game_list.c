@@ -391,11 +391,6 @@ game_list_draw(WindowData* data) {
     game_current.y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
     game_current.w = data->layout.notation.w;
     game_current.h = data->font_height;
-    if (data->game_list.ai.count == 0) {
-        FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
-                     data->conf.colors[ColorNotationFont], "No games");
-        return;
-    }
     i = -1; //let game_list_loop know that we want pre loop init
 
     while (game_list_loop(data, &i, &i_count)) {
