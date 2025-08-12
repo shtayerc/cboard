@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.9
+chess_utils v0.9.10
 
 Copyright (c) 2024 David Murko
 
@@ -504,6 +504,9 @@ int variation_board_find(Variation* v, Board* b, Variation** found);
 
 //reset move_current counter of all recursive variations to 1
 void variation_move_current_reset(Variation* v);
+//returns possible VariationSequences from current move or -1 if current move
+//has more than 1 option
+int variation_vs_count(Variation* v);
 
 //
 // VARIATION SEQUENCE FUNCTIONS
@@ -2472,6 +2475,29 @@ variation_move_current_reset(Variation* v) {
             variation_move_current_reset(v->move_list[i].variation_list[j]);
         }
     }
+}
+
+int
+variation_vs_count(Variation* v)
+{
+    int count = 0;
+    if (variation_move_get(v)->variation_count > 0) {
+        return -1;
+    }
+    VariationSequence vs_main, vs_prev;
+    Color color = variation_move_get(v)->board.turn;
+    vs_init(&vs_main);
+    vs_generate_first(&vs_main, v, color);
+    count++;
+    while(vs_can_generate_next(&vs_main)) {
+        vs_prev = vs_main;
+        vs_init(&vs_main);
+        vs_generate_next(&vs_main, v, &vs_prev, color);
+        vs_free(&vs_prev);
+        count++;
+    }
+    vs_free(&vs_main);
+    return count;
 }
 
 void
