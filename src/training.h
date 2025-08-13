@@ -10,8 +10,15 @@
 #include "textedit.h"
 #include "window.h"
 
-void training_repeat(WindowData* data, Variation* v, int move_number, int* vs_index);
-void training_next(WindowData* data, Variation* v, int move_number, int* vs_index, Color color, int* gl_index);
+typedef struct {
+    int vs_index;
+    int vs_current;
+    int vs_count;
+    int gl_index;
+} TrainingStat;
+
+void training_repeat(WindowData* data, Variation* v, int move_number, TrainingStat* ts);
+void training_next(WindowData* data, Variation* v, int move_number, TrainingStat* ts, Color color);
 void mode_training(WindowData* data);
 
 #endif

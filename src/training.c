@@ -1,30 +1,30 @@
 #include "training.h"
 
 void
-training_repeat(WindowData* data, Variation* v, int move_number, int* vs_index) {
+training_repeat(WindowData* data, Variation* v, int move_number, TrainingStat* ts) {
     data->game.line_current = v;
     variation_move_current_reset(v);
     game_move_index_set(&data->game, move_number);
-    *vs_index = 0;
+    ts->vs_index = 0;
 }
 
 void
-training_next(WindowData* data, Variation* v, int move_number, int* vs_index, Color color, int* gl_index) {
+training_next(WindowData* data, Variation* v, int move_number, TrainingStat* ts, Color color) {
     VariationSequence vs_tmp;
     data->game.line_current = v;
     game_move_index_set(&data->game, move_number);
     if (vs_can_generate_next(&data->vs)) {
-        *vs_index = 0;
+        ts->vs_index = 0;
         vs_tmp = data->vs;
         vs_init(&data->vs);
         vs_generate_next(&data->vs, v, &vs_tmp, color);
         vs_free(&vs_tmp);
-    } else if (data->from_game_list && (*gl_index) + 1 < data->game_list.ai.count) {
-        *vs_index = 0;
+    } else if (data->from_game_list && (ts->gl_index + 1) < data->game_list.ai.count) {
+        ts->vs_index = 0;
         vs_free(&data->vs);
         vs_init(&data->vs);
-        (*gl_index)++;
-        game_list_game_load(data, *gl_index);
+        (ts->gl_index)++;
+        game_list_game_load(data, ts->gl_index);
         v = data->game.line_current;
         vs_generate_first(&data->vs, v, color);
         move_number = data->game.line_current->move_current;
@@ -50,8 +50,7 @@ mode_training(WindowData* data) {
     int loop = 1;
     int pos = 0;
     int old_pos;
-    int vs_index = 0;
-    int gl_index = 0;
+    TrainingStat ts = {0};
     int not_move = 0;
     data->message = 0;
     data->status.info[0] = '\0';
@@ -76,8 +75,8 @@ mode_training(WindowData* data) {
                         if (data->piece != Empty) {
                             dst = chessboard_mouse_square(data);
                             if (game_move_is_present(&data->game, data->hidden, dst, Empty)) {
-                                chessboard_vs_focus(data, &vs_index, data->hidden, dst, Empty);
-                                chessboard_vs_next(data, &vs_index);
+                                chessboard_vs_focus(data, &ts.vs_index, data->hidden, dst, Empty);
+                                chessboard_vs_next(data, &ts.vs_index);
                             }
                         }
                         data->hidden = none;
@@ -88,9 +87,9 @@ mode_training(WindowData* data) {
 
                 case SDL_MOUSEWHEEL:
                     if (event.wheel.y > 0) { //scroll up
-                        training_repeat(data, v, move_number, &vs_index);
+                        training_repeat(data, v, move_number, &ts);
                     } else if (event.wheel.y < 0) { //scroll down
-                        training_next(data, v, move_number, &vs_index, color, &gl_index);
+                        training_next(data, v, move_number, &ts, color);
                     }
                     draw_render(data);
                     break;
@@ -111,8 +110,8 @@ mode_training(WindowData* data) {
                                 not_move = 1;
                                 vs_free(&data->vs);
                                 vs_init(&data->vs);
-                                vs_index = 0;
-                                gl_index = 0;
+                                ts.vs_index = 0;
+                                ts.gl_index = 0;
                                 data->game.line_current = v;
                                 variation_move_current_reset(v);
                                 game_move_index_set(&data->game, move_number);
@@ -126,12 +125,12 @@ mode_training(WindowData* data) {
 
                             if (!strcmp(data->status.info, "Repeat")) {
                                 not_move = 1;
-                                training_repeat(data, v, move_number, &vs_index);
+                                training_repeat(data, v, move_number, &ts);
                             }
 
                             if (!strcmp(data->status.info, "Next")) {
                                 not_move = 1;
-                                training_next(data, v, move_number, &vs_index, color, &gl_index);
+                                training_next(data, v, move_number, &ts, color);
                             }
 
                             if (not_move) {
@@ -150,8 +149,8 @@ mode_training(WindowData* data) {
                             }
 
                             if (game_move_is_present(&data->game, src, dst, prom_piece)) {
-                                chessboard_vs_focus(data, &vs_index, src, dst, prom_piece);
-                                chessboard_vs_next(data, &vs_index);
+                                chessboard_vs_focus(data, &ts.vs_index, src, dst, prom_piece);
+                                chessboard_vs_next(data, &ts.vs_index);
                                 data->status.info[0] = '\0';
                                 old_pos = 0;
                             }
