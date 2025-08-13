@@ -93,6 +93,7 @@ typedef enum {
     ModeGameList,
     ModeExplorer,
     ModeGameListStat,
+    ModeTraining,
     ModeCustomText,
 } NotationMode;
 
@@ -113,7 +114,6 @@ struct WindowData {
     FC_Font* font;
     int font_height;
     Scroll notation_scroll;
-    int notation_hidden;
     NotationMode notation_mode;
     Scroll game_list_scroll;
     int machine_hidden;

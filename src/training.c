@@ -49,7 +49,7 @@ mode_training(WindowData* data) {
     SDL_Event event;
 
     ts_init(&data->ts);
-    data->notation_hidden = 1;
+    data->notation_mode = ModeTraining;
     Variation* v = data->game.line_current;
     Color color = game_move_get(&data->game)->board.turn;
     vs_free(&data->vs);
@@ -106,12 +106,10 @@ mode_training(WindowData* data) {
                         case SDLK_ESCAPE:
                             data->notation_mode = ModeMoves;
                             data->status.info[0] = '\0';
-                            data->notation_hidden = 0;
                             draw_render(data);
                             break;
 
                         case SDLK_RETURN:
-                            data->notation_mode = ModeMoves;
                             old_pos = pos;
                             cursor_remove(&pos, data->status.info);
                             if (!strcmp(data->status.info, "Restart")) {
@@ -172,6 +170,18 @@ mode_training(WindowData* data) {
                 case SDL_USEREVENT: draw_render(data); break;
             }
         }
+    }
+}
+
+void
+training_draw(WindowData* data) {
+    notation_background_draw(data);
+    int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
+    int x = x_start;
+    int y = data->layout.notation.y + NOTATION_PADDING_TOP;
+
+    if (game_move_is_last(&data->game)) {
+        variation_draw(data, data->game.line_current, &x, &y, x_start, 0, 0);
     }
 }
 

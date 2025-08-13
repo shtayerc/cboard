@@ -22,5 +22,6 @@ void ts_init(TrainingStat* ts);
 void training_repeat(WindowData* data, Variation* v, int move_number);
 void training_next(WindowData* data, Variation* v, int move_number, Color color);
 void mode_training(WindowData* data);
+void training_draw(WindowData* data);
 
 #endif

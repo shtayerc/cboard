@@ -180,12 +180,6 @@ notation_draw(WindowData* data) {
     int x = x_start;
     int y = data->layout.notation.y + NOTATION_PADDING_TOP + data->notation_scroll.value;
 
-    if (data->notation_hidden) {
-        if (game_move_is_last(&data->game)) {
-            variation_draw(data, data->game.line_current, &x, &y, x_start, 0, 0);
-        }
-        return;
-    }
     notation_draw_tags(data, &x, &y, x_start);
     variation_draw(data, data->game.line_main, &x, &y, x_start, 0, 1);
     scroll_set_length(&data->notation_scroll, y);

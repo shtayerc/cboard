@@ -86,7 +86,6 @@ window_data_init(WindowData* data) {
     data->mouse.y = data->conf.default_height / 2;
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     scroll_init(&data->notation_scroll);
-    data->notation_hidden = 0;
     data->notation_mode = ModeMoves;
     scroll_init(&data->game_list_scroll);
     data->game_list_sort_tag = calloc(sizeof(char), TAG_LEN);
@@ -259,6 +258,8 @@ draw(WindowData* data) {
         case ModeGameListStat: game_list_stat_draw(data); break;
 
         case ModeExplorer: explorer_draw(data); break;
+
+        case ModeTraining: training_draw(data); break;
 
         case ModeCustomText: custom_text_draw(data); break;
     }
