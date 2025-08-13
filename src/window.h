@@ -12,6 +12,7 @@
 #include "notation.h"
 #include "scroll.h"
 #include "status.h"
+#include "training.h"
 
 typedef struct {
     SDL_Rect board;
@@ -139,6 +140,7 @@ struct WindowData {
     Explorer explorer;
     Machine* machine_list[MACHINE_COUNT];
     VariationSequence vs;
+    TrainingStat ts;
 };
 
 int file_exists(const char* filename);

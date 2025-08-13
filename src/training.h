@@ -5,10 +5,6 @@
 #include <SDL2/SDL_image.h>
 #include "SDL_FontCache.h"
 #include "chess_utils.h"
-#include "chessboard.h"
-#include "message.h"
-#include "textedit.h"
-#include "window.h"
 
 typedef struct {
     int vs_index;
@@ -17,8 +13,14 @@ typedef struct {
     int gl_index;
 } TrainingStat;
 
-void training_repeat(WindowData* data, Variation* v, int move_number, TrainingStat* ts);
-void training_next(WindowData* data, Variation* v, int move_number, TrainingStat* ts, Color color);
+#include "window.h"
+#include "chessboard.h"
+#include "message.h"
+#include "textedit.h"
+
+void ts_init(TrainingStat* ts);
+void training_repeat(WindowData* data, Variation* v, int move_number);
+void training_next(WindowData* data, Variation* v, int move_number, Color color);
 void mode_training(WindowData* data);
 
 #endif
