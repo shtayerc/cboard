@@ -3,7 +3,7 @@
 void
 ts_init(TrainingStat* ts) {
     ts->vs_index = 0;
-    ts->vs_current = 0;
+    ts->vs_current = 1;
     ts->vs_count = 0;
     ts->gl_index = 0;
 }
@@ -19,6 +19,10 @@ training_repeat(WindowData* data, Variation* v, int move_number) {
 void
 training_next(WindowData* data, Variation* v, int move_number, Color color) {
     VariationSequence vs_tmp;
+    if (data->ts.vs_count == data->ts.vs_current) {
+        message_add(data, NULL, "End of variation");
+        return;
+    }
     data->game.line_current = v;
     game_move_index_set(&data->game, move_number);
     if (vs_can_generate_next(&data->vs)) {
@@ -27,6 +31,7 @@ training_next(WindowData* data, Variation* v, int move_number, Color color) {
         vs_init(&data->vs);
         vs_generate_next(&data->vs, v, &vs_tmp, color);
         vs_free(&vs_tmp);
+        data->ts.vs_current++;
     } else if (data->from_game_list && (data->ts.gl_index + 1) < data->game_list.ai.count) {
         data->ts.vs_index = 0;
         vs_free(&data->vs);
@@ -36,8 +41,7 @@ training_next(WindowData* data, Variation* v, int move_number, Color color) {
         v = data->game.line_current;
         vs_generate_first(&data->vs, v, color);
         move_number = data->game.line_current->move_current;
-    } else {
-        snprintf(data->custom_text, data->conf.status_max_len, "All done.");
+        data->ts.vs_current++;
     }
 }
 
@@ -55,6 +59,7 @@ mode_training(WindowData* data) {
     vs_free(&data->vs);
     vs_init(&data->vs);
     vs_generate_first(&data->vs, v, color);
+    data->ts.vs_count = variation_vs_count(v);
     int move_number = data->game.line_current->move_current;
     int loop = 1;
     int pos = 0;
@@ -118,6 +123,7 @@ mode_training(WindowData* data) {
                                 vs_init(&data->vs);
                                 data->ts.vs_index = 0;
                                 data->ts.gl_index = 0;
+                                data->ts.vs_current = 1;
                                 data->game.line_current = v;
                                 variation_move_current_reset(v);
                                 game_move_index_set(&data->game, move_number);
@@ -180,6 +186,10 @@ training_draw(WindowData* data) {
     int x = x_start;
     int y = data->layout.notation.y + NOTATION_PADDING_TOP;
 
+    FC_DrawColor(data->font, data->renderer, x, y,
+                 data->conf.colors[ColorNotationFont], "%d/%d",
+                 data->ts.vs_current, data->ts.vs_count);
+    y += data->font_height;
     if (game_move_is_last(&data->game)) {
         variation_draw(data, data->game.line_current, &x, &y, x_start, 0, 0);
     }

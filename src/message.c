@@ -25,7 +25,7 @@ void
 message_add(WindowData* data, SDL_Event* event, char* msg) {
     snprintf(data->status.info, data->conf.status_max_len, "%s", msg);
     data->message = 1;
-    data->message_timestamp = SDL_Event_timestamp(event);
+    data->message_timestamp = event == NULL ? SDL_GetTicks() : SDL_Event_timestamp(event);
     draw_render(data);
 }
 
