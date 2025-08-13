@@ -34,7 +34,7 @@ void
 explorer_row_add(Explorer* e, char* row) {
     e->row_count++;
     e->row_list = realloc(e->row_list, sizeof(char*) * e->row_count);
-    e->row_list[e->row_count - 1] = calloc(sizeof(char), BUFFER_LEN);
+    e->row_list[e->row_count - 1] = calloc(BUFFER_LEN, sizeof(char));
     snprintf(e->row_list[e->row_count - 1], BUFFER_LEN, "%s", row);
 }
 

@@ -73,13 +73,13 @@ void
 window_data_init(WindowData* data) {
     int i;
     data->conf = config_init();
-    data->status.mode = calloc(sizeof(char), data->conf.status_max_len);
-    data->status.info = calloc(sizeof(char), data->conf.status_max_len);
+    data->status.mode = calloc(data->conf.status_max_len, sizeof(char));
+    data->status.info = calloc(data->conf.status_max_len, sizeof(char));
     data->filename = malloc(sizeof(char) * data->conf.status_max_len);
     snprintf(data->filename, data->conf.status_max_len, "%s", data->conf.default_filename);
     data->number = malloc(sizeof(char) * data->conf.number_len);
     snprintf(data->number, data->conf.number_len, "a");
-    data->custom_text = calloc(sizeof(char), data->conf.status_max_len);
+    data->custom_text = calloc(data->conf.status_max_len, sizeof(char));
     data->loop = 1;
     data->from_game_list = 0;
     data->mouse.x = data->conf.default_width / 2;
@@ -88,9 +88,9 @@ window_data_init(WindowData* data) {
     scroll_init(&data->notation_scroll);
     data->notation_mode = ModeMoves;
     scroll_init(&data->game_list_scroll);
-    data->game_list_sort_tag = calloc(sizeof(char), TAG_LEN);
+    data->game_list_sort_tag = calloc(TAG_LEN, sizeof(char));
     snprintf(data->game_list_sort_tag, TAG_LEN, "File");
-    data->game_list_sort_direction = calloc(sizeof(char), TAG_LEN);
+    data->game_list_sort_direction = calloc(TAG_LEN, sizeof(char));
     snprintf(data->game_list_sort_direction, TAG_LEN, "Desc");
     game_list_current_init(data);
     data->machine_hidden = 0;
@@ -108,7 +108,7 @@ window_data_init(WindowData* data) {
     gls_init(&data->game_list_stat);
     explorer_init(&data->explorer);
     for (i = 0; i < MACHINE_COUNT; i++) {
-        data->machine_list[i] = calloc(sizeof(Machine), 1);
+        data->machine_list[i] = calloc(1, sizeof(Machine));
         data->machine_list[i]->running = 0;
     }
     vs_init(&data->vs);

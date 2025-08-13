@@ -80,10 +80,10 @@ machine_position(WindowData* data) {
 
 void
 machine_line_init(Machine* m, Board* b) {
-    m->line = calloc(sizeof(Variation), m->line_count);
-    m->depth = calloc(sizeof(int), m->line_count);
-    m->type = calloc(sizeof(UciScoreType), m->line_count);
-    m->score = calloc(sizeof(int), m->line_count);
+    m->line = calloc(m->line_count, sizeof(Variation));
+    m->depth = calloc(m->line_count, sizeof(int));
+    m->type = calloc(m->line_count, sizeof(UciScoreType));
+    m->score = calloc(m->line_count, sizeof(int));
     m->board = *b;
     int i;
     for (i = 0; i < m->line_count; i++) {
