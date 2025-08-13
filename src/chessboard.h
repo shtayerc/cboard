@@ -4,6 +4,7 @@
 #include "event.h"
 #include "machine.h"
 #include "notation.h"
+#include "training.h"
 #include "window.h"
 
 enum {
@@ -39,9 +40,6 @@ void promotion_draw(WindowData* data, Square sq, Color color);
 int mode_promotion(WindowData* data, Color color);
 void mode_editor(WindowData* data);
 void mode_san(WindowData* data);
-void training_repeat(WindowData* data, Variation* v, int move_number, int* vs_index);
-void training_next(WindowData* data, Variation* v, int move_number, int* vs_index, Color color, int* gl_index);
-void mode_training(WindowData* data);
 int chessboard_focus_present(WindowData* data, Square src, Square dst, Piece prom_piece);
 void chessboard_vs_focus(WindowData* data, int* vs_index, Square src, Square dst, Piece prom_piece);
 void chessboard_vs_next(WindowData* data, int* vs_index);
