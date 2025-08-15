@@ -1,10 +1,8 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include "libs.h"
+#include <SDL3/SDL_main.h>
 #include <stdio.h>
 #include <time.h>
 
-#include "SDL_FontCache.h"
-#include "chessboard.h"
 #include "event.h"
 #include "explorer.h"
 #include "game_list.h"
@@ -151,9 +149,9 @@ main(int argc, char* argv[]) {
                 }
             } else {
                 tmp_event = (SDL_Event*)malloc(sizeof(SDL_Event));
-                tmp_event->type = SDL_KEYUP;
-                tmp_event->key.keysym.sym = SDLK_g;
-                tmp_event->key.keysym.mod = KMOD_NONE;
+                tmp_event->type = SDL_EVENT_KEY_UP;
+                tmp_event->key.key = SDLK_G;
+                tmp_event->key.mod = SDL_KMOD_NONE;
             }
         }
     }

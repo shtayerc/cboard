@@ -19,7 +19,7 @@ piece_load(WindowData* data) {
         }
         tmp = IMG_Load(path);
         cb_piece_texture[i] = SDL_CreateTextureFromSurface(data->renderer, tmp);
-        SDL_FreeSurface(tmp);
+        SDL_DestroySurface(tmp);
         if (cb_piece_texture[i] == NULL) {
             fprintf(stderr, "Loading piece image %s failed: %s\n", path, SDL_GetError());
             exit(1);
@@ -39,7 +39,9 @@ void
 piece_draw(WindowData* data, int file, int rank, SDL_Texture* texture) {
     data->layout.square.x = file;
     data->layout.square.y = rank;
-    SDL_RenderCopy(data->renderer, texture, NULL, &data->layout.square);
+    SDL_FRect frect;
+    SDL_RectToFRect(&data->layout.square, &frect);
+    SDL_RenderTexture(data->renderer, texture, NULL, &frect);
 }
 
 void
@@ -88,7 +90,9 @@ background_draw(WindowData* data) {
     Square src = square_rotation(data, game_move_get(&data->game)->src);
     Square dst = square_rotation(data, game_move_get(&data->game)->dst);
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.board);
+    SDL_FRect frect;
+    SDL_RectToFRect(&data->layout.board, &frect);
+    SDL_RenderFillRect(data->renderer, &frect);
     for (col = 0; col < 8; col++) {
         data->layout.square.y = col * data->layout.square.w;
         for (row = 0; row < 8; row++) {
@@ -98,7 +102,9 @@ background_draw(WindowData* data) {
             }
             SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
             data->layout.square.x = row * data->layout.square.w;
-            SDL_RenderFillRect(data->renderer, &data->layout.square);
+            SDL_FRect frect;
+            SDL_RectToFRect(&data->layout.square, &frect);
+            SDL_RenderFillRect(data->renderer, &frect);
         }
     }
 }
@@ -152,7 +158,9 @@ promotion_selection_draw(WindowData* data, Square sq, Color color) {
 
         c = data->conf.colors[hover == i ? ColorSquareActive : ColorSquareInactive];
         SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-        SDL_RenderFillRect(data->renderer, &data->layout.square);
+        SDL_FRect frect;
+        SDL_RectToFRect(&data->layout.square, &frect);
+        SDL_RenderFillRect(data->renderer, &frect);
         piece_draw(data, data->layout.square.x, data->layout.square.y, cb_piece_texture[texture[i]]);
     }
 }
@@ -189,10 +197,20 @@ mode_promotion(WindowData* data, Color color) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 0);
             switch (event.type) {
-                case SDL_WINDOWEVENT:
-                case SDL_MOUSEMOTION: promotion_draw(data, dst, color); break;
+                case SDL_EVENT_WINDOW_SHOWN:
+                case SDL_EVENT_WINDOW_EXPOSED:
+                case SDL_EVENT_WINDOW_MOVED:
+                case SDL_EVENT_WINDOW_RESIZED:
+                case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                case SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_EVENT_WINDOW_MAXIMIZED:
+                case SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+                case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+                case SDL_EVENT_MOUSE_MOTION: promotion_draw(data, dst, color); break;
 
-                case SDL_MOUSEBUTTONUP:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         piece = promotion_selected_piece(data, dst, color);
                         if (piece != -1) {
@@ -202,8 +220,8 @@ mode_promotion(WindowData* data, Color color) {
                     }
                     break;
 
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             loop = 0;
                             data->hidden = none;
@@ -211,7 +229,7 @@ mode_promotion(WindowData* data, Color color) {
                     }
                     break;
 
-                case SDL_USEREVENT: promotion_draw(data, dst, color); break;
+                case SDL_EVENT_USER: promotion_draw(data, dst, color); break;
             }
         }
     }
@@ -237,7 +255,7 @@ mode_editor(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_non_input_events(&event, data, &loop);
             switch (event.type) {
-                case SDL_MOUSEBUTTONUP:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         sq = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.w)),
                                              rotation_convert(data, (data->mouse.y / data->layout.square.w)));
@@ -259,21 +277,21 @@ mode_editor(WindowData* data) {
                     }
                     break;
 
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
-                        case SDLK_s:
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
+                        case SDLK_S:
                             board_fen_import(&game_move_get(&data->game)->board, FEN_DEFAULT);
                             draw_render(data);
                             replace = 1;
                             break;
 
-                        case SDLK_c:
+                        case SDLK_C:
                             board_clear(&game_move_get(&data->game)->board);
                             draw_render(data);
                             replace = 1;
                             break;
 
-                        case SDLK_f:
+                        case SDLK_F:
                             clipboard = SDL_GetClipboardText();
                             if (str_is_fen(clipboard)) {
                                 board_fen_import(&game_move_get(&data->game)->board, clipboard);
@@ -357,8 +375,8 @@ mode_san(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             data->status.info[0] = '\0';
                             draw_render(data);
@@ -380,7 +398,7 @@ mode_san(WindowData* data) {
                     }
                     break;
 
-                case SDL_USEREVENT: draw_render(data); break;
+                case SDL_EVENT_USER: draw_render(data); break;
             }
         }
     }
@@ -472,5 +490,5 @@ chessboard_mouse_square(WindowData* data) {
 
 int
 chessboard_mouse_is_inside(WindowData* data) {
-    return (SDL_PointInRect(&data->mouse, &data->layout.board) == SDL_TRUE);
+    return (SDL_PointInRect(&data->mouse, &data->layout.board) == true);
 }

@@ -39,7 +39,7 @@ mode_normal(WindowData* data) {
             handle_global_events(&event, data, NULL, 1);
             handle_non_input_events(&event, data, NULL);
             switch (event.type) {
-                case SDL_MOUSEBUTTONDOWN:
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         data->hidden = chessboard_mouse_square(data);
                         data->piece = data->hidden & 0x88 ? Empty
@@ -47,7 +47,7 @@ mode_normal(WindowData* data) {
                     }
                     break;
 
-                case SDL_MOUSEBUTTONUP:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         if (data->piece != Empty) {
                             square_dst = chessboard_mouse_square(data);
@@ -90,7 +90,7 @@ mode_normal(WindowData* data) {
                     }
                     break;
 
-                case SDL_MOUSEWHEEL:
+                case SDL_EVENT_MOUSE_WHEEL:
                     if (event.wheel.y > 0) { //scroll up
                         if (game_move_index_get(&data->game) == 1 && !game_line_is_main(&data->game)) {
                             tmp = variation_index_find(data->game.line_current, data->game.line_current->prev);
@@ -116,39 +116,39 @@ mode_normal(WindowData* data) {
                     break;
 
                 //TODO better shortcuts
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
-                        case SDLK_e: mode_editor(data); break;
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
+                        case SDLK_E: mode_editor(data); break;
 
-                        case SDLK_f: mode_filename_edit(data); break;
+                        case SDLK_F: mode_filename_edit(data); break;
 
-                        case SDLK_c: mode_clipboard(data); break;
+                        case SDLK_C: mode_clipboard(data); break;
 
-                        case SDLK_a:
+                        case SDLK_A:
                             undo_add(data);
                             if (is_keymod_shift(event)) {
                                 mode_annotate(
                                     data,
                                     &data->game.line_current->move_list[data->game.line_current->move_current - 1]);
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 mode_annotate(data, game_move_get(&data->game));
                             }
                             break;
 
-                        case SDLK_r:
+                        case SDLK_R:
                             if (is_keymod_ctrl(event)) {
                                 redo_do(data);
                                 draw_render(data);
                             }
                             break;
 
-                        case SDLK_l:
+                        case SDLK_L:
                         case SDLK_RIGHT:
                             if (is_keymod_shift(event)) {
                                 if (!game_move_index_set(&data->game, data->game.line_current->move_count - 1)) {
                                     break;
                                 }
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 if (!variation_move_next(data->game.line_current)) {
                                     break;
                                 }
@@ -159,13 +159,13 @@ mode_normal(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_h:
+                        case SDLK_H:
                         case SDLK_LEFT:
                             if (is_keymod_shift(event)) {
                                 if (!game_move_index_set(&data->game, !game_line_is_main(&data->game))) {
                                     break;
                                 }
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 if (game_move_index_get(&data->game) == 1 && !game_line_is_main(&data->game)) {
                                     tmp = variation_index_find(data->game.line_current, data->game.line_current->prev);
                                     data->game.line_current = data->game.line_current->prev;
@@ -184,7 +184,7 @@ mode_normal(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_k:
+                        case SDLK_K:
                         case SDLK_UP:
                             if (is_keymod_shift(event)) {
                                 if (game_line_is_main(&data->game)) {
@@ -198,7 +198,7 @@ mode_normal(WindowData* data) {
                                 data->game.line_current =
                                     variation_move_get(data->game.line_current->prev)->variation_list[tmp - 1];
                                 data->game.line_current->move_current = 1;
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 if (game_line_is_main(&data->game)) {
                                     break;
                                 }
@@ -214,7 +214,7 @@ mode_normal(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_j:
+                        case SDLK_J:
                         case SDLK_DOWN:
                             if (is_keymod_shift(event)) {
                                 if (game_line_is_main(&data->game)) {
@@ -229,7 +229,7 @@ mode_normal(WindowData* data) {
                                 data->game.line_current =
                                     variation_move_get(data->game.line_current->prev)->variation_list[tmp + 1];
                                 data->game.line_current->move_current = 1;
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 if (game_move_get(&data->game)->variation_count == 0) {
                                     break;
                                 }
@@ -252,7 +252,7 @@ mode_normal(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_p:
+                        case SDLK_P:
                             undo_add(data);
                             //save current move from sub variation so we can find it
                             //later
@@ -272,7 +272,7 @@ mode_normal(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_i:
+                        case SDLK_I:
                             undo_add(data);
                             if (!game_line_is_main(&data->game)) {
                                 variation_delete_next_moves(data->game.line_current);
@@ -281,22 +281,22 @@ mode_normal(WindowData* data) {
                             }
                             break;
 
-                        case SDLK_u:
+                        case SDLK_U:
                             if (is_keymod_ctrl(event)) {
                                 scroll_up(&data->notation_scroll);
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 undo_do(data);
                             }
                             draw_render(data);
                             break;
 
-                        case SDLK_d:
+                        case SDLK_D:
                             undo_add(data);
                             if (is_keymod_shift(event)) {
                                 variation_delete_next_moves(data->game.line_current);
                             } else if (is_keymod_ctrl(event)) {
                                 scroll_down(&data->notation_scroll);
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 game_variation_delete(&data->game);
                                 handle_position_change(data);
                             }
@@ -304,26 +304,26 @@ mode_normal(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_v:
+                        case SDLK_V:
                             if (is_keymod_shift(event)) {
                                 mode_position(data);
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 mode_move(data);
                             }
                             break;
 
-                        case SDLK_s: mode_san(data); break;
+                        case SDLK_S: mode_san(data); break;
 
-                        case SDLK_t:
+                        case SDLK_T:
                             if (is_keymod_shift(event)) {
                                 data->from_game_list = 0;
                                 mode_training(data);
-                            } else if (is_keymod(event, KMOD_NONE)) {
+                            } else if (is_keymod(event, SDL_KMOD_NONE)) {
                                 mode_tag(data);
                             }
                             break;
 
-                        case SDLK_g:
+                        case SDLK_G:
                             data->hidden = none;
                             if (is_keymod_shift(event)) {
                                 if (data->notation_mode != ModeGameListStat) {
@@ -338,7 +338,7 @@ mode_normal(WindowData* data) {
                             }
                             break;
 
-                        case SDLK_m:
+                        case SDLK_M:
                             tmp = is_keymod_shift(event);
                             mc = data->machine_list[tmp];
                             if (mc->running) {
@@ -354,7 +354,7 @@ mode_normal(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_n: mode_number_edit(data); break;
+                        case SDLK_N: mode_number_edit(data); break;
 
                         case SDLK_SPACE:
                             tmp = is_keymod_shift(event);
@@ -372,12 +372,12 @@ mode_normal(WindowData* data) {
                             }
                             break;
 
-                        case SDLK_b:
+                        case SDLK_B:
                             data->machine_hidden = !data->machine_hidden;
                             draw_render(data);
                             break;
 
-                        case SDLK_o:
+                        case SDLK_O:
                             tmp = is_keymod_shift(event);
                             if (data->notation_mode != ModeExplorer) {
                                 if (data->explorer.running) {
@@ -405,7 +405,7 @@ mode_normal(WindowData* data) {
                     }
                     break;
 
-                case SDL_TEXTINPUT:
+                case SDL_EVENT_TEXT_INPUT:
                     switch (event.text.text[0]) {
                         case 'W':
                             if (write_game(data)) {

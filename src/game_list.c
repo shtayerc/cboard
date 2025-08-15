@@ -13,12 +13,12 @@ mode_game_search(WindowData* data) {
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            if (event.type != SDL_KEYUP || event.key.keysym.sym != SDLK_ESCAPE) {
+            if (event.type != SDL_EVENT_KEY_UP || event.key.key != SDLK_ESCAPE) {
                 handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
             }
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             loop = 0;
                             data->status.info[0] = '\0';
@@ -58,12 +58,12 @@ mode_game_filter(WindowData* data) {
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            if (event.type != SDL_KEYUP || event.key.keysym.sym != SDLK_ESCAPE) {
+            if (event.type != SDL_EVENT_KEY_UP || event.key.key != SDLK_ESCAPE) {
                 handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
             }
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             loop = 0;
                             data->status.info[0] = '\0';
@@ -137,8 +137,8 @@ mode_game_sort_edit(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, data->game_list_sort_direction, TAG_LEN);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             cursor_remove(&pos, data->game_list_sort_direction);
                             if (str2sorting(data->game_list_sort_direction) == SortNone) {
@@ -168,8 +168,8 @@ mode_game_filter_edit(WindowData* data, TagFilter* tag_filter) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, tag_filter->tag.value, TAG_LEN);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             cursor_remove(&pos, tag_filter->tag.value);
                             if (strlen(tag_filter->tag.value) == 0) {
@@ -209,12 +209,12 @@ mode_game_list(WindowData* data) {
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            if ((event.type == SDL_KEYUP || event.type == SDL_TEXTINPUT) && event.key.keysym.sym != SDLK_r) {
+            if ((event.type == SDL_EVENT_KEY_UP || event.type == SDL_EVENT_TEXT_INPUT) && event.key.key != SDLK_R) {
                 handle_non_input_events(&event, data, &loop);
             }
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             loop = 0;
                             data->from_game_list = 0;
@@ -224,7 +224,7 @@ mode_game_list(WindowData* data) {
                             break;
 
                         case SDLK_DOWN:
-                        case SDLK_j:
+                        case SDLK_J:
                             game_list_current_next(data);
                             game_list_focus_current_game(data);
                             draw_render(data);
@@ -241,7 +241,7 @@ mode_game_list(WindowData* data) {
                             break;
 
                         case SDLK_UP:
-                        case SDLK_k:
+                        case SDLK_K:
                             game_list_current_prev(data);
                             game_list_focus_current_game(data);
                             draw_render(data);
@@ -250,7 +250,7 @@ mode_game_list(WindowData* data) {
 
                         case SDLK_RIGHT: break;
 
-                        case SDLK_r:
+                        case SDLK_R:
                             f = fopen(data->filename, "r");
                             if (f == NULL) {
                                 message_add(data, &event, "Error reading file");
@@ -271,7 +271,7 @@ mode_game_list(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_p:
+                        case SDLK_P:
                             f = fopen(data->filename, "r");
                             game_list_search_board(&data->game_list, &new_gl, f, &game_move_get(&data->game)->board);
                             fclose(f);
@@ -282,7 +282,7 @@ mode_game_list(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_c:
+                        case SDLK_C:
                             comment = game_move_get(&data->game)->comment;
                             if (comment != NULL) {
                                 free(comment);
@@ -294,7 +294,7 @@ mode_game_list(WindowData* data) {
                             draw_render(data);
                             break;
 
-                        case SDLK_t:
+                        case SDLK_T:
                             if (is_keymod_shift(event)) {
                                 game_list_game_load(data, 0);
                                 loop = 0;
@@ -304,21 +304,21 @@ mode_game_list(WindowData* data) {
                             }
                             break;
 
-                        case SDLK_d:
+                        case SDLK_D:
                             if (is_keymod_ctrl(event)) {
                                 scroll_down(&data->game_list_scroll);
                                 draw_render(data);
                             }
                             break;
 
-                        case SDLK_u:
+                        case SDLK_U:
                             if (is_keymod_ctrl(event)) {
                                 scroll_up(&data->game_list_scroll);
                                 draw_render(data);
                             }
                             break;
 
-                        case SDLK_f:
+                        case SDLK_F:
                             mode_game_filter(data);
                             draw_render(data);
                             break;
@@ -334,7 +334,7 @@ mode_game_list(WindowData* data) {
 
                     break;
 
-                case SDL_TEXTINPUT:
+                case SDL_EVENT_TEXT_INPUT:
                     switch (event.text.text[0]) {
                         case '/': mode_game_search(data); break;
                     }
@@ -381,7 +381,7 @@ game_list_loop(WindowData* data, int* i, int* i_count) {
 
 void
 game_list_draw(WindowData* data) {
-    SDL_Rect game_current;
+    SDL_FRect game_current;
     SDL_Color c;
     char title[GAMETITLE_LEN];
     Tag* tag;

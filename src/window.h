@@ -1,10 +1,7 @@
 #ifndef _WINDOW_H_
 #define _WINDOW_H_
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include "SDL_FontCache.h"
-#include "chess_utils.h"
+#include "libs.h"
 #include "config.h"
 #include "explorer.h"
 #include "game_list.h"

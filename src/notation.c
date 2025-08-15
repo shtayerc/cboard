@@ -35,7 +35,7 @@ comment_draw(WindowData* data, Move* m, int* x, int* y, int x_start) {
 
 void
 variation_draw(WindowData* data, Variation* v, int* x, int* y, int x_start, int i, int recursive) {
-    SDL_Rect move_current;
+    SDL_FRect move_current;
     SDL_Color c = data->conf.colors[ColorNotationActiveBackground];
     Move* m;
     char san[SAN_LEN + MOVENUM_LEN];
@@ -151,7 +151,9 @@ void
 notation_background_draw(WindowData* data) {
     SDL_Color c = data->conf.colors[ColorNotationBackground];
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.notation);
+    SDL_FRect frect;
+    SDL_RectToFRect(&data->layout.notation, &frect);
+    SDL_RenderFillRect(data->renderer, &frect);
 }
 
 void
@@ -205,8 +207,8 @@ mode_annotate(WindowData* data, Move* move) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, move->comment, COMMENT_LEN);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             if (U8_strlen(move->comment) == 0) {
                                 free(move->comment);
@@ -232,23 +234,23 @@ mode_move(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_non_input_events(&event, data, &loop);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE: loop = 0; break;
 
-                        case SDLK_j:
+                        case SDLK_J:
                         case SDLK_DOWN:
                             nag_move_next(&data->game);
                             draw_render(data);
                             break;
 
-                        case SDLK_k:
+                        case SDLK_K:
                         case SDLK_UP:
                             nag_move_prev(&data->game);
                             draw_render(data);
                             break;
 
-                        case SDLK_x:
+                        case SDLK_X:
                         case SDLK_BACKSPACE:
                             game_move_get(&data->game)->nag_move = 0;
                             loop = 0;
@@ -272,23 +274,23 @@ mode_position(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_non_input_events(&event, data, &loop);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE: loop = 0; break;
 
-                        case SDLK_j:
+                        case SDLK_J:
                         case SDLK_DOWN:
                             nag_position_next(&data->game);
                             draw_render(data);
                             break;
 
-                        case SDLK_k:
+                        case SDLK_K:
                         case SDLK_UP:
                             nag_position_prev(&data->game);
                             draw_render(data);
                             break;
 
-                        case SDLK_x:
+                        case SDLK_X:
                         case SDLK_BACKSPACE:
                             game_move_get(&data->game)->nag_position = 0;
                             loop = 0;
@@ -314,8 +316,8 @@ mode_tag_edit(WindowData* data, Tag* tag) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, tag->value, TAG_LEN);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             if (U8_strlen(tag->value) == 0 && strcmp(tag->key, "Event") && strcmp(tag->key, "Site")
                                 && strcmp(tag->key, "Date") && strcmp(tag->key, "Round") && strcmp(tag->key, "White")
@@ -351,8 +353,8 @@ mode_tag(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             data->status.info[0] = '\0';
                             draw_render(data);
@@ -387,14 +389,14 @@ mode_clipboard(WindowData* data) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
-                        case SDLK_q:
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
+                        case SDLK_Q:
                             loop = 0;
                             data->loop = 0;
                             break;
 
-                        case SDLK_f:
+                        case SDLK_F:
                             board_fen_export(&game_move_get(&data->game)->board, fen);
                             SDL_SetClipboardText(fen);
                             message_add(data, &event, "FEN copied to clipboard");

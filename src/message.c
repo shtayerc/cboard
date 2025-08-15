@@ -2,23 +2,7 @@
 
 unsigned int
 SDL_Event_timestamp(SDL_Event* event) {
-    switch (event->type) {
-        case SDL_WINDOWEVENT: return event->window.timestamp;
-
-        case SDL_KEYDOWN:
-        case SDL_KEYUP: return event->key.timestamp;
-
-        case SDL_TEXTEDITING: return event->edit.timestamp;
-
-        case SDL_TEXTINPUT: return event->text.timestamp;
-
-        case SDL_MOUSEMOTION: return event->motion.timestamp;
-
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP: return event->button.timestamp;
-
-        default: return 0;
-    }
+    return event->common.timestamp;
 }
 
 void

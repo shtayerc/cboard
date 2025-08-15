@@ -84,7 +84,6 @@ window_data_init(WindowData* data) {
     data->from_game_list = 0;
     data->mouse.x = data->conf.default_width / 2;
     data->mouse.y = data->conf.default_height / 2;
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     scroll_init(&data->notation_scroll);
     data->notation_mode = ModeMoves;
     scroll_init(&data->game_list_scroll);
@@ -116,16 +115,24 @@ window_data_init(WindowData* data) {
 
 void
 window_open(WindowData* data) {
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_DisplayMode dm;
-    SDL_GetDisplayMode(0, 0, &dm);
-    window_set_title(data);
-    data->window = SDL_CreateWindow(data->conf.window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, dm.w,
-                dm.h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+    const SDL_DisplayMode* dm = NULL;
+    int i, num_displays = 0;
+    SDL_DisplayID *displays = SDL_GetDisplays(&num_displays);
+    if (displays) {
+        for (i = 0; i < num_displays; ++i) {
+            SDL_DisplayID instance_id = displays[i];
+            dm = SDL_GetCurrentDisplayMode(instance_id);
+            break;
+        }
+        SDL_free(displays);
+    }
+    data->window = SDL_CreateWindow(data->conf.window_title, dm->w, dm->h,
+                SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
     SDL_EnableScreenSaver();
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width, data->conf.minimal_height);
-    data->renderer = SDL_CreateRenderer(data->window, -1, SDL_RENDERER_ACCELERATED);
+    data->renderer = SDL_CreateRenderer(data->window, NULL);
     data->font = NULL;
     font_init(data);
 }
@@ -270,7 +277,7 @@ draw(WindowData* data) {
 
     //For some reason on slower hardware the last drawn thing is not visible.
     //We solve this by drawing point off screen.
-    SDL_RenderDrawPoint(data->renderer, -1, -1);
+    SDL_RenderPoint(data->renderer, -1, -1);
 }
 
 void
