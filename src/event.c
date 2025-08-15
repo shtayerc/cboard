@@ -48,7 +48,6 @@ handle_global_events(SDL_Event* event, WindowData* data, int* loop, int draw) {
 
 void
 handle_input_events(SDL_Event* event, WindowData* data, int* loop, int* pos, char* str, int len) {
-    SDL_StartTextInput(data->window);
     switch (event->type) {
         case SDL_EVENT_KEY_UP:
             switch (event->key.key) {
@@ -115,6 +114,19 @@ void
 handle_non_input_events(SDL_Event* event, WindowData* data, int* loop) {
     switch (event->type) {
         case SDL_EVENT_KEY_UP:
+            switch (SDL_GetKeyFromScancode(event->key.scancode, event->key.mod, false)) {
+                case '+':
+                    font_resize(data, FONT_STEP);
+                    window_resize(data, data->window_width, data->window_height);
+                    draw_render(data);
+                    break;
+
+                case '-':
+                    font_resize(data, -FONT_STEP);
+                    window_resize(data, data->window_width, data->window_height);
+                    draw_render(data);
+                    break;
+            }
             switch (event->key.key) {
                 case SDLK_Q:
                     if (!mode_confirm(data, "Quit (y/N)")) {
@@ -132,37 +144,18 @@ handle_non_input_events(SDL_Event* event, WindowData* data, int* loop) {
                         draw_render(data);
                     }
                     break;
-            }
-            break;
 
-        case SDL_EVENT_TEXT_INPUT:
-            switch (event->text.text[0]) {
-                case 'z':
-                    data->conf.square_size += 10;
-                    window_resize(data, data->window_width, data->window_height);
-                    draw_render(data);
-                    break;
-
-                case 'Z':
-                    data->conf.square_size -= 10;
-                    if (data->conf.square_size < data->conf.minimal_square) {
-                        data->conf.square_size = data->conf.minimal_square;
+                case SDLK_Z:
+                    if (is_keymod_shift(*event)) {
+                        data->conf.square_size -= 10;
+                        if (data->conf.square_size < data->conf.minimal_square) {
+                            data->conf.square_size = data->conf.minimal_square;
+                        }
+                    } else {
+                        data->conf.square_size += 10;
                     }
                     window_resize(data, data->window_width, data->window_height);
                     draw_render(data);
-                    break;
-
-                case '+':
-                    font_resize(data, FONT_STEP);
-                    window_resize(data, data->window_width, data->window_height);
-                    draw_render(data);
-                    break;
-
-                case '-':
-                    font_resize(data, -FONT_STEP);
-                    window_resize(data, data->window_width, data->window_height);
-                    draw_render(data);
-                    break;
             }
             break;
     }

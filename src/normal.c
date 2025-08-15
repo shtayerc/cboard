@@ -402,16 +402,14 @@ mode_normal(WindowData* data) {
                         case SDLK_7: explorer_event(data, 7, 0); break;
                         case SDLK_8: explorer_event(data, 8, 0); break;
                         case SDLK_9: explorer_event(data, 9, 0); break;
-                    }
-                    break;
 
-                case SDL_EVENT_TEXT_INPUT:
-                    switch (event.text.text[0]) {
-                        case 'W':
-                            if (write_game(data)) {
-                                message_add(data, &event, "Game written");
-                            } else {
-                                message_add(data, &event, "Error while writing file");
+                        case SDLK_W:
+                            if (is_keymod_shift(event)) {
+                                if (write_game(data)) {
+                                    message_add(data, &event, "Game written");
+                                } else {
+                                    message_add(data, &event, "Error while writing file");
+                                }
                             }
                             break;
                     }

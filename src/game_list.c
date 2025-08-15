@@ -209,11 +209,17 @@ mode_game_list(WindowData* data) {
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            if ((event.type == SDL_EVENT_KEY_UP || event.type == SDL_EVENT_TEXT_INPUT) && event.key.key != SDLK_R) {
+            if (event.type == SDL_EVENT_KEY_UP && event.key.key != SDLK_R) {
                 handle_non_input_events(&event, data, &loop);
             }
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
+                    switch (SDL_GetKeyFromScancode(event.key.scancode, event.key.mod, false)) {
+                        case '/':
+                            mode_game_search(data);
+                            break;
+                    }
+
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
                             loop = 0;
@@ -330,13 +336,6 @@ mode_game_list(WindowData* data) {
                             snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
                             draw_render(data);
                             break;
-                    }
-
-                    break;
-
-                case SDL_EVENT_TEXT_INPUT:
-                    switch (event.text.text[0]) {
-                        case '/': mode_game_search(data); break;
                     }
                     break;
             }
