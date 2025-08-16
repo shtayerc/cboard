@@ -248,7 +248,7 @@ window_calculate_content_size(WindowData* data)
     int h, w, font_size;
     SDL_GetWindowSize(data->window, &w, &h);
     data->conf.square_size = (w / 2) / 9;
-    font_size = round(data->conf.square_size / 5);
+    font_size = SDL_lround(data->conf.square_size / 5);
     font_size = font_size - (font_size % FONT_STEP); //keep it in FONT_STEP
     font_resize(data, font_size - data->font_size); //calculate step
     window_resize(data, w, h);
