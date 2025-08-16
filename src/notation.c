@@ -428,12 +428,12 @@ game_init_default(Game* g, Board* b) {
 }
 
 void tag_list_init_date(TagList* tl) {
-    time_t rawtime;
-    struct tm* timeinfo;
+    SDL_Time ticks;
+    SDL_DateTime dt;
+    SDL_GetCurrentTime(&ticks);
+    SDL_TimeToDateTime(ticks, &dt, true);
     char date[20];
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(date, 20, "%Y.%m.%d", timeinfo);
+    snprintf(date, 20, "%d.%02d.%02d", dt.year, dt.month, dt.day);
     tag_list_set(tl, "Date", date);
 }
 
