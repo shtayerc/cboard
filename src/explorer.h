@@ -4,13 +4,6 @@
 #include "libs.h"
 #include "config.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <signal.h>
-#include <unistd.h>
-#endif
-
 typedef struct {
     char output[BUFFER_LEN];
     int running;
@@ -19,22 +12,11 @@ typedef struct {
     int row_count;
     int fen_changed;
     int event;
-#ifdef _WIN32
-    HANDLE fd_input;
-    HANDLE fd_output;
-    HANDLE pid;
-#else
-    int fd_input;
-    int fd_output;
-    int pid;
-#endif
+    SDL_Process* process;
+    SDL_Thread* read_thread;
+    SDL_Thread* write_thread;
 } Explorer;
 
-#ifdef _WIN32
-#include "explorer_win.h"
-#else
-#include "explorer_unix.h"
-#endif
 #include "window.h"
 
 typedef struct WindowData WindowData;
@@ -47,5 +29,9 @@ void explorer_row_free(Explorer* e);
 void explorer_position(WindowData* data);
 void explorer_event(WindowData* data, int event, int clear);
 void explorer_parse_str(Explorer* e, char* str);
+int explorer_read(void* p);
+int explorer_write(void* p);
+int explorer_start(WindowData* data, int index);
+void explorer_stop(WindowData* data);
 
 #endif
