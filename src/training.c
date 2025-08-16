@@ -20,7 +20,7 @@ void
 training_next(WindowData* data, Variation* v, int move_number, Color color) {
     VariationSequence vs_tmp;
     if (data->ts.vs_count == data->ts.vs_current) {
-        message_add(data, NULL, "End of variation");
+        message_add(data, "End of variation");
         return;
     }
     data->game.line_current = v;

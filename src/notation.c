@@ -399,7 +399,7 @@ mode_clipboard(WindowData* data) {
                         case SDLK_F:
                             board_fen_export(&game_move_get(&data->game)->board, fen);
                             SDL_SetClipboardText(fen);
-                            message_add(data, &event, "FEN copied to clipboard");
+                            message_add(data, "FEN copied to clipboard");
                             break;
 
                         case SDLK_ESCAPE:

@@ -99,7 +99,7 @@ window_data_init(WindowData* data) {
     data->redo_current = -1;
     data->rotation = RotationWhite;
     data->message = 0;
-    data->message_timestamp = 0;
+    data->message_timer = 0;
     data->piece = Empty;
     data->hidden = none;
     data->font_size = 16;
@@ -182,6 +182,9 @@ window_data_free(WindowData* data) {
         free(data->machine_list[i]);
     }
     vs_free(&data->vs);
+    if (data->message_timer > 0) {
+        SDL_RemoveTimer(data->message_timer);
+    }
     SDL_DestroyRenderer(data->renderer);
     SDL_DestroyWindow(data->window);
     SDL_Quit();

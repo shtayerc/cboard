@@ -4,8 +4,7 @@
 #include "libs.h"
 #include "window.h"
 
-unsigned int SDL_Event_timestamp(SDL_Event* event);
-void message_add(WindowData* data, SDL_Event* event, char* msg);
-void message_clear(WindowData* data, SDL_Event* event);
+void message_add(WindowData* data, char* msg);
+Uint32 message_clear(void* userdata, SDL_TimerID timerID, Uint32 interval);
 
 #endif

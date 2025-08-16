@@ -406,9 +406,9 @@ mode_normal(WindowData* data) {
                         case SDLK_W:
                             if (is_keymod_shift(event)) {
                                 if (write_game(data)) {
-                                    message_add(data, &event, "Game written");
+                                    message_add(data, "Game written");
                                 } else {
-                                    message_add(data, &event, "Error while writing file");
+                                    message_add(data, "Error while writing file");
                                 }
                             }
                             break;

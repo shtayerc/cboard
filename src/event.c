@@ -35,9 +35,6 @@ handle_global_events(SDL_Event* event, WindowData* data, int* loop, int draw) {
             }
             break;
 
-        case SDL_EVENT_MOUSE_BUTTON_UP:
-        case SDL_EVENT_KEY_UP: message_clear(data, event); break;
-
         case SDL_EVENT_USER:
             if (draw) {
                 draw_render(data);

@@ -259,7 +259,7 @@ mode_game_list(WindowData* data) {
                         case SDLK_R:
                             f = fopen(data->filename, "r");
                             if (f == NULL) {
-                                message_add(data, &event, "Error reading file");
+                                message_add(data, "Error reading file");
                                 break;
                             }
                             if (data->game_list.filter_list != NULL && data->game_list.filter_list->ai.count > 0) {

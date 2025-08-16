@@ -131,7 +131,7 @@ struct WindowData {
     Rotation rotation;
     int font_size;
     int message;
-    unsigned int message_timestamp;
+    SDL_TimerID message_timer;
     Piece piece;
     Square hidden;
     Explorer explorer;
