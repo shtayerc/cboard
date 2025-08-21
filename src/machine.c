@@ -326,3 +326,118 @@ machine_running_count(WindowData* data) {
     }
     return count;
 }
+
+int
+machine_read(void* p) {
+    MachineData* md = (MachineData*)p;
+    WindowData* data = (WindowData*)md->data;
+    Machine* mc = data->machine_list[md->index];
+    SDL_IOStream* iostream = SDL_GetProcessOutput(mc->process);
+
+    while (mc->running) {
+        if (SDL_ReadIO(iostream, mc->output, MACHINE_OUTPUT_LEN)) {
+            if (strstr(mc->output, "multipv") == NULL) {
+                continue;
+            }
+            machine_line_parse(data, md->index);
+            push_user_event();
+        }
+    }
+    SDL_CloseIO(iostream);
+    return 1;
+}
+
+int
+machine_write(void* p) {
+    MachineData* md = (MachineData*)p;
+    WindowData* data = (WindowData*)md->data;
+    Machine* mc = data->machine_list[md->index];
+    char** uci_list = data->conf.machine_uci_list[md->index];
+    char fen[FEN_LEN];
+    int i;
+    fen[0] = '\0';
+
+    SDL_IOStream* output = SDL_GetProcessOutput(mc->process);
+    SDL_IOStream* input = SDL_GetProcessInput(mc->process);
+    SDL_WriteIO(input, "uci\n", 4);
+    SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    while (strstr(mc->output, "uciok") == NULL) {
+        SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    }
+
+    SDL_WriteIO(input, "isready\n", 8);
+    SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    while (strstr(mc->output, "readyok") == NULL) {
+        SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    }
+
+    if (uci_list != NULL) {
+        for (i = 0; uci_list[i] != NULL; i++) {
+            SDL_WriteIO(input, uci_list[i], strlen(uci_list[i]));
+            SDL_WriteIO(input, "\n", 1);
+        }
+    }
+
+    mc->read_thread = SDL_CreateThread(machine_read, NULL, (void*)md);
+    while (mc->running) {
+        if (strcmp(fen, mc->fen) && mc->fen_changed) {
+            mc->fen_changed = 0;
+            snprintf(fen, FEN_LEN, "%s", mc->fen);
+            SDL_WriteIO(input, "stop\n", 5);
+            board_fen_import(&mc->board, mc->fen);
+            SDL_WriteIO(input, "position fen ", 13);
+            SDL_WriteIO(input, fen, strlen(fen));
+            SDL_WriteIO(input, "\ngo infinite\n", 13);
+        }
+        SDL_Delay(400);
+    }
+    SDL_CloseIO(input);
+    return 1;
+}
+
+void
+machine_start(WindowData* data, int index) {
+    Machine* mc = data->machine_list[index];
+    if (mc->running) {
+        return;
+    }
+    mc->fen_changed = 1;
+    machine_config_free(data);
+    machine_config_load(data);
+    machine_set_line_count(data, index);
+    machine_resize(data, index);
+
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SDL_SetPointerProperty(props, SDL_PROP_PROCESS_CREATE_ARGS_POINTER, (void*)data->conf.machine_cmd_list[index]);
+    SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER, SDL_PROCESS_STDIO_APP);
+    SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDIN_NUMBER, SDL_PROCESS_STDIO_APP);
+    SDL_SetBooleanProperty(props, SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN, true);
+    mc->process = SDL_CreateProcessWithProperties(props);
+    if (!mc->process) {
+        return;
+    }
+    MachineData* md = &mc->md;
+    md->index = index;
+    md->data = data;
+
+    board_fen_import(&mc->board, mc->fen);
+    machine_line_init(mc, &mc->board);
+    mc->running = 1;
+
+    mc->write_thread = SDL_CreateThread(machine_write, NULL, (void*)md);
+}
+
+void
+machine_stop(WindowData* data, int index) {
+    Machine* mc = data->machine_list[index];
+    if (mc->running) {
+        mc->running = 0;
+        if (!SDL_KillProcess(mc->process, false)) {
+            SDL_KillProcess(mc->process, true);
+        }
+        SDL_WaitThread(mc->read_thread, NULL);
+        SDL_WaitThread(mc->write_thread, NULL);
+        machine_line_free(mc);
+        SDL_DestroyProcess(mc->process);
+    }
+}
