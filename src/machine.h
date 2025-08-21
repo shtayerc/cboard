@@ -2,6 +2,7 @@
 #define _MACHINE_H_
 
 #include "window.h"
+#include "subprocess.h"
 
 typedef struct WindowData WindowData;
 
@@ -14,16 +15,13 @@ typedef struct Machine Machine;
 
 struct Machine {
     char output[MACHINE_OUTPUT_LEN];
-    int running;
     Variation* line;
     int line_count;
     int* depth;
     UciScoreType* type;
     int* score;
     char fen[FEN_LEN];
-    SDL_Process* process;
-    SDL_Thread* read_thread;
-    SDL_Thread* write_thread;
+    Subprocess sp;
     Board board;
     MachineData md;
     int fen_changed;

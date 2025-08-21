@@ -3,18 +3,16 @@
 
 #include "libs.h"
 #include "config.h"
+#include "subprocess.h"
 
 typedef struct {
     char output[BUFFER_LEN];
-    int running;
     char fen[FEN_LEN];
     char** row_list;
     int row_count;
     int fen_changed;
     int event;
-    SDL_Process* process;
-    SDL_Thread* read_thread;
-    SDL_Thread* write_thread;
+    Subprocess sp;
 } Explorer;
 
 #include "window.h"

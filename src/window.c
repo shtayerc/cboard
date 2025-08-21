@@ -108,7 +108,7 @@ window_data_init(WindowData* data) {
     explorer_init(&data->explorer);
     for (i = 0; i < MACHINE_COUNT; i++) {
         data->machine_list[i] = calloc(1, sizeof(Machine));
-        data->machine_list[i]->running = 0;
+        data->machine_list[i]->sp.running = 0;
     }
     vs_init(&data->vs);
 }

@@ -341,7 +341,7 @@ mode_normal(WindowData* data) {
                         case SDLK_M:
                             tmp = is_keymod_shift(event);
                             mc = data->machine_list[tmp];
-                            if (mc->running) {
+                            if (mc->sp.running) {
                                 machine_stop(data, tmp);
                                 mc->output[0] = '\0';
                             } else {
@@ -360,7 +360,7 @@ mode_normal(WindowData* data) {
                             tmp = is_keymod_shift(event);
                             Square src, dst;
                             mc = data->machine_list[tmp];
-                            if (mc->running) {
+                            if (mc->sp.running) {
                                 src = mc->line[0].move_list[1].src;
                                 dst = mc->line[0].move_list[1].dst;
                                 prom_piece = mc->line[0].move_list[1].prom_piece;
@@ -380,7 +380,7 @@ mode_normal(WindowData* data) {
                         case SDLK_O:
                             tmp = is_keymod_shift(event);
                             if (data->notation_mode != ModeExplorer) {
-                                if (data->explorer.running) {
+                                if (data->explorer.sp.running) {
                                     explorer_stop(data);
                                 }
                                 if (explorer_start(data, tmp)) {

@@ -19,7 +19,7 @@ explorer_init(Explorer* e) {
     e->fen_changed = 0;
     e->row_count = 0;
     e->row_list = NULL;
-    e->running = 0;
+    e->sp.running = 0;
     e->fen[0] = '\0';
     e->event = -1;
 }
@@ -57,7 +57,7 @@ explorer_position(WindowData* data) {
 
 void
 explorer_event(WindowData* data, int event, int clear) {
-    if (!data->explorer.running) {
+    if (!data->explorer.sp.running) {
         return;
     }
     if (clear) {
@@ -85,8 +85,8 @@ explorer_read(void* p) {
     WindowData* data = (WindowData*)p;
     Explorer* e = &data->explorer;
     char* joined_str = malloc(sizeof(char) * EXPLORER_BUFFER_LEN);
-    SDL_IOStream* iostream = SDL_GetProcessOutput(e->process);
-    while (e->running) {
+    SDL_IOStream* iostream = SDL_GetProcessOutput(e->sp.process);
+    while (e->sp.running) {
         memset(joined_str, 0, EXPLORER_BUFFER_LEN);
         if (SDL_ReadIO(iostream, joined_str, EXPLORER_BUFFER_LEN)) {
             explorer_parse_str(e, joined_str);
@@ -109,10 +109,10 @@ explorer_write(void* p) {
     fen[0] = '\0';
     board_fen_export(&game_move_get(&data->game)->board, e->fen);
 
-    e->running = 1;
-    e->read_thread = SDL_CreateThread(explorer_read, NULL, (void*)data);
-    SDL_IOStream* iostream = SDL_GetProcessInput(e->process);
-    while (e->running) {
+    e->sp.running = 1;
+    e->sp.read_thread = SDL_CreateThread(explorer_read, NULL, (void*)data);
+    SDL_IOStream* iostream = SDL_GetProcessInput(e->sp.process);
+    while (e->sp.running) {
         if (strcmp(fen, e->fen) && e->fen_changed) {
             e->fen_changed = 0;
             snprintf(fen, FEN_LEN, "fen %s\n", e->fen);
@@ -131,7 +131,7 @@ explorer_write(void* p) {
 int
 explorer_start(WindowData* data, int index) {
     Explorer* e = &data->explorer;
-    if (e->running) {
+    if (e->sp.running) {
         return 0;
     }
 
@@ -144,31 +144,15 @@ explorer_start(WindowData* data, int index) {
 
     e->fen_changed = 1;
 
-    SDL_PropertiesID props = SDL_CreateProperties();
-    const char* args[] = {data->conf.explorer_exe_list[index], NULL};
-    SDL_SetPointerProperty(props, SDL_PROP_PROCESS_CREATE_ARGS_POINTER, (void*)args);
-    SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER, SDL_PROCESS_STDIO_APP);
-    SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDIN_NUMBER, SDL_PROCESS_STDIO_APP);
-    SDL_SetBooleanProperty(props, SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN, true);
-    e->process = SDL_CreateProcessWithProperties(props);
-    if (!e->process) {
-        return 0;
-    }
-    e->write_thread = SDL_CreateThread(explorer_write, NULL, (void*)data);
+    char* args[] = {data->conf.explorer_exe_list[index], NULL};
+    subprocess_start(&e->sp, args);
+    e->sp.write_thread = SDL_CreateThread(explorer_write, NULL, (void*)data);
     return 1;
 }
 
 void
 explorer_stop(WindowData* data) {
     Explorer* e = &data->explorer;
-    if (e->running) {
-        e->running = 0;
-        if (!SDL_KillProcess(e->process, false)) {
-            SDL_KillProcess(e->process, true);
-        }
-        SDL_WaitThread(e->read_thread, NULL);
-        SDL_WaitThread(e->write_thread, NULL);
-        explorer_row_free(e);
-        SDL_DestroyProcess(e->process);
-    }
+    subprocess_stop(&e->sp);
+    explorer_row_free(e);
 }

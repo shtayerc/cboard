@@ -20,7 +20,7 @@ machine_draw(WindowData* data) {
     }
     for (j = 0; j < MACHINE_COUNT; j++) {
         mc = data->machine_list[j];
-        if (mc->running) {
+        if (mc->sp.running) {
             x = data->layout.machine.x;
             FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont],
                          data->conf.machine_cmd_list[j][0]);
@@ -305,7 +305,7 @@ machine_resize(WindowData* data, int index) {
     Machine* mc;
     for (i = 0; i < MACHINE_COUNT; i++) {
         mc = data->machine_list[i];
-        if (mc->running || i == index) {
+        if (mc->sp.running || i == index) {
             height += (mc->line_count + 1) * data->font_height;
         }
     }
@@ -320,7 +320,7 @@ int
 machine_running_count(WindowData* data) {
     int count = 0;
     for (int i = 0; i < MACHINE_COUNT; i++) {
-        if (data->machine_list[i]->running) {
+        if (data->machine_list[i]->sp.running) {
             count++;
         }
     }
@@ -332,9 +332,9 @@ machine_read(void* p) {
     MachineData* md = (MachineData*)p;
     WindowData* data = (WindowData*)md->data;
     Machine* mc = data->machine_list[md->index];
-    SDL_IOStream* iostream = SDL_GetProcessOutput(mc->process);
+    SDL_IOStream* iostream = SDL_GetProcessOutput(mc->sp.process);
 
-    while (mc->running) {
+    while (mc->sp.running) {
         if (SDL_ReadIO(iostream, mc->output, MACHINE_OUTPUT_LEN)) {
             if (strstr(mc->output, "multipv") == NULL) {
                 continue;
@@ -357,8 +357,8 @@ machine_write(void* p) {
     int i;
     fen[0] = '\0';
 
-    SDL_IOStream* output = SDL_GetProcessOutput(mc->process);
-    SDL_IOStream* input = SDL_GetProcessInput(mc->process);
+    SDL_IOStream* output = SDL_GetProcessOutput(mc->sp.process);
+    SDL_IOStream* input = SDL_GetProcessInput(mc->sp.process);
     SDL_WriteIO(input, "uci\n", 4);
     SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
     while (strstr(mc->output, "uciok") == NULL) {
@@ -378,8 +378,8 @@ machine_write(void* p) {
         }
     }
 
-    mc->read_thread = SDL_CreateThread(machine_read, NULL, (void*)md);
-    while (mc->running) {
+    mc->sp.read_thread = SDL_CreateThread(machine_read, NULL, (void*)md);
+    while (mc->sp.running) {
         if (strcmp(fen, mc->fen) && mc->fen_changed) {
             mc->fen_changed = 0;
             snprintf(fen, FEN_LEN, "%s", mc->fen);
@@ -398,7 +398,7 @@ machine_write(void* p) {
 void
 machine_start(WindowData* data, int index) {
     Machine* mc = data->machine_list[index];
-    if (mc->running) {
+    if (mc->sp.running) {
         return;
     }
     mc->fen_changed = 1;
@@ -407,37 +407,20 @@ machine_start(WindowData* data, int index) {
     machine_set_line_count(data, index);
     machine_resize(data, index);
 
-    SDL_PropertiesID props = SDL_CreateProperties();
-    SDL_SetPointerProperty(props, SDL_PROP_PROCESS_CREATE_ARGS_POINTER, (void*)data->conf.machine_cmd_list[index]);
-    SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER, SDL_PROCESS_STDIO_APP);
-    SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDIN_NUMBER, SDL_PROCESS_STDIO_APP);
-    SDL_SetBooleanProperty(props, SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN, true);
-    mc->process = SDL_CreateProcessWithProperties(props);
-    if (!mc->process) {
-        return;
-    }
+    subprocess_start(&mc->sp, data->conf.machine_cmd_list[index]);
     MachineData* md = &mc->md;
     md->index = index;
     md->data = data;
 
     board_fen_import(&mc->board, mc->fen);
     machine_line_init(mc, &mc->board);
-    mc->running = 1;
-
-    mc->write_thread = SDL_CreateThread(machine_write, NULL, (void*)md);
+    mc->sp.running = 1;
+    mc->sp.write_thread = SDL_CreateThread(machine_write, NULL, (void*)md);
 }
 
 void
 machine_stop(WindowData* data, int index) {
     Machine* mc = data->machine_list[index];
-    if (mc->running) {
-        mc->running = 0;
-        if (!SDL_KillProcess(mc->process, false)) {
-            SDL_KillProcess(mc->process, true);
-        }
-        SDL_WaitThread(mc->read_thread, NULL);
-        SDL_WaitThread(mc->write_thread, NULL);
-        machine_line_free(mc);
-        SDL_DestroyProcess(mc->process);
-    }
+    subprocess_stop(&mc->sp);
+    machine_line_free(mc);
 }
