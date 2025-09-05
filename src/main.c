@@ -160,6 +160,8 @@ main(int argc, char* argv[]) {
     }
 
     window_open(&data);
+    window_set_title(&data);
+    window_update_title(&data);
     if (tmp_event != NULL) {
         SDL_PushEvent(tmp_event);
         free(tmp_event);
