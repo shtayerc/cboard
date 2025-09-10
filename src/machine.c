@@ -100,10 +100,22 @@ machine_line_free(Machine* m) {
         variation_free(&m->line[i]);
     }
     m->line_count = 0;
-    free(m->line);
-    free(m->depth);
-    free(m->type);
-    free(m->score);
+    if (m->line != NULL) {
+        free(m->line);
+        m->line = NULL;
+    }
+    if (m->depth != NULL) {
+        free(m->depth);
+        m->depth = NULL;
+    }
+    if (m->type != NULL) {
+        free(m->type);
+        m->type = NULL;
+    }
+    if (m->score != NULL) {
+        free(m->score);
+        m->score = NULL;
+    }
 }
 
 void
