@@ -148,6 +148,7 @@ main(int argc, char* argv[]) {
                 }
             } else {
                 tmp_event = (SDL_Event*)malloc(sizeof(SDL_Event));
+                SDL_zero(*tmp_event);
                 tmp_event->type = SDL_EVENT_KEY_UP;
                 tmp_event->key.key = SDLK_G;
                 tmp_event->key.mod = SDL_KMOD_NONE;
@@ -164,7 +165,7 @@ main(int argc, char* argv[]) {
     window_update_title(&data);
     if (tmp_event != NULL) {
         SDL_PushEvent(tmp_event);
-        free(tmp_event);
+        SDL_free(tmp_event);
     } else if (strlen(fen_find) > 0) {
         board_fen_import(&board, fen_find);
         game_board_find(&data.game, &board);

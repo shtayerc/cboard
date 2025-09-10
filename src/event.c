@@ -170,6 +170,7 @@ handle_position_change(WindowData* data) {
 void
 push_user_event() {
     SDL_Event event;
+    SDL_zero(event);
     event.type = SDL_EVENT_USER;
     SDL_PushEvent(&event);
 }
