@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.12
+chess_utils v0.9.13
 
 Copyright (c) 2024 David Murko
 
@@ -1593,13 +1593,6 @@ board_square_src_guess(Board* b, Square dst) {
     };
     // clang-format on
 
-    //dst not empty, not attacked
-    //dst not empty, attacked not with pawn
-    //dst not empty, attacked with pawn
-    //dst empty, not attacked
-    //dst empty, attacked not with pawn
-    //dst empty, attacked with pawn
-
     //dst empty, not attacked, castling
     Square src, best = none;
     Color op_color = b->turn == White ? Black : White; //opposite color
@@ -1624,7 +1617,7 @@ board_square_src_guess(Board* b, Square dst) {
             local_prio += 10;
         }
         if (!dst_is_attacked && !board_square_is_developed(b, src) && src_piece != WhiteKing && src_piece != BlackKing
-            && src_piece != WhitePawn && src_piece != BlackPawn) {
+            && src_piece != WhitePawn && src_piece != BlackPawn && src_piece != WhiteQueen && src_piece != BlackQueen) {
             local_prio += 3;
         }
         //piece is moving forward
