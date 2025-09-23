@@ -27,11 +27,12 @@ write_game(WindowData* data) {
 void
 mode_normal(WindowData* data) {
     int tmp;
-    Square square_dst;
+    Square square_dst, square_tmp;
     Piece prom_piece;
     Status status;
     SDL_Event event;
     Machine* mc;
+    Board b;
 
     while (data->loop) {
         //WaitEvent is using way less CPU (on PoolEvent was 100%)
@@ -42,8 +43,10 @@ mode_normal(WindowData* data) {
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         data->hidden = chessboard_mouse_square(data);
-                        data->piece = data->hidden & 0x88 ? Empty
-                                                          : game_move_get(&data->game)->board.position[data->hidden];
+                        b = game_move_get(&data->game)->board;
+                        data->piece = data->hidden & 0x88 ? Empty : b.position[data->hidden];
+                        //allow only pieces for current turn
+                        data->piece = board_square_piece_color(&b, data->hidden) == b.turn ? data->piece : Empty;
                     }
                     break;
 
@@ -75,6 +78,16 @@ mode_normal(WindowData* data) {
                             data->hidden = none;
                             data->piece = Empty;
                             draw_render(data);
+                        } else {
+                            square_dst = chessboard_mouse_square(data);
+                            square_tmp = board_square_src_guess(&game_move_get(&data->game)->board, square_dst);
+                            if (square_tmp != none) {
+                                status = game_move_status(&data->game, square_tmp, square_dst, Empty);
+                                chessboard_move_do(data, square_tmp, square_dst, Empty, status);
+                                data->hidden = none;
+                                data->piece = Empty;
+                                draw_render(data);
+                            }
                         }
 
                         if (notation_click(data)) {
