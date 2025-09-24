@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.13
+chess_utils v0.9.14
 
 Copyright (c) 2024 David Murko
 
@@ -1643,6 +1643,12 @@ board_square_src_guess(Board* b, Square dst) {
         if (board_square_is_attacked(b, src, op_color) && !board_square_is_protected(b, src, b->turn)
             && !board_square_is_attacked_by_lesser_piece(b, src, op_color, src_piece)) {
             local_prio += 5;
+        }
+        //lower prio for bishop before central pawns
+        if ((src_piece == WhiteBishop && ((dst == e3 && b->position[e2] == WhitePawn) || (dst == d3 && b->position[d2] == WhitePawn)))
+            || (src_piece == BlackBishop && ((dst == e6 && b->position[e7] == BlackPawn) || (dst == d6 && b->position[d7] == BlackPawn)))
+        ) {
+            local_prio = 2;
         }
 
         if (best == none || local_prio > best_prio) {
