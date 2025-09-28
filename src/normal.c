@@ -52,7 +52,16 @@ mode_normal(WindowData* data) {
 
                 case SDL_EVENT_MOUSE_BUTTON_UP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
-                        if (data->piece != Empty) {
+                        if (notation_click(data)) {
+                            int ind = notation_coord_index_click(data);
+                            if (ind != -1) {
+                                data->game.line_current = nt_move_coords[ind].variation;
+                                game_move_index_set(&data->game, nt_move_coords[ind].index);
+                                data->hidden = none;
+                                handle_position_change(data);
+                                draw_render(data);
+                            }
+                        } else if (data->piece != Empty) {
                             square_dst = chessboard_mouse_square(data);
                             status = square_dst != none ? game_move_status(&data->game, data->hidden, square_dst, Empty)
                                                         : Invalid;
@@ -90,16 +99,6 @@ mode_normal(WindowData* data) {
                             }
                         }
 
-                        if (notation_click(data)) {
-                            int ind = notation_coord_index_click(data);
-                            if (ind != -1) {
-                                data->game.line_current = nt_move_coords[ind].variation;
-                                game_move_index_set(&data->game, nt_move_coords[ind].index);
-                                data->hidden = none;
-                                handle_position_change(data);
-                                draw_render(data);
-                            }
-                        }
                     }
                     break;
 
