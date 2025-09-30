@@ -94,6 +94,12 @@ typedef enum {
     ModeCustomText,
 } NotationMode;
 
+typedef enum {
+    ModeMachine,
+    ModeHidden,
+    ModeComment,
+} MachineMode;
+
 typedef struct WindowData WindowData;
 typedef struct Machine Machine;
 
@@ -113,7 +119,7 @@ struct WindowData {
     Scroll notation_scroll;
     NotationMode notation_mode;
     Scroll game_list_scroll;
-    int machine_hidden;
+    MachineMode machine_mode;
     int loop;
     int from_game_list;
     StatusLine status;

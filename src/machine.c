@@ -14,10 +14,24 @@ machine_draw(WindowData* data) {
     SDL_FRect frect;
     SDL_RectToFRect(&data->layout.machine, &frect);
     SDL_RenderFillRect(data->renderer, &frect);
-    if (data->machine_hidden) {
-        FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont], "Machine data is hidden");
-        return;
+    char* comment;
+    switch (data->machine_mode) {
+        case ModeHidden:
+            FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont],
+                         "Machine data is hidden");
+            return;
+
+        case ModeComment:
+            comment = game_move_get(&data->game)->comment;
+            if (comment) {
+                FC_DrawBoxColor(data->font, data->renderer, (FC_Rect)data->layout.machine,
+                                data->conf.colors[ColorCommentFont], comment);
+            }
+            return;
+
+        case ModeMachine: break;
     }
+
     for (j = 0; j < MACHINE_COUNT; j++) {
         mc = data->machine_list[j];
         if (mc->sp.running) {

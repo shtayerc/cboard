@@ -92,7 +92,7 @@ window_data_init(WindowData* data) {
     data->game_list_sort_direction = calloc(TAG_LEN, sizeof(char));
     snprintf(data->game_list_sort_direction, TAG_LEN, "Desc");
     game_list_current_init(data);
-    data->machine_hidden = 0;
+    data->machine_mode = ModeComment;
     undo_init(data->undo_list);
     data->undo_current = -1;
     undo_init(data->redo_list);
@@ -118,7 +118,7 @@ window_open(WindowData* data) {
     SDL_InitSubSystem(SDL_INIT_VIDEO);
     const SDL_DisplayMode* dm = NULL;
     int i, num_displays = 0;
-    SDL_DisplayID *displays = SDL_GetDisplays(&num_displays);
+    SDL_DisplayID* displays = SDL_GetDisplays(&num_displays);
     if (displays) {
         for (i = 0; i < num_displays; ++i) {
             SDL_DisplayID instance_id = displays[i];
@@ -128,7 +128,7 @@ window_open(WindowData* data) {
         SDL_free(displays);
     }
     data->window = SDL_CreateWindow(data->conf.window_title, dm->w, dm->h,
-                SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
+                                    SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
     SDL_EnableScreenSaver();
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width, data->conf.minimal_height);
@@ -143,8 +143,8 @@ font_init(WindowData* data) {
     if (!file_exists(data->conf.font_path)) {
         data->conf.font_path = FALLBACK_PATH "/DejaVuSansCondensed.ttf";
     }
-    FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->font_size,
-                data->conf.colors[ColorStatusFont], TTF_STYLE_NORMAL);
+    FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->font_size, data->conf.colors[ColorStatusFont],
+                TTF_STYLE_NORMAL);
     data->font_height = FC_GetLineHeight(data->font);
 }
 
@@ -155,7 +155,8 @@ font_free(WindowData* data) {
     }
 }
 
-void font_resize(WindowData* data, int step) {
+void
+font_resize(WindowData* data, int step) {
     data->font_size += step;
     font_free(data);
     font_init(data);
@@ -231,26 +232,23 @@ window_resize(WindowData* data, int width, int height) {
 }
 
 void
-window_set_title(WindowData* data)
-{
+window_set_title(WindowData* data) {
     snprintf(data->conf.window_title, WINDOW_TITLE_LEN, "%s %s", WINDOW_TITLE_PREFIX, data->filename);
 }
 
 void
-window_update_title(WindowData* data)
-{
+window_update_title(WindowData* data) {
     SDL_SetWindowTitle(data->window, data->conf.window_title);
 }
 
 void
-window_calculate_content_size(WindowData* data)
-{
+window_calculate_content_size(WindowData* data) {
     int h, w, font_size;
     SDL_GetWindowSize(data->window, &w, &h);
     data->conf.square_size = (w / 2) / 9;
     font_size = SDL_lround(data->conf.square_size / 5);
     font_size = font_size - (font_size % FONT_STEP); //keep it in FONT_STEP
-    font_resize(data, font_size - data->font_size); //calculate step
+    font_resize(data, font_size - data->font_size);  //calculate step
     window_resize(data, w, h);
 }
 

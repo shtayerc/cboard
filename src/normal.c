@@ -98,7 +98,6 @@ mode_normal(WindowData* data) {
                                 draw_render(data);
                             }
                         }
-
                     }
                     break;
 
@@ -357,10 +356,14 @@ mode_normal(WindowData* data) {
                                 machine_stop(data, tmp);
                                 mc->output[0] = '\0';
                             } else {
+                                if (data->machine_mode == ModeComment) {
+                                    data->machine_mode = ModeMachine;
+                                }
                                 machine_start(data, tmp);
                                 SDL_DisableScreenSaver();
                             }
                             if (!machine_running_count(data)) {
+                                data->machine_mode = ModeComment;
                                 SDL_EnableScreenSaver();
                             }
                             draw_render(data);
@@ -385,7 +388,11 @@ mode_normal(WindowData* data) {
                             break;
 
                         case SDLK_B:
-                            data->machine_hidden = !data->machine_hidden;
+                            if (data->machine_mode == ModeMachine) {
+                                data->machine_mode = ModeHidden;
+                            } else if (data->machine_mode == ModeHidden) {
+                                data->machine_mode = ModeMachine;
+                            }
                             draw_render(data);
                             break;
 
