@@ -88,15 +88,16 @@ mode_normal(WindowData* data) {
                             data->piece = Empty;
                             draw_render(data);
                         } else {
+                            b = game_move_get(&data->game)->board;
                             square_dst = chessboard_mouse_square(data);
-                            square_tmp = board_square_src_guess(&game_move_get(&data->game)->board, square_dst);
+                            square_tmp = board_square_src_guess(&b, square_dst);
                             if (square_tmp != none) {
                                 status = game_move_status(&data->game, square_tmp, square_dst, Empty);
                                 chessboard_move_do(data, square_tmp, square_dst, Empty, status);
-                                data->hidden = none;
-                                data->piece = Empty;
-                                draw_render(data);
                             }
+                            data->hidden = none;
+                            data->piece = Empty;
+                            draw_render(data);
                         }
                     }
                     break;
