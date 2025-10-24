@@ -182,10 +182,10 @@ is_keymod(SDL_Event event, int mod) {
 
 int
 is_keymod_shift(SDL_Event event) {
-    return event.key.mod & (SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT);
+    return !!event.key.mod & (SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT);
 }
 
 int
 is_keymod_ctrl(SDL_Event event) {
-    return event.key.mod & (SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT);
+    return !!event.key.mod & (SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT);
 }
