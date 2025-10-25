@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.14
+chess_utils v0.9.15
 
 Copyright (c) 2024 David Murko
 
@@ -1535,7 +1535,10 @@ int
 board_square_is_developed(Board* b, Square sq) {
     Board starting;
     board_fen_import(&starting, FEN_DEFAULT);
-    return b->position[sq] != starting.position[sq];
+    return b->position[sq] != starting.position[sq]
+    //lets asume that queenside castle has rook developed
+    && !(b->position[sq] == WhiteRook && b->position[g1] == WhiteKing)
+    && !(b->position[sq] == BlackRook && b->position[g8] == BlackKing);
 }
 
 int
@@ -1628,6 +1631,11 @@ board_square_src_guess(Board* b, Square dst) {
         if (board_square_is_attacked_by_lesser_piece(b, src, op_color, src_piece) && de) {
             local_prio += 5;
         }
+
+        if (board_square_is_attacked_by_pawn(b, src, op_color) && src_piece != WhitePawn && src_piece != BlackPawn && de) {
+            local_prio += 5;
+        }
+
         //open up bishop has priority over take to the center
         if ((src_piece == WhitePawn || src_piece == BlackPawn)
             && ((src == d7 && dst == c6) || (src == e7 && dst == f6) || (src == d2 && dst == c3)
