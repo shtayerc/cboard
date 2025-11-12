@@ -1,8 +1,6 @@
 #ifndef _SCROLL_H_
 #define _SCROLL_H_
 
-#include <stdlib.h>
-
 typedef struct {
     int value;
     int step;

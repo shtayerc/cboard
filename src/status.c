@@ -16,8 +16,8 @@ mode_filename_edit(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, data->filename, data->conf.status_max_len);
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             f = fopen(data->filename, "r");
                             if (f == NULL) {
@@ -56,12 +56,12 @@ mode_number_edit(WindowData* data) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
             //textinput event needs special treatment
-            if (event.type != SDL_TEXTINPUT) {
+            if (event.type != SDL_EVENT_TEXT_INPUT) {
                 handle_input_events(&event, data, &loop, &pos, data->number, data->conf.number_len);
             }
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             strtol(data->number, &non_int, 10);
                             if ((strcmp(non_int, "") && strcmp(data->number, "a")) || U8_strlen(data->number) == 0) {
@@ -72,7 +72,7 @@ mode_number_edit(WindowData* data) {
                     }
                     break;
 
-                case SDL_TEXTINPUT:
+                case SDL_EVENT_TEXT_INPUT:
                     if (strchr("0123456789", event.text.text[0])
                         || (U8_strlen(data->number) == U8_strlen(data->conf.cursor) && event.text.text[0] == 'a')) {
                         textedit_input(&pos, data->number, data->conf.number_len, data, event.text.text);
@@ -93,10 +93,10 @@ mode_confirm(WindowData* data, const char* msg) {
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             switch (event.type) {
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
-                        case SDLK_y:
-                        case SDLK_z: return 1;
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
+                        case SDLK_Y:
+                        case SDLK_Z: return 1;
 
                         default: loop = 0; break;
                     }
@@ -113,7 +113,9 @@ void
 status_draw(WindowData* data) {
     SDL_Color c = data->conf.colors[ColorStatusBackground];
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.status);
+    SDL_FRect frect;
+    SDL_RectToFRect(&data->layout.status, &frect);
+    SDL_RenderFillRect(data->renderer, &frect);
     FC_DrawColor(data->font, data->renderer, data->layout.status.x + STATUS_PADDING_LEFT, data->layout.status.y,
                  data->conf.colors[ColorStatusFont], "%s %s[%s] %s", data->status.mode, data->filename,
                  data->number, data->status.info);

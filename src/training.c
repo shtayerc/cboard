@@ -20,7 +20,7 @@ void
 training_next(WindowData* data, Variation* v, int move_number, Color color) {
     VariationSequence vs_tmp;
     if (data->ts.vs_count == data->ts.vs_current) {
-        message_add(data, NULL, "End of variation");
+        message_add(data, "End of variation");
         return;
     }
     data->game.line_current = v;
@@ -75,7 +75,7 @@ mode_training(WindowData* data) {
             handle_global_events(&event, data, &loop, 1);
             handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
             switch (event.type) {
-                case SDL_MOUSEBUTTONDOWN:
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         data->hidden = chessboard_mouse_square(data);
                         data->piece = data->hidden & 0x88 ? Empty
@@ -83,7 +83,7 @@ mode_training(WindowData* data) {
                     }
                     break;
 
-                case SDL_MOUSEBUTTONUP:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         if (data->piece != Empty) {
                             dst = chessboard_mouse_square(data);
@@ -98,7 +98,7 @@ mode_training(WindowData* data) {
                     }
                     break;
 
-                case SDL_MOUSEWHEEL:
+                case SDL_EVENT_MOUSE_WHEEL:
                     if (event.wheel.y > 0) { //scroll up
                         training_repeat(data, v, move_number);
                     } else if (event.wheel.y < 0) { //scroll down
@@ -106,8 +106,8 @@ mode_training(WindowData* data) {
                     }
                     draw_render(data);
                     break;
-                case SDL_KEYUP:
-                    switch (event.key.keysym.sym) {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             data->notation_mode = ModeMoves;
                             data->status.info[0] = '\0';
@@ -173,7 +173,7 @@ mode_training(WindowData* data) {
                     }
                     break;
 
-                case SDL_USEREVENT: draw_render(data); break;
+                case SDL_EVENT_USER: draw_render(data); break;
             }
         }
     }

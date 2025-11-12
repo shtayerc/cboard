@@ -1,10 +1,7 @@
 #ifndef _WINDOW_H_
 #define _WINDOW_H_
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include "SDL_FontCache.h"
-#include "chess_utils.h"
+#include "libs.h"
 #include "config.h"
 #include "explorer.h"
 #include "game_list.h"
@@ -97,6 +94,12 @@ typedef enum {
     ModeCustomText,
 } NotationMode;
 
+typedef enum {
+    ModeMachine,
+    ModeHidden,
+    ModeComment,
+} MachineMode;
+
 typedef struct WindowData WindowData;
 typedef struct Machine Machine;
 
@@ -116,7 +119,7 @@ struct WindowData {
     Scroll notation_scroll;
     NotationMode notation_mode;
     Scroll game_list_scroll;
-    int machine_hidden;
+    MachineMode machine_mode;
     int loop;
     int from_game_list;
     StatusLine status;
@@ -134,7 +137,7 @@ struct WindowData {
     Rotation rotation;
     int font_size;
     int message;
-    unsigned int message_timestamp;
+    SDL_TimerID message_timer;
     Piece piece;
     Square hidden;
     Explorer explorer;

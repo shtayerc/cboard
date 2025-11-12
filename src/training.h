@@ -1,10 +1,7 @@
 #ifndef TRAINING_H_
 #define TRAINING_H_
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include "SDL_FontCache.h"
-#include "chess_utils.h"
+#include "libs.h"
 
 typedef struct {
     int vs_index;

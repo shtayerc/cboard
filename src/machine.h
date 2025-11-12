@@ -2,11 +2,7 @@
 #define _MACHINE_H_
 
 #include "window.h"
-#ifdef _WIN32
-#include "machine_win.h"
-#else
-#include "machine_unix.h"
-#endif
+#include "subprocess.h"
 
 typedef struct WindowData WindowData;
 
@@ -19,22 +15,13 @@ typedef struct Machine Machine;
 
 struct Machine {
     char output[MACHINE_OUTPUT_LEN];
-    int running;
     Variation* line;
     int line_count;
     int* depth;
     UciScoreType* type;
     int* score;
     char fen[FEN_LEN];
-#ifdef _WIN32
-    HANDLE fd_input;
-    HANDLE fd_output;
-    HANDLE pid;
-#else
-    int fd_input;
-    int fd_output;
-    int pid;
-#endif
+    Subprocess sp;
     Board board;
     MachineData md;
     int fen_changed;
@@ -50,5 +37,9 @@ void machine_config_free(WindowData* data);
 void machine_set_line_count(WindowData* data, int index);
 void machine_resize(WindowData* data, int index);
 int machine_running_count(WindowData* data);
+int machine_read(void* p);
+int machine_write(void* p);
+void machine_start(WindowData* data, int index);
+void machine_stop(WindowData* data, int index);
 
 #endif

@@ -1,10 +1,7 @@
 #ifndef _EVENT_H_
 #define _EVENT_H_
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include "SDL_FontCache.h"
-#include "chess_utils.h"
+#include "libs.h"
 #include "chessboard.h"
 #include "message.h"
 #include "textedit.h"

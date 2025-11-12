@@ -11,14 +11,30 @@ machine_draw(WindowData* data) {
     int max_len = data->layout.machine.w + data->layout.machine.x;
     SDL_Color c = data->conf.colors[ColorMachineBackground];
     SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &data->layout.machine);
-    if (data->machine_hidden) {
-        FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont], "Machine data is hidden");
-        return;
+    SDL_FRect frect;
+    SDL_RectToFRect(&data->layout.machine, &frect);
+    SDL_RenderFillRect(data->renderer, &frect);
+    char* comment;
+    switch (data->machine_mode) {
+        case ModeHidden:
+            FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont],
+                         "Machine data is hidden");
+            return;
+
+        case ModeComment:
+            comment = game_move_get(&data->game)->comment;
+            if (comment) {
+                FC_DrawBoxColor(data->font, data->renderer, (FC_Rect)data->layout.machine,
+                                data->conf.colors[ColorCommentFont], comment);
+            }
+            return;
+
+        case ModeMachine: break;
     }
+
     for (j = 0; j < MACHINE_COUNT; j++) {
         mc = data->machine_list[j];
-        if (mc->running) {
+        if (mc->sp.running) {
             x = data->layout.machine.x;
             FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont],
                          data->conf.machine_cmd_list[j][0]);
@@ -98,10 +114,22 @@ machine_line_free(Machine* m) {
         variation_free(&m->line[i]);
     }
     m->line_count = 0;
-    free(m->line);
-    free(m->depth);
-    free(m->type);
-    free(m->score);
+    if (m->line != NULL) {
+        free(m->line);
+        m->line = NULL;
+    }
+    if (m->depth != NULL) {
+        free(m->depth);
+        m->depth = NULL;
+    }
+    if (m->type != NULL) {
+        free(m->type);
+        m->type = NULL;
+    }
+    if (m->score != NULL) {
+        free(m->score);
+        m->score = NULL;
+    }
 }
 
 void
@@ -303,7 +331,7 @@ machine_resize(WindowData* data, int index) {
     Machine* mc;
     for (i = 0; i < MACHINE_COUNT; i++) {
         mc = data->machine_list[i];
-        if (mc->running || i == index) {
+        if (mc->sp.running || i == index) {
             height += (mc->line_count + 1) * data->font_height;
         }
     }
@@ -318,9 +346,107 @@ int
 machine_running_count(WindowData* data) {
     int count = 0;
     for (int i = 0; i < MACHINE_COUNT; i++) {
-        if (data->machine_list[i]->running) {
+        if (data->machine_list[i]->sp.running) {
             count++;
         }
     }
     return count;
+}
+
+int
+machine_read(void* p) {
+    MachineData* md = (MachineData*)p;
+    WindowData* data = (WindowData*)md->data;
+    Machine* mc = data->machine_list[md->index];
+    SDL_IOStream* iostream = SDL_GetProcessOutput(mc->sp.process);
+
+    while (mc->sp.running) {
+        if (SDL_ReadIO(iostream, mc->output, MACHINE_OUTPUT_LEN)) {
+            if (strstr(mc->output, "multipv") == NULL) {
+                continue;
+            }
+            machine_line_parse(data, md->index);
+            push_user_event();
+        }
+    }
+    SDL_CloseIO(iostream);
+    return 1;
+}
+
+int
+machine_write(void* p) {
+    MachineData* md = (MachineData*)p;
+    WindowData* data = (WindowData*)md->data;
+    Machine* mc = data->machine_list[md->index];
+    char** uci_list = data->conf.machine_uci_list[md->index];
+    char fen[FEN_LEN];
+    int i;
+    fen[0] = '\0';
+
+    SDL_IOStream* output = SDL_GetProcessOutput(mc->sp.process);
+    SDL_IOStream* input = SDL_GetProcessInput(mc->sp.process);
+    SDL_WriteIO(input, "uci\n", 4);
+    SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    while (strstr(mc->output, "uciok") == NULL) {
+        SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    }
+
+    SDL_WriteIO(input, "isready\n", 8);
+    SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    while (strstr(mc->output, "readyok") == NULL) {
+        SDL_ReadIO(output, mc->output, MACHINE_OUTPUT_LEN);
+    }
+
+    if (uci_list != NULL) {
+        for (i = 0; uci_list[i] != NULL; i++) {
+            SDL_WriteIO(input, uci_list[i], strlen(uci_list[i]));
+            SDL_WriteIO(input, "\n", 1);
+        }
+    }
+
+    mc->sp.read_thread = SDL_CreateThread(machine_read, NULL, (void*)md);
+    while (mc->sp.running) {
+        if (strcmp(fen, mc->fen) && mc->fen_changed) {
+            mc->fen_changed = 0;
+            snprintf(fen, FEN_LEN, "%s", mc->fen);
+            SDL_WriteIO(input, "stop\n", 5);
+            board_fen_import(&mc->board, mc->fen);
+            SDL_WriteIO(input, "position fen ", 13);
+            SDL_WriteIO(input, fen, strlen(fen));
+            SDL_WriteIO(input, "\ngo infinite\n", 13);
+        }
+        SDL_Delay(400);
+    }
+    SDL_CloseIO(input);
+    return 1;
+}
+
+void
+machine_start(WindowData* data, int index) {
+    Machine* mc = data->machine_list[index];
+    if (mc->sp.running) {
+        return;
+    }
+    mc->fen_changed = 1;
+    machine_config_free(data);
+    machine_config_load(data);
+    machine_set_line_count(data, index);
+    machine_resize(data, index);
+
+    subprocess_start(&mc->sp, data->conf.machine_cmd_list[index]);
+    MachineData* md = &mc->md;
+    md->index = index;
+    md->data = data;
+
+    board_fen_import(&mc->board, mc->fen);
+    machine_line_init(mc, &mc->board);
+    mc->sp.running = 1;
+    mc->sp.write_thread = SDL_CreateThread(machine_write, NULL, (void*)md);
+}
+
+void
+machine_stop(WindowData* data, int index) {
+    Machine* mc = data->machine_list[index];
+    subprocess_stop(&mc->sp);
+    machine_line_free(mc);
 }

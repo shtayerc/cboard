@@ -1,7 +1,7 @@
 #ifndef _NOTATION_H_
 #define _NOTATION_H_
 
-#include "chess_utils.h"
+#include "libs.h"
 #include "event.h"
 #include "nag.h"
 #include "window.h"

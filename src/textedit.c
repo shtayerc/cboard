@@ -10,6 +10,7 @@ cursor_remove(int* pos, char* str) {
 
 void
 cursor_add(int* pos, char* str, int len, WindowData* data) {
+    SDL_StartTextInput(data->window);
     U8_strinsert(str, *pos == U8_strlen(str) ? -1 : *pos, data->conf.cursor, len);
 }
 
@@ -54,7 +55,7 @@ textedit_right(int* pos, char* str, int len, WindowData* data) {
 }
 
 void
-textedit_input(int* pos, char* str, int len, WindowData* data, char* val) {
+textedit_input(int* pos, char* str, int len, WindowData* data, const char* val) {
     cursor_remove(pos, str);
     U8_strinsert(str, (U8_strlen(str) == *pos ? -1 : *pos), val, len);
     (*pos)++;

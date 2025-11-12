@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.11
+chess_utils v0.9.15
 
 Copyright (c) 2024 David Murko
 
@@ -104,7 +104,7 @@ typedef enum { Invalid, Valid, Castling, EnPassant, Promotion } Status;
 
 typedef enum { Centipawn, Mate, NoType = -1 } UciScoreType;
 
-typedef enum { OperatorEquals, OperatorContains, OperatorGreater, OperatorLower, OperatorNone} TagFilterOperator;
+typedef enum { OperatorEquals, OperatorContains, OperatorGreater, OperatorLower, OperatorNone } TagFilterOperator;
 
 typedef enum { SortAscending, SortDescending, SortNone } SortDirection;
 
@@ -367,6 +367,36 @@ void board_square_set(Board* b, Square sq, Piece piece);
 
 //returns 1 if Square is attacked by piece of given Color
 int board_square_is_attacked(Board* b, Square sq, Color color);
+
+//returns 1 if Square is attacked by pawn of given Color
+int board_square_is_attacked_by_pawn(Board* b, Square sq, Color color);
+
+//returns 1 if Square is attacked by knight of given Color
+int board_square_is_attacked_by_knight(Board* b, Square sq, Color color);
+
+//returns 1 if Square is attacked by bishop of given Color
+int board_square_is_attacked_by_bishop(Board* b, Square sq, Color color);
+
+//returns 1 if Square is attacked by rook of given Color
+int board_square_is_attacked_by_rook(Board* b, Square sq, Color color);
+
+//returns 1 if Square is attacked by piece worth less than given piece
+int board_square_is_attacked_by_lesser_piece(Board* b, Square sq, Color color, Piece piece);
+
+//returns 1 if piece on given Square is not on its starting position
+int board_square_is_developed(Board* b, Square sq);
+
+//returns 1 if piece on given Square is attacked by any piece of same color
+int board_square_is_protected(Board* b, Square sq, Color color);
+
+//returns valid src for given dst square.
+//i should start at 0 and is set to allow looping
+//status is set for found src
+Square board_square_src_find(Board* b, Square sq, int* i, Status* s);
+
+//returns square of valid move or none
+//guess from given board state and dst square
+Square board_square_src_guess(Board* b, Square dst);
 
 //returns 1 if player on turn is in check
 int board_is_check(Board* b);
@@ -672,7 +702,7 @@ void game_list_add(GameList* gl, GameRow* gr);
 
 void game_list_sort(GameList* gl, const char* key, SortDirection sort);
 
-void game_list_filter(GameList* gl, GameList *new_gl);
+void game_list_filter(GameList* gl, GameList* new_gl);
 
 //add new or set existing TagFilter in GameList with given parameters.
 //GameList.filter_list TagFilterList is lazily initialized.
@@ -1215,8 +1245,7 @@ tag_list_filter_is_valid(TagList* tl, TagFilterList* tfl) {
                     }
                     break;
 
-                default:
-                    return 0;
+                default: return 0;
             }
         }
     }
@@ -1344,23 +1373,15 @@ int
 board_square_is_attacked(Board* b, Square sq, Color color) {
     int i;
     Square src;
-    Piece pawn = (color == White) ? WhitePawn : BlackPawn;
-    // While trying to find square where pawn came from the offset is opposite
-    OffsetIndex pawn_offset = (color == White) ? OffsetBlackPawn : OffsetWhitePawn;
-    Piece bishop = (color == White) ? WhiteBishop : BlackBishop;
-    Piece rook = (color == White) ? WhiteRook : BlackRook;
     Piece queen = (color == White) ? WhiteQueen : BlackQueen;
     Piece king = (color == White) ? WhiteKing : BlackKing;
 
-    for (i = 0; piece_offset[OffsetKnight][i] != 0; i++) {
-        src = (Square)(sq + piece_offset[OffsetKnight][i]);
-        if (src & 0x88) {
-            continue;
-        }
+    if (board_square_is_attacked_by_knight(b, sq, color)) {
+        return 1;
+    }
 
-        if (board_move_knight_is_valid(b, src, sq, color)) {
-            return 1;
-        }
+    if (board_square_is_attacked_by_bishop(b, sq, color)) {
+        return 1;
     }
 
     for (i = 0; piece_offset[OffsetBishop][i] != 0; i++) {
@@ -1373,7 +1394,7 @@ board_square_is_attacked(Board* b, Square sq, Color color) {
             if (!board_move_pattern_bishop_is_valid(b, src, sq, color)) {
                 break;
             }
-            if (b->position[src] == bishop || b->position[src] == queen) {
+            if (b->position[src] == queen) {
                 return 1;
             }
             src = (Square)(src + piece_offset[OffsetBishop][i]);
@@ -1390,13 +1411,32 @@ board_square_is_attacked(Board* b, Square sq, Color color) {
             if (!board_move_pattern_rook_is_valid(b, src, sq, color)) {
                 break;
             }
-            if (b->position[src] == rook || b->position[src] == queen) {
+            if (b->position[src] == queen) {
                 return 1;
             }
             src = (Square)(src + piece_offset[OffsetRook][i]);
         }
     }
-    for (i = 2; piece_offset[pawn_offset][i] != 0; i++) {
+
+    if (board_square_is_attacked_by_rook(b, sq, color)) {
+        return 1;
+    }
+
+    if (board_square_is_attacked_by_pawn(b, sq, color)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int
+board_square_is_attacked_by_pawn(Board* b, Square sq, Color color) {
+    Square src;
+    Piece pawn = (color == White) ? WhitePawn : BlackPawn;
+    // While trying to find square where pawn came from the offset is opposite
+    OffsetIndex pawn_offset = (color == White) ? OffsetBlackPawn : OffsetWhitePawn;
+
+    for (int i = 2; piece_offset[pawn_offset][i] != 0; i++) {
         src = (Square)(sq + piece_offset[pawn_offset][i]);
         if (src & 0x88) {
             continue;
@@ -1406,8 +1446,226 @@ board_square_is_attacked(Board* b, Square sq, Color color) {
             return 1;
         }
     }
-
     return 0;
+}
+
+int
+board_square_is_attacked_by_knight(Board* b, Square sq, Color color) {
+    Square src;
+    for (int i = 0; piece_offset[OffsetKnight][i] != 0; i++) {
+        src = (Square)(sq + piece_offset[OffsetKnight][i]);
+        if (src & 0x88) {
+            continue;
+        }
+
+        if (board_move_knight_is_valid(b, src, sq, color)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int
+board_square_is_attacked_by_bishop(Board* b, Square sq, Color color) {
+    Square src;
+    Piece bishop = (color == White) ? WhiteBishop : BlackBishop;
+    for (int i = 0; piece_offset[OffsetBishop][i] != 0; i++) {
+        src = (Square)(sq + piece_offset[OffsetBishop][i]);
+        while (!(src & 0x88)) {
+            if (!board_move_pattern_bishop_is_valid(b, src, sq, color)) {
+                break;
+            }
+            if (b->position[src] == bishop) {
+                return 1;
+            }
+            src = (Square)(src + piece_offset[OffsetBishop][i]);
+        }
+    }
+    return 0;
+}
+
+int
+board_square_is_attacked_by_rook(Board* b, Square sq, Color color) {
+    Square src;
+    Piece rook = (color == White) ? WhiteRook : BlackRook;
+    for (int i = 0; piece_offset[OffsetRook][i] != 0; i++) {
+        src = (Square)(sq + piece_offset[OffsetRook][i]);
+        while (!(src & 0x88)) {
+            if (!board_move_pattern_rook_is_valid(b, src, sq, color)) {
+                break;
+            }
+            if (b->position[src] == rook) {
+                return 1;
+            }
+            src = (Square)(src + piece_offset[OffsetRook][i]);
+        }
+    }
+    return 0;
+}
+
+int
+board_square_is_attacked_by_lesser_piece(Board* b, Square sq, Color color, Piece piece) {
+    switch (piece) {
+        case WhitePawn:
+        case BlackPawn:
+        case Empty: return 0;
+
+        case WhiteQueen:
+        case BlackQueen:
+            return board_square_is_attacked_by_pawn(b, sq, color) || board_square_is_attacked_by_knight(b, sq, color)
+                   || board_square_is_attacked_by_bishop(b, sq, color)
+                   || board_square_is_attacked_by_rook(b, sq, color);
+
+        case WhiteRook:
+        case BlackRook:
+            return board_square_is_attacked_by_pawn(b, sq, color) || board_square_is_attacked_by_knight(b, sq, color)
+                   || board_square_is_attacked_by_bishop(b, sq, color);
+
+        case WhiteBishop:
+        case BlackBishop:
+        case WhiteKnight:
+        case BlackKnight: return board_square_is_attacked_by_pawn(b, sq, color);
+
+        case WhiteKing:
+        case BlackKing: return board_square_is_attacked(b, sq, color);
+    }
+}
+
+int
+board_square_is_developed(Board* b, Square sq) {
+    Board starting;
+    board_fen_import(&starting, FEN_DEFAULT);
+    return b->position[sq] != starting.position[sq]
+    //lets asume that queenside castle has rook developed
+    && !(b->position[sq] == WhiteRook && b->position[g1] == WhiteKing)
+    && !(b->position[sq] == BlackRook && b->position[g8] == BlackKing);
+}
+
+int
+board_square_is_protected(Board* b, Square sq, Color color) {
+    Piece tmp = b->position[sq];
+    b->position[sq] = Empty;
+    int is_protected = board_square_is_attacked(b, sq, color);
+    b->position[sq] = tmp;
+    return is_protected;
+}
+
+Square
+board_square_src_find(Board* b, Square sq, int* i, Status* s) {
+    for (; (*i) <= h1; (*i)++) {
+        if ((*i & 0x88) == 0 && board_square_piece_color(b, (Square)*i) == b->turn) {
+            *s = board_move_status(b, (Square)*i, sq, Empty);
+            if (*s != Invalid) {
+                return (Square)*i;
+            }
+        }
+    }
+    return none;
+}
+
+Square
+board_square_src_guess(Board* b, Square dst) {
+    // clang-format off
+    int prio[13][2][3] = {
+        // not attacked, attacked with not pawn, attacked with pawn
+        //                na at ap
+        [WhitePawn]   = {{1, 4, 5},  //dst not empty
+                         {1, 4, 5}}, //dst empty
+        [BlackPawn]   = {{1, 4, 5},  //dst not empty
+                         {1, 4, 5}}, //dst empty
+        [WhiteKnight] = {{5, 5, 4},  //dst not empty
+                         {5, 5, 4}}, //dst empty
+        [BlackKnight] = {{5, 5, 4},  //dst not empty
+                         {5, 5, 4}}, //dst empty
+        [WhiteBishop] = {{4, 3, 3},  //dst not empty
+                         {4, 3, 3}}, //dst empty
+        [BlackBishop] = {{4, 3, 3},  //dst not empty
+                         {4, 3, 3}}, //dst empty
+        [WhiteRook]   = {{3, 2, 2},  //dst not empty
+                         {3, 2, 2}}, //dst empty
+        [BlackRook]   = {{3, 2, 2},  //dst not empty
+                         {3, 2, 2}}, //dst empty
+        [WhiteQueen]  = {{2, 1, 1},  //dst not empty
+                         {2, 1, 1}}, //dst empty
+        [BlackQueen]  = {{2, 1, 1},  //dst not empty
+                         {2, 1, 1}}, //dst empty
+        [WhiteKing]   = {{0, 0, 0},  //dst not empty
+                         {0, 0, 0}}, //dst empty
+        [BlackKing]   = {{0, 0, 0},  //dst not empty
+                         {0, 0, 0}}  //dst empty
+    };
+    // clang-format on
+
+    //dst empty, not attacked, castling
+    Square src, best = none;
+    Color op_color = b->turn == White ? Black : White; //opposite color
+    int de = b->position[dst] == Empty;                //destination_empty
+
+    //terrible hack to skip check which will return false if dst is same color as attacking piece
+    Piece tmp = b->position[dst];
+    b->position[dst] = Empty;
+    int dst_is_attacked_by_pawn = board_square_is_attacked_by_pawn(b, dst, op_color);
+    int dst_is_attacked = board_square_is_attacked(b, dst, op_color);
+    b->position[dst] = tmp;
+
+    int at = dst_is_attacked_by_pawn ? 2 : dst_is_attacked;
+    int i = 0, best_prio = -1;
+    int local_prio;
+    Status s;
+    Piece src_piece;
+    while ((src = board_square_src_find(b, dst, &i, &s)) != none) {
+        src_piece = b->position[src];
+        local_prio = prio[b->position[src]][de][at];
+        if (s == Castling) {
+            local_prio += 10;
+        }
+        if (!dst_is_attacked && !board_square_is_developed(b, src) && src_piece != WhiteKing && src_piece != BlackKing
+            && src_piece != WhitePawn && src_piece != BlackPawn && src_piece != WhiteQueen && src_piece != BlackQueen) {
+            local_prio += 3;
+        }
+        //piece is moving forward
+        if ((square2rank(dst) - square2rank(src) < 0 && b->turn == White)
+            || (square2rank(dst) - square2rank(src) > 0 && b->turn == Black)) {
+            local_prio += 4;
+        }
+        if (board_square_is_attacked_by_lesser_piece(b, src, op_color, src_piece) && de) {
+            local_prio += 5;
+        }
+
+        if (board_square_is_attacked_by_pawn(b, src, op_color) && src_piece != WhitePawn && src_piece != BlackPawn && de) {
+            local_prio += 5;
+        }
+
+        //open up bishop has priority over take to the center
+        if ((src_piece == WhitePawn || src_piece == BlackPawn)
+            && ((src == d7 && dst == c6) || (src == e7 && dst == f6) || (src == d2 && dst == c3)
+                || (src == e2 && dst == f3))) {
+            local_prio += 2;
+        }
+        //pawn take with a or h pawn has priority
+        if ((src_piece == WhitePawn || src_piece == BlackPawn)
+            && ((square2file(src) == File_a && square2file(dst) == File_b)
+                || (square2file(src) == File_h && square2file(dst) == File_g))) {
+            local_prio += 1;
+        }
+        if (board_square_is_attacked(b, src, op_color) && !board_square_is_protected(b, src, b->turn)
+            && !board_square_is_attacked_by_lesser_piece(b, src, op_color, src_piece)) {
+            local_prio += 5;
+        }
+        //lower prio for bishop before central pawns
+        if ((src_piece == WhiteBishop && ((dst == e3 && b->position[e2] == WhitePawn) || (dst == d3 && b->position[d2] == WhitePawn)))
+            || (src_piece == BlackBishop && ((dst == e6 && b->position[e7] == BlackPawn) || (dst == d6 && b->position[d7] == BlackPawn)))
+        ) {
+            local_prio = 2;
+        }
+
+        if (best == none || local_prio > best_prio) {
+            best = src;
+            best_prio = local_prio;
+        }
+        i++;
+    };
+    return best;
 }
 
 int
@@ -2478,8 +2736,7 @@ variation_move_current_reset(Variation* v) {
 }
 
 int
-variation_vs_count(Variation* v)
-{
+variation_vs_count(Variation* v) {
     int count = 0;
     if (variation_move_get(v)->variation_count > 0) {
         return -1;
@@ -2489,7 +2746,7 @@ variation_vs_count(Variation* v)
     vs_init(&vs_main);
     vs_generate_first(&vs_main, v, color);
     count++;
-    while(vs_can_generate_next(&vs_main)) {
+    while (vs_can_generate_next(&vs_main)) {
         vs_prev = vs_main;
         vs_init(&vs_main);
         vs_generate_next(&vs_main, v, &vs_prev, color);
@@ -3424,7 +3681,7 @@ game_list_sort(GameList* gl, const char* key, SortDirection sort) {
 }
 
 void
-game_list_filter(GameList* gl, GameList *new_gl) {
+game_list_filter(GameList* gl, GameList* new_gl) {
     game_list_init(new_gl);
     GameRow gr;
     for (int i = 0; i < gl->ai.count; i++) {
