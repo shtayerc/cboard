@@ -42,11 +42,13 @@ mode_normal(WindowData* data) {
             switch (event.type) {
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
-                        data->hidden = chessboard_mouse_square(data);
-                        b = game_move_get(&data->game)->board;
-                        data->piece = data->hidden & 0x88 ? Empty : b.position[data->hidden];
                         //allow only pieces for current turn
-                        data->piece = board_square_piece_color(&b, data->hidden) == b.turn ? data->piece : Empty;
+                        square_tmp = chessboard_mouse_square(data);
+                        b = game_move_get(&data->game)->board;
+                        if (board_square_piece_color(&b, square_tmp) == b.turn) {
+                            data->hidden = square_tmp;
+                            data->piece = data->hidden & 0x88 ? Empty : b.position[data->hidden];
+                        }
                     }
                     break;
 
