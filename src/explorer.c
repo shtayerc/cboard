@@ -92,6 +92,7 @@ explorer_read(void* p) {
             explorer_parse_str(e, joined_str);
             push_user_event();
         }
+        SDL_Delay(100);
     }
     free(joined_str);
     SDL_CloseIO(iostream);
