@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.16
+chess_utils v0.9.17
 
 Copyright (c) 2024 David Murko
 
@@ -3803,7 +3803,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
     char result[10];
     char* tmp;
     char* saveptr;
-    int i, j, comment_start, comment_end, variation_start, variation_end, skip, skip_var;
+    int i, j, comment_start, comment_end, variation_start, variation_end, skip, skip_var, skip_movenum;
     int tags;
     int comments;
     int anglebrackets; //pgn standard
@@ -3837,6 +3837,7 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
         snprintf(result, 10, "%s", RESULT_NONE);
         skip = 0;
         skip_var = 0;
+        skip_movenum = -1;
         tags = 1;
         comments = 0;
         anglebrackets = 0;
@@ -3908,6 +3909,9 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
                                     skip_var++;
                                 }
                             }
+                            if (skip_movenum > b_tmp.move_number && v == g.line_main) {
+                                skip = 1;
+                            }
                             status = board_move_san_status(&b_tmp, word, &src, &dst, &prom_piece);
                             if (status == Invalid) {
                                 skip = 1;
@@ -3925,7 +3929,8 @@ game_list_search_board(GameList* gl, GameList* new_gl, FILE* f, Board* b) {
                                     || (b->position[wp_start[j]] == WhitePawn
                                         && b->position[wp_start[j]] != b_tmp.position[wp_start[j]])) {
                                     if (v == g.line_main) {
-                                        skip = 1;
+                                        //we can not skip yet, must check all the variations first
+                                        skip_movenum = b_tmp.move_number;
                                     } else {
                                         skip_var = 1;
                                     }
