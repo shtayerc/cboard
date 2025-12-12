@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.15
+chess_utils v0.9.16
 
 Copyright (c) 2024 David Murko
 
@@ -1536,9 +1536,9 @@ board_square_is_developed(Board* b, Square sq) {
     Board starting;
     board_fen_import(&starting, FEN_DEFAULT);
     return b->position[sq] != starting.position[sq]
-    //lets asume that queenside castle has rook developed
-    && !(b->position[sq] == WhiteRook && b->position[g1] == WhiteKing)
-    && !(b->position[sq] == BlackRook && b->position[g8] == BlackKing);
+           //lets asume that queenside castle has rook developed
+           && !(b->position[sq] == WhiteRook && b->position[g1] == WhiteKing)
+           && !(b->position[sq] == BlackRook && b->position[g8] == BlackKing);
 }
 
 int
@@ -1597,16 +1597,16 @@ board_square_src_guess(Board* b, Square dst) {
     // clang-format on
 
     //dst empty, not attacked, castling
-    Square src, best = none;
+    Square src, best, tmp_sq = none;
     Color op_color = b->turn == White ? Black : White; //opposite color
     int de = b->position[dst] == Empty;                //destination_empty
 
     //terrible hack to skip check which will return false if dst is same color as attacking piece
-    Piece tmp = b->position[dst];
+    Piece tmp_p = b->position[dst];
     b->position[dst] = Empty;
     int dst_is_attacked_by_pawn = board_square_is_attacked_by_pawn(b, dst, op_color);
     int dst_is_attacked = board_square_is_attacked(b, dst, op_color);
-    b->position[dst] = tmp;
+    b->position[dst] = tmp_p;
 
     int at = dst_is_attacked_by_pawn ? 2 : dst_is_attacked;
     int i = 0, best_prio = -1;
@@ -1628,11 +1628,26 @@ board_square_src_guess(Board* b, Square dst) {
             || (square2rank(dst) - square2rank(src) > 0 && b->turn == Black)) {
             local_prio += 4;
         }
+        //increase priority for pawn moves that attack non pawn pieces
+        if (src_piece == WhitePawn || src_piece == BlackPawn) {
+            for (int j = 2; j <= 3; j++) {
+                tmp_sq = dst + piece_offset[src_piece == WhitePawn ? OffsetWhitePawn : OffsetBlackPawn][j];
+                if (tmp_sq & 0x88) {
+                    continue;
+                }
+                tmp_p = b->position[tmp_sq];
+                if (tmp_p != Empty && tmp_p != WhitePawn && tmp_p != BlackPawn
+                    && board_square_piece_color(b, tmp_sq) == op_color) {
+                    local_prio += 5;
+                }
+            }
+        }
         if (board_square_is_attacked_by_lesser_piece(b, src, op_color, src_piece) && de) {
             local_prio += 5;
         }
 
-        if (board_square_is_attacked_by_pawn(b, src, op_color) && src_piece != WhitePawn && src_piece != BlackPawn && de) {
+        if (board_square_is_attacked_by_pawn(b, src, op_color) && src_piece != WhitePawn && src_piece != BlackPawn
+            && de) {
             local_prio += 5;
         }
 
@@ -1653,9 +1668,10 @@ board_square_src_guess(Board* b, Square dst) {
             local_prio += 5;
         }
         //lower prio for bishop before central pawns
-        if ((src_piece == WhiteBishop && ((dst == e3 && b->position[e2] == WhitePawn) || (dst == d3 && b->position[d2] == WhitePawn)))
-            || (src_piece == BlackBishop && ((dst == e6 && b->position[e7] == BlackPawn) || (dst == d6 && b->position[d7] == BlackPawn)))
-        ) {
+        if ((src_piece == WhiteBishop
+             && ((dst == e3 && b->position[e2] == WhitePawn) || (dst == d3 && b->position[d2] == WhitePawn)))
+            || (src_piece == BlackBishop
+                && ((dst == e6 && b->position[e7] == BlackPawn) || (dst == d6 && b->position[d7] == BlackPawn)))) {
             local_prio = 2;
         }
 
