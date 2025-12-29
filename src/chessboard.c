@@ -37,10 +37,10 @@ piece_unload() {
 
 void
 piece_draw(WindowData* data, int file, int rank, SDL_Texture* texture) {
-    data->layout.square.x = file;
-    data->layout.square.y = rank;
+    data->layout.square.rect.x = file;
+    data->layout.square.rect.y = rank;
     SDL_FRect frect;
-    SDL_RectToFRect(&data->layout.square, &frect);
+    SDL_RectToFRect(&data->layout.square.rect, &frect);
     SDL_RenderTexture(data->renderer, texture, NULL, &frect);
 }
 
@@ -73,8 +73,8 @@ position_draw(WindowData* data) {
     Board b = game_move_get(&data->game)->board;
     for (i = 0; i < 128; i++) {
         if (b.position[i] > 0 && i != data->hidden) {
-            file = rotation_convert(data, square2file(i)) * data->layout.square.w;
-            rank = rotation_convert(data, square2rank(i)) * data->layout.square.w;
+            file = rotation_convert(data, square2file(i)) * data->layout.square.rect.w;
+            rank = rotation_convert(data, square2rank(i)) * data->layout.square.rect.w;
             piece_draw(data, file, rank, cb_piece_texture[b.position[i] - 1]);
         }
     }
@@ -83,28 +83,21 @@ position_draw(WindowData* data) {
 void
 background_draw(WindowData* data) {
     int col, row;
-    SDL_Color c = data->conf.colors[ColorStatusBackground];
-    data->layout.square.x = 0;
-    data->layout.square.y = 0;
+    data->layout.square.rect.x = 0;
+    data->layout.square.rect.y = 0;
 
     Square src = square_rotation(data, game_move_get(&data->game)->src);
     Square dst = square_rotation(data, game_move_get(&data->game)->dst);
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_FRect frect;
-    SDL_RectToFRect(&data->layout.board, &frect);
-    SDL_RenderFillRect(data->renderer, &frect);
+    ColorIndex color_index;
     for (col = 0; col < 8; col++) {
-        data->layout.square.y = col * data->layout.square.w;
+        data->layout.square.rect.y = col * data->layout.square.rect.w;
         for (row = 0; row < 8; row++) {
-            c = data->conf.colors[((col + row) % 2) ? ColorSquareBlack : ColorSquareWhite];
+            color_index = ((col + row) % 2) ? ColorSquareBlack : ColorSquareWhite;
             if (filerank2square(row, col) == src || filerank2square(row, col) == dst) {
-                c = data->conf.colors[((col + row) % 2) ? ColorSquareBlackLast : ColorSquareWhiteLast];
+                color_index = ((col + row) % 2) ? ColorSquareBlackLast : ColorSquareWhiteLast;
             }
-            SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-            data->layout.square.x = row * data->layout.square.w;
-            SDL_FRect frect;
-            SDL_RectToFRect(&data->layout.square, &frect);
-            SDL_RenderFillRect(data->renderer, &frect);
+            data->layout.square.rect.x = row * data->layout.square.rect.w;
+            draw_background(data, data->layout.square.rect, color_index);
         }
     }
 }
@@ -116,20 +109,20 @@ foreground_draw(WindowData* data) {
 
 void
 piece_mouse_position(WindowData* data) {
-    piece_draw(data, data->mouse.x - (data->layout.square.w / 2), data->mouse.y - (data->layout.square.w / 2),
+    piece_draw(data, data->mouse.x - (data->layout.square.rect.w / 2), data->mouse.y - (data->layout.square.rect.w / 2),
                cb_piece_texture[data->piece - 1]);
 }
 
 int
 promotion_hover_position(WindowData* data, Square sq) {
     int i, m_x, m_y;
-    int x = rotation_convert(data, square2file(sq)) * data->layout.square.w;
-    int y = rotation_convert(data, square2rank(sq)) * data->layout.square.w;
-    int diff = (y == 0) ? data->layout.square.w : -data->layout.square.w;
+    int x = rotation_convert(data, square2file(sq)) * data->layout.square.rect.w;
+    int y = rotation_convert(data, square2rank(sq)) * data->layout.square.rect.w;
+    int diff = (y == 0) ? data->layout.square.rect.w : -data->layout.square.rect.w;
 
     for (i = 0; i < 4; i++) {
-        m_x = data->mouse.x / data->layout.square.w * data->layout.square.w;
-        m_y = data->mouse.y / data->layout.square.w * data->layout.square.w;
+        m_x = data->mouse.x / data->layout.square.rect.w * data->layout.square.rect.w;
+        m_y = data->mouse.y / data->layout.square.rect.w * data->layout.square.rect.w;
         if (x == m_x && (y + i * diff) == m_y) {
             return i;
         }
@@ -140,28 +133,24 @@ promotion_hover_position(WindowData* data, Square sq) {
 void
 promotion_selection_draw(WindowData* data, Square sq, Color color) {
     int i;
-    SDL_Color c;
+    ColorIndex color_index;
     int texture[] = {
         ((color == White) ? TextureWhiteQueen : TextureBlackQueen),
         ((color == White) ? TextureWhiteKnight : TextureBlackKnight),
         ((color == White) ? TextureWhiteRook : TextureBlackRook),
         (color == White) ? TextureWhiteBishop : TextureBlackBishop,
     };
-    int x = rotation_convert(data, square2file(sq)) * data->layout.square.w;
-    int y = rotation_convert(data, square2rank(sq)) * data->layout.square.w;
-    int diff = (y == 0) ? data->layout.square.w : -data->layout.square.w;
+    int x = rotation_convert(data, square2file(sq)) * data->layout.square.rect.w;
+    int y = rotation_convert(data, square2rank(sq)) * data->layout.square.rect.w;
+    int diff = (y == 0) ? data->layout.square.rect.w : -data->layout.square.rect.w;
     int hover = promotion_hover_position(data, sq);
-    data->layout.square.x = x;
+    data->layout.square.rect.x = x;
 
     for (i = 0; i < 4; i++) {
-        data->layout.square.y = y + i * diff;
-
-        c = data->conf.colors[hover == i ? ColorSquareActive : ColorSquareInactive];
-        SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-        SDL_FRect frect;
-        SDL_RectToFRect(&data->layout.square, &frect);
-        SDL_RenderFillRect(data->renderer, &frect);
-        piece_draw(data, data->layout.square.x, data->layout.square.y, cb_piece_texture[texture[i]]);
+        data->layout.square.rect.y = y + i * diff;
+        color_index = hover == i ? ColorSquareActive : ColorSquareInactive;
+        draw_background(data, data->layout.square.rect, color_index);
+        piece_draw(data, data->layout.square.rect.x, data->layout.square.rect.y, cb_piece_texture[texture[i]]);
     }
 }
 
@@ -188,8 +177,8 @@ mode_promotion(WindowData* data, Color color) {
     data->piece = Empty;
     int piece;
     int loop = 1;
-    int dst = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.w)),
-                              rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+    int dst = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.rect.w)),
+                              rotation_convert(data, (data->mouse.y / data->layout.square.rect.w)));
     promotion_draw(data, dst, color);
     SDL_Event event;
 
@@ -257,8 +246,8 @@ mode_editor(WindowData* data) {
             switch (event.type) {
                 case SDL_EVENT_MOUSE_BUTTON_UP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
-                        sq = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.w)),
-                                             rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+                        sq = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.rect.w)),
+                                             rotation_convert(data, (data->mouse.y / data->layout.square.rect.w)));
                         if (!(sq & 0x88)) {
                             board_square_set(&game_move_get(&data->game)->board, sq, data->piece);
                             replace = 1;
@@ -267,8 +256,8 @@ mode_editor(WindowData* data) {
                     }
 
                     if (event.button.button == SDL_BUTTON_RIGHT) {
-                        sq = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.w)),
-                                             rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+                        sq = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.rect.w)),
+                                             rotation_convert(data, (data->mouse.y / data->layout.square.rect.w)));
                         if (!(sq & 0x88)) {
                             board_square_set(&game_move_get(&data->game)->board, sq, Empty);
                             replace = 1;
@@ -483,12 +472,12 @@ chessboard_mouse_square(WindowData* data) {
         return none;
     }
 
-    Square sq = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.w)),
-                                rotation_convert(data, (data->mouse.y / data->layout.square.w)));
+    Square sq = filerank2square(rotation_convert(data, (data->mouse.x / data->layout.square.rect.w)),
+                                rotation_convert(data, (data->mouse.y / data->layout.square.rect.w)));
     return (sq & 0x88) == 0 ? sq : none;
 }
 
 int
 chessboard_mouse_is_inside(WindowData* data) {
-    return (SDL_PointInRect(&data->mouse, &data->layout.board) == true);
+    return (SDL_PointInRect(&data->mouse, &data->layout.board.rect) == true);
 }

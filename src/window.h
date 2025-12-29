@@ -11,15 +11,8 @@
 #include "status.h"
 #include "training.h"
 
-typedef struct {
-    SDL_Rect board;
-    SDL_Rect square;
-    SDL_Rect notation;
-    SDL_Rect status;
-    SDL_Rect machine;
-} Layout;
-
 typedef enum {
+    ColorNone,
     ColorSquareWhite,
     ColorSquareBlack,
     ColorSquareInactive,
@@ -38,6 +31,59 @@ typedef enum {
     ColorMachineFont,
     ColorCount, //this should always be the last
 } ColorIndex;
+
+typedef struct {
+    int top;
+    int right;
+    int bottom;
+    int left;
+} PaddingRect;
+
+typedef struct {
+    PaddingRect padding;
+    SDL_Rect rect;
+} LayoutRect;
+
+typedef struct {
+    LayoutRect board;
+    LayoutRect square;
+    LayoutRect notation;
+    LayoutRect status;
+    LayoutRect machine;
+} Layout;
+
+typedef struct {
+    PaddingRect padding;
+    ColorIndex fg_color;
+    ColorIndex bg_color;
+} TextElement;
+
+typedef enum {
+    TextElementStatus,
+    TextElementGameTag,
+    TextElementTraining,
+    TextElementMoveMainline,
+    TextElementMoveVariation,
+    TextElementMoveCurrent,
+    TextElementMoveComment,
+    TextElementCustomText,
+    TextElementGameStatRow,
+    TextElementGameListRowNormal,
+    TextElementGameListRowCurrent,
+    TextElementGameListRowColor,
+    TextElementGameListRowColorCurrent,
+    TextElementGameListStatus,
+    TextElementMachineRow,
+    TextElementMachineComment,
+    TextElementExplorerRow,
+    TextElementCount,  //this should always be the last
+} TextElementIndex;
+
+typedef enum {
+    TextWrapLine,
+    TextWrapNewLine,
+    TextWrapCutoff,
+} TextWrapType;
 
 typedef struct {
     int path_max_len;
@@ -75,6 +121,7 @@ typedef struct {
     char** machine_cmd_list[MACHINE_COUNT];
     char** machine_uci_list[MACHINE_COUNT];
     SDL_Color colors[ColorCount];
+    TextElement text_elements[TextElementCount];
     char* explorer_exe_list[EXPLORER_EXE_COUNT];
 } Config;
 
@@ -148,6 +195,7 @@ struct WindowData {
 
 int file_exists(const char* filename);
 Config config_init();
+Layout layout_init();
 void window_data_init(WindowData* data);
 void window_open(WindowData* data);
 void window_data_free(WindowData* data);
@@ -159,6 +207,9 @@ void font_init(WindowData* data);
 void font_free(WindowData* data);
 void font_resize(WindowData* data, int step);
 void draw(WindowData* data);
+SDL_Rect draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, int wrap, TextElementIndex eli, const char* fmt_text, ...);
+void draw_background(WindowData* data, SDL_Rect rect, ColorIndex color_index);
 void draw_render(WindowData* data);
+SDL_Rect pad_layout(LayoutRect *lrect);
 
 #endif

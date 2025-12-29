@@ -6,26 +6,19 @@ machine_draw(WindowData* data) {
     char move[MOVENUM_LEN + SAN_LEN];
     int i, j, l, font_width;
     Machine* mc;
-    int x = data->layout.machine.x;
-    int y = data->layout.machine.y;
-    int max_len = data->layout.machine.w + data->layout.machine.x;
-    SDL_Color c = data->conf.colors[ColorMachineBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_FRect frect;
-    SDL_RectToFRect(&data->layout.machine, &frect);
-    SDL_RenderFillRect(data->renderer, &frect);
+    int max_len = data->layout.machine.rect.w + data->layout.machine.rect.x;
+    SDL_Rect rect = data->layout.machine.rect;
+    draw_background(data, rect, ColorMachineBackground);
     char* comment;
     switch (data->machine_mode) {
         case ModeHidden:
-            FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont],
-                         "Machine data is hidden");
+            draw_text(data, NULL, rect, 0, TextElementMachineRow, "Machine data is hidden");
             return;
 
         case ModeComment:
             comment = game_move_get(&data->game)->comment;
             if (comment) {
-                FC_DrawBoxColor(data->font, data->renderer, (FC_Rect)data->layout.machine,
-                                data->conf.colors[ColorCommentFont], comment);
+                draw_text(data, &data->layout.machine, rect, 1, TextElementMachineComment, comment);
             }
             return;
 
@@ -35,15 +28,12 @@ machine_draw(WindowData* data) {
     for (j = 0; j < MACHINE_COUNT; j++) {
         mc = data->machine_list[j];
         if (mc->sp.running) {
-            x = data->layout.machine.x;
-            FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont],
-                         data->conf.machine_cmd_list[j][0]);
-            y += data->font_height;
+            rect = draw_text(data, &data->layout.machine, data->layout.machine.rect, 0, TextElementMachineRow, data->conf.machine_cmd_list[j][0]);
             for (l = 0; l < mc->line_count; l++) {
                 if (mc->type[l] == NoType) {
                     continue;
                 }
-                x = data->layout.machine.x;
+                rect.x = data->layout.machine.rect.x;
                 for (i = 0; i < mc->line[l].move_count; i++) {
                     if (i == 0) {
                         if (mc->type[l] == Centipawn) {
@@ -62,14 +52,14 @@ machine_draw(WindowData* data) {
                         variation_movenumber_export(&mc->line[l], i, -1, num, MOVENUM_LEN);
                         snprintf(move, MOVENUM_LEN + SAN_LEN, "%s%s ", num, mc->line[l].move_list[i].san);
                         font_width = FC_GetWidth(data->font, move);
-                        if (x + font_width > max_len) {
+                        if (rect.x + font_width > max_len) {
                             break;
                         }
                     }
-                    FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorMachineFont], move);
-                    x += font_width;
+                    draw_text(data, NULL, rect, 1, TextElementMachineRow, move);
+                    rect.x += font_width;
                 }
-                y += data->font_height;
+                rect.y += data->font_height;
             }
         }
     }
@@ -335,8 +325,8 @@ machine_resize(WindowData* data, int index) {
             height += (mc->line_count + 1) * data->font_height;
         }
     }
-    if (height > data->layout.machine.h) {
-        diff = height - data->layout.machine.h;
+    if (height > data->layout.machine.rect.h) {
+        diff = height - data->layout.machine.rect.h;
         data->conf.square_size -= (diff + (diff % 8)) / 8;
         window_resize(data, data->window_width, data->window_height);
     }

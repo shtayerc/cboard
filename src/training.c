@@ -182,16 +182,14 @@ mode_training(WindowData* data) {
 void
 training_draw(WindowData* data) {
     notation_background_draw(data);
-    int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    int x = x_start;
-    int y = data->layout.notation.y + NOTATION_PADDING_TOP;
+    draw_text(data, &data->layout.notation, data->layout.notation.rect, 0, TextElementTraining, "%d/%d",
+              data->ts.vs_current,
+              data->ts.vs_count);
 
-    FC_DrawColor(data->font, data->renderer, x, y,
-                 data->conf.colors[ColorNotationFont], "%d/%d",
-                 data->ts.vs_current, data->ts.vs_count);
-    y += data->font_height;
+    SDL_Rect padded = pad_layout(&data->layout.notation);
+    padded.y += data->font_height;
     if (game_move_is_last(&data->game)) {
-        variation_draw(data, data->game.line_current, &x, &y, x_start, 0, 0);
+        variation_draw(data, data->game.line_current, &padded, 0, 0);
     }
 }
 

@@ -111,12 +111,10 @@ mode_confirm(WindowData* data, const char* msg) {
 
 void
 status_draw(WindowData* data) {
-    SDL_Color c = data->conf.colors[ColorStatusBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_FRect frect;
-    SDL_RectToFRect(&data->layout.status, &frect);
-    SDL_RenderFillRect(data->renderer, &frect);
-    FC_DrawColor(data->font, data->renderer, data->layout.status.x + STATUS_PADDING_LEFT, data->layout.status.y,
-                 data->conf.colors[ColorStatusFont], "%s %s[%s] %s", data->status.mode, data->filename,
-                 data->number, data->status.info);
+    draw_background(data, data->layout.status.rect, ColorStatusBackground);
+    draw_text(data, NULL, data->layout.status.rect, 1, TextElementStatus, "%s %s[%s] %s",
+              data->status.mode,
+              data->filename,
+              data->number, 
+              data->status.info);
 }

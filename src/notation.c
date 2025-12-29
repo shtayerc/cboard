@@ -5,40 +5,25 @@ int nt_move_coord_len;
 int nt_move_coord_index;
 
 void
-notation_handle_line_break(WindowData* data, int* x, int* y, int word_width, int x_start) {
-    if (*x + word_width >= data->layout.notation.x + data->layout.notation.w) {
-        *x = x_start;
-        *y += data->font_height;
-    }
-}
-
-void
-comment_draw(WindowData* data, Move* m, int* x, int* y, int x_start) {
+comment_draw(WindowData* data, Move* m, SDL_Rect* pos) {
     char comment[COMMENT_LEN];
     char* word = NULL;
     char* saveptr;
-    int word_width;
 
     snprintf(comment, COMMENT_LEN, "%s", m->comment);
     word = strtok_r(comment, " ", &saveptr);
 
     while (word != NULL) {
-        word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_MOVE;
-        notation_handle_line_break(data, x, y, word_width, x_start);
-        FC_DrawColor(data->font, data->renderer, *x, *y, data->conf.colors[ColorCommentFont], word);
+        *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementMoveComment, word);
         word = strtok_r(NULL, " ", &saveptr);
-        *x += word_width;
     }
 }
 
 void
-variation_draw(WindowData* data, Variation* v, int* x, int* y, int x_start, int i, int recursive) {
-    SDL_FRect move_current;
-    SDL_Color c = data->conf.colors[ColorNotationActiveBackground];
+variation_draw(WindowData* data, Variation* v, SDL_Rect* pos, int i, int recursive) {
     Move* m;
     char san[SAN_LEN + MOVENUM_LEN];
     int movelen = SAN_LEN + MOVENUM_LEN + 2 * NAG_LEN;
-    int word_width;
     nt_move_coord_len += v->move_count - 1;
     if (nt_move_coord_len == 0) {
         return;
@@ -48,22 +33,20 @@ variation_draw(WindowData* data, Variation* v, int* x, int* y, int x_start, int 
         return;
     }
 
+    int x_start = pad_layout(&data->layout.notation).x;
+    TextElementIndex tei;
     for (int j = 1; j < v->move_count; j++) {
         if (j == 1 && i) {
-            snprintf(san, SAN_LEN + MOVENUM_LEN, "(");
-            word_width = FC_GetWidth(data->font, san);
             if (v->move_count > 10) {
-                *y += data->font_height;
-                *x = x_start;
+                pos->y += data->font_height;
+                pos->x = x_start;
             }
-            notation_handle_line_break(data, x, y, word_width, x_start);
-            FC_DrawColor(data->font, data->renderer, *x, *y, data->conf.colors[ColorVariationFont], san);
-            *x += word_width;
+            *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementMoveVariation, "(");
         }
 
         m = &v->move_list[j];
         if (v->move_list[0].comment != NULL && j == 1) {
-            comment_draw(data, &v->move_list[0], x, y, x_start);
+            comment_draw(data, &v->move_list[0], pos);
         }
 
         variation_movenumber_export(v, j, i, san, movelen);
@@ -72,55 +55,42 @@ variation_draw(WindowData* data, Variation* v, int* x, int* y, int x_start, int 
         }
         concate(san, movelen, "%s%s%s", m->san, nag_map[m->nag_move], nag_map[m->nag_position]);
 
-        word_width = FC_GetWidth(data->font, san) + NOTATION_PADDING_MOVE;
-        notation_handle_line_break(data, x, y, word_width, x_start);
-        nt_move_coords[nt_move_coord_index].x = *x;
-        nt_move_coords[nt_move_coord_index].y = *y;
-        nt_move_coords[nt_move_coord_index].w = word_width;
-        nt_move_coords[nt_move_coord_index].h = data->font_height;
+        if (j == data->game.line_current->move_current && data->game.line_current == v) {
+            tei = TextElementMoveCurrent;
+        } else {
+            tei = i ? TextElementMoveVariation : TextElementMoveMainline;
+        }
+        *pos = draw_text(data, &data->layout.notation, *pos, 1, tei, san);
+
+        nt_move_coords[nt_move_coord_index].x = pos->x - pos->w; //calculate start of drawn text
+        nt_move_coords[nt_move_coord_index].y = pos->y;
+        nt_move_coords[nt_move_coord_index].w = pos->w;
+        nt_move_coords[nt_move_coord_index].h = pos->h;
         nt_move_coords[nt_move_coord_index].index = j;
         nt_move_coords[nt_move_coord_index].move = m;
         nt_move_coords[nt_move_coord_index].variation = v;
         nt_move_coord_index++;
 
-        if (j == data->game.line_current->move_current && data->game.line_current == v) {
-            move_current.x = *x - NOTATION_CURRENT_MOVE_PADDING_LEFT;
-            move_current.y = *y;
-            move_current.w = word_width;
-            move_current.h = data->font_height;
-            SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-            SDL_RenderFillRect(data->renderer, &move_current);
-            FC_DrawColor(data->font, data->renderer, *x, *y, data->conf.colors[ColorNotationActiveFont], san);
-        } else {
-            FC_DrawColor(data->font, data->renderer, *x, *y,
-                         i ? data->conf.colors[ColorVariationFont] : data->conf.colors[ColorNotationFont], san);
-        }
-        *x += word_width;
-
         if (m->comment != NULL) {
-            comment_draw(data, m, x, y, x_start);
+            comment_draw(data, m, pos);
         }
 
         for (int l = 0; l < v->move_list[j - 1].variation_count && recursive; l++) {
-            variation_draw(data, v->move_list[j - 1].variation_list[l], x, y, x_start, i + j - 1, 1);
+            variation_draw(data, v->move_list[j - 1].variation_list[l], pos, i + j - 1, 1);
         }
 
         if (j + 1 == v->move_count && i) {
-            snprintf(san, SAN_LEN + MOVENUM_LEN, ")");
-            word_width = FC_GetWidth(data->font, san) + NOTATION_PADDING_MOVE;
-            notation_handle_line_break(data, x, y, word_width, x_start);
-            FC_DrawColor(data->font, data->renderer, *x, *y, data->conf.colors[ColorVariationFont], san);
-            *x += word_width;
+            *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementMoveVariation, ")");
         }
     }
 }
 
 int
 notation_click(WindowData* data) {
-    return data->notation_mode == ModeMoves && data->mouse.x > data->layout.notation.x
-           && data->mouse.x < data->layout.notation.w + data->layout.notation.x
-           && data->mouse.y > data->layout.notation.y
-           && data->mouse.y < data->layout.notation.h + data->layout.notation.y;
+    return data->notation_mode == ModeMoves && data->mouse.x > data->layout.notation.rect.x
+           && data->mouse.x < data->layout.notation.rect.w + data->layout.notation.rect.x
+           && data->mouse.y > data->layout.notation.rect.y
+           && data->mouse.y < data->layout.notation.rect.h + data->layout.notation.rect.y;
 }
 
 int
@@ -147,28 +117,19 @@ notation_coord_index_move(WindowData* data, Move* m) {
 
 void
 notation_background_draw(WindowData* data) {
-    SDL_Color c = data->conf.colors[ColorNotationBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_FRect frect;
-    SDL_RectToFRect(&data->layout.notation, &frect);
-    SDL_RenderFillRect(data->renderer, &frect);
+    draw_background(data, data->layout.notation.rect, ColorNotationBackground);
 }
 
 void
-notation_draw_tags(WindowData* data, int* x, int* y, int x_start) {
-    int word_width;
-    char word[TAG_LEN * 2];
+notation_draw_tags(WindowData* data, SDL_Rect* pos) {
     int i;
     for (i = 0; i < data->game.tag_list->ai.count; i++) {
-        snprintf(word, TAG_LEN * 2, "[%s \"%s\"]", data->game.tag_list->list[i].key,
-                 data->game.tag_list->list[i].value);
-        word_width = FC_GetWidth(data->font, word) + NOTATION_PADDING_TITLE;
-        notation_handle_line_break(data, x, y, word_width, x_start);
-        FC_DrawColor(data->font, data->renderer, *x, *y, data->conf.colors[ColorNotationFont], word);
-        *x += word_width;
+        *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementGameTag, "[%s \"%s\"]",
+                  data->game.tag_list->list[i].key,
+                  data->game.tag_list->list[i].value);
     }
-    *y += data->font_height * 2;
-    *x = x_start;
+    pos->y += data->font_height * 2;
+    pos->x = pad_layout(&data->layout.notation).x;
 }
 
 void
@@ -176,13 +137,13 @@ notation_draw(WindowData* data) {
     notation_background_draw(data);
     nt_move_coord_index = 0;
     nt_move_coord_len = 0;
-    int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    int x = x_start;
-    int y = data->layout.notation.y + NOTATION_PADDING_TOP + data->notation_scroll.value;
-
-    notation_draw_tags(data, &x, &y, x_start);
-    variation_draw(data, data->game.line_main, &x, &y, x_start, 0, 1);
-    scroll_set_length(&data->notation_scroll, y);
+    SDL_Rect rect = pad_layout(&data->layout.notation);
+    rect.y += data->notation_scroll.value;
+    rect.w = 0;
+    rect.h = 0;
+    notation_draw_tags(data, &rect);
+    variation_draw(data, data->game.line_main, &rect, 0, 1);
+    scroll_set_length(&data->notation_scroll, rect.y);
     scroll_set_max(&data->notation_scroll, data->font_height);
 }
 
@@ -519,7 +480,7 @@ notation_focus_current_move(WindowData* data) {
         data->notation_scroll.value = 0;
         return;
     }
-    int bot = data->layout.notation.y + data->layout.notation.h;
+    int bot = data->layout.notation.rect.y + data->layout.notation.rect.h;
     if (nt_move_coords[index].y + data->font_height > bot) {
         data->notation_scroll.value -= nt_move_coords[index].y - bot;
         data->notation_scroll.value -= data->font_height;
@@ -531,9 +492,7 @@ notation_focus_current_move(WindowData* data) {
 void
 custom_text_draw(WindowData* data) {
     notation_background_draw(data);
-    int x = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    int y = data->layout.notation.y + NOTATION_PADDING_TOP;
-    FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont], data->custom_text);
+    draw_text(data, &data->layout.notation, data->layout.notation.rect, 1, TextElementCustomText, data->custom_text);
 }
 
 void
@@ -548,17 +507,16 @@ game_list_stat_position(WindowData* data) {
 void
 game_list_stat_draw(WindowData* data) {
     notation_background_draw(data);
-    int x = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    int y = data->layout.notation.y + NOTATION_PADDING_TOP;
     GameListStatRow* row;
 
+    SDL_Rect rect = data->layout.notation.rect;
     for (int i = 0; i < data->game_list_stat.ai.count; i++) {
         row = &data->game_list_stat.list[i];
-        FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont],
+        draw_text(data, &data->layout.notation, rect, 0, TextElementGameStatRow,
                 "%s (%d) [%d%% | %d%% | %d%%]", row->san, row->count,
                 row->white_win > 0 ? (int)SDL_round((float)row->white_win / (float)row->count_finished * 100) : 0,
                 row->draw > 0 ? (int)SDL_round((float)row->draw / (float)row->count_finished * 100) : 0,
                 row->black_win > 0 ? (int)SDL_round((float)row->black_win / (float)row->count_finished * 100) : 0);
-        y += data->font_height;
+        rect.y += data->font_height;
     }
 }

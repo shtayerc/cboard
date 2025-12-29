@@ -45,25 +45,43 @@ config_init() {
         .message_duration = 2000, //miliseconds
         .machine_cmd_list = {NULL, NULL},
         .machine_uci_list = {NULL, NULL},
-        .colors =
-            {
-                [ColorSquareWhite] = {240, 217, 181, SDL_ALPHA_OPAQUE},
-                [ColorSquareBlack] = {181, 136, 99, SDL_ALPHA_OPAQUE},
-                [ColorSquareInactive] = {163, 163, 163, SDL_ALPHA_OPAQUE},
-                [ColorSquareActive] = {202, 109, 55, SDL_ALPHA_OPAQUE},
-                [ColorSquareWhiteLast] = {206, 210, 107, SDL_ALPHA_OPAQUE},
-                [ColorSquareBlackLast] = {171, 162, 58, SDL_ALPHA_OPAQUE},
-                [ColorStatusBackground] = {85, 85, 85, SDL_ALPHA_OPAQUE},
-                [ColorStatusFont] = {255, 255, 255, 255},
-                [ColorNotationBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
-                [ColorNotationFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
-                [ColorNotationActiveBackground] = {255, 255, 255, SDL_ALPHA_OPAQUE},
-                [ColorNotationActiveFont] = {38, 36, 33, SDL_ALPHA_OPAQUE},
-                [ColorCommentFont] = {0, 221, 255, SDL_ALPHA_OPAQUE},
-                [ColorVariationFont] = {153, 153, 153, SDL_ALPHA_OPAQUE},
-                [ColorMachineBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
-                [ColorMachineFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
-            },
+        .colors = {
+            [ColorSquareWhite] = {240, 217, 181, SDL_ALPHA_OPAQUE},
+            [ColorSquareBlack] = {181, 136, 99, SDL_ALPHA_OPAQUE},
+            [ColorSquareInactive] = {163, 163, 163, SDL_ALPHA_OPAQUE},
+            [ColorSquareActive] = {202, 109, 55, SDL_ALPHA_OPAQUE},
+            [ColorSquareWhiteLast] = {206, 210, 107, SDL_ALPHA_OPAQUE},
+            [ColorSquareBlackLast] = {171, 162, 58, SDL_ALPHA_OPAQUE},
+            [ColorStatusBackground] = {85, 85, 85, SDL_ALPHA_OPAQUE},
+            [ColorStatusFont] = {255, 255, 255, 255},
+            [ColorNotationBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
+            [ColorNotationFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+            [ColorNotationActiveBackground] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+            [ColorNotationActiveFont] = {38, 36, 33, SDL_ALPHA_OPAQUE},
+            [ColorCommentFont] = {0, 221, 255, SDL_ALPHA_OPAQUE},
+            [ColorVariationFont] = {153, 153, 153, SDL_ALPHA_OPAQUE},
+            [ColorMachineBackground] = {38, 36, 33, SDL_ALPHA_OPAQUE},
+            [ColorMachineFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
+        },
+        .text_elements = {
+            [TextElementStatus] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorStatusFont, ColorNone},
+            [TextElementGameTag] = {{.top = 0, .right = 8, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
+            [TextElementTraining] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
+            [TextElementMoveMainline] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
+            [TextElementMoveVariation] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorVariationFont, ColorNone},
+            [TextElementMoveCurrent] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorNotationActiveFont, ColorNotationActiveBackground},
+            [TextElementMoveComment] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorCommentFont, ColorNone},
+            [TextElementCustomText] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
+            [TextElementGameStatRow] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
+            [TextElementGameListRowNormal] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
+            [TextElementGameListRowCurrent] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationActiveFont, ColorNotationActiveBackground},
+            [TextElementGameListRowColor] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorCommentFont, ColorNone},
+            [TextElementGameListRowColorCurrent] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationActiveFont, ColorCommentFont},
+            [TextElementGameListStatus] = {{.top = 4, .right = 2, .bottom = 0, .left = 2}, ColorStatusFont, ColorStatusBackground},
+            [TextElementMachineRow] = {{0}, ColorMachineFont, ColorNone},
+            [TextElementMachineComment] = {{0}, ColorCommentFont, ColorNone},
+            [TextElementExplorerRow] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
+        },
         .explorer_exe_list = {NULL, NULL},
     };
     return config;
@@ -73,6 +91,7 @@ void
 window_data_init(WindowData* data) {
     int i;
     data->conf = config_init();
+    data->layout = layout_init();
     data->status.mode = calloc(data->conf.status_max_len, sizeof(char));
     data->status.info = calloc(data->conf.status_max_len, sizeof(char));
     data->filename = malloc(sizeof(char) * data->conf.status_max_len);
@@ -191,44 +210,71 @@ window_data_free(WindowData* data) {
     SDL_Quit();
 }
 
+Layout
+layout_init() {
+    Layout layout = {
+        .board = {
+            .padding = {0},
+            .rect = {0}
+        },
+        .square = {
+            .padding = {0},
+            .rect = {0}
+        },
+        .notation = {
+            .padding = {.top = 4, .right = 0, .bottom = 0, .left = 4},
+            .rect = {0}
+        },
+        .status = {
+            .padding = {.top = 0, .right = 0, .bottom = 0, .left = 4},
+            .rect = {0}
+        },
+        .machine = {
+            .padding = {0},
+            .rect = {0}
+        }
+    };
+    return layout;
+}
+
 void
 window_resize(WindowData* data, int width, int height) {
     data->window_width = width;
     data->window_height = height;
 
-    data->layout.status.x = 0;
-    data->layout.status.h = data->font_size + data->font_size / 4;
-    data->layout.status.w = width;
-    data->layout.status.y = height - data->layout.status.h;
+    data->layout.status.rect.x = 0;
+    data->layout.status.rect.h = data->font_size + data->font_size / 4;
+    data->layout.status.rect.w = width;
+    data->layout.status.rect.y = height - data->layout.status.rect.h;
 
-    data->layout.square.h = data->conf.square_size;
+    data->layout.square.rect.h = data->conf.square_size;
 
-    data->layout.board.x = 0;
-    data->layout.board.y = 0;
-    data->layout.board.h = data->layout.status.y;
-    data->layout.board.w = data->conf.square_size * 8;
-    if (data->layout.board.h < data->layout.board.w) {
-        data->layout.board.w = data->layout.board.h;
-        data->layout.square.h = data->layout.board.w / 8;
-        data->conf.square_size = data->layout.square.h;
+    data->layout.board.rect.x = 0;
+    data->layout.board.rect.y = 0;
+    data->layout.board.rect.h = data->layout.status.rect.y;
+    data->layout.board.rect.w = data->conf.square_size * 8;
+    if (data->layout.board.rect.h < data->layout.board.rect.w) {
+        data->layout.board.rect.w = data->layout.board.rect.h;
+        data->layout.square.rect.h = data->layout.board.rect.w / 8;
+        data->conf.square_size = data->layout.square.rect.h;
     }
 
-    data->layout.machine.x = 0;
-    data->layout.machine.y = data->layout.board.w;
-    data->layout.machine.w = data->layout.board.w;
-    data->layout.machine.h = height - data->layout.board.w - data->layout.status.h;
-    data->layout.square.w = data->layout.square.h;
+    data->layout.machine.rect.x = 0;
+    data->layout.machine.rect.y = data->layout.board.rect.w;
+    data->layout.machine.rect.w = data->layout.board.rect.w;
+    data->layout.machine.rect.h = height - data->layout.board.rect.w - data->layout.status.rect.h;
+    data->layout.square.rect.w = data->layout.square.rect.h;
 
-    data->layout.notation.x = data->layout.square.h * 8;
-    data->layout.notation.y = 0;
-    data->layout.notation.w = width - data->layout.notation.x;
-    data->layout.notation.h = height - data->layout.status.h;
-    data->notation_scroll.step = data->layout.notation.h / 2;
+    data->layout.notation.rect.x = data->layout.square.rect.h * 8;
+    data->layout.notation.rect.y = 0;
+    data->layout.notation.rect.w = width - data->layout.notation.rect.x;
+    data->layout.notation.rect.h = height - data->layout.status.rect.h;
+    data->notation_scroll.step = data->layout.notation.rect.h / 2;
     data->notation_scroll.step -= data->notation_scroll.step % data->font_height;
-    data->notation_scroll.shown = data->layout.notation.h;
-    data->game_list_scroll.step = data->layout.notation.h / 2;
+    data->notation_scroll.shown = data->layout.notation.rect.h;
+    data->game_list_scroll.step = data->layout.notation.rect.h / 2;
     data->game_list_scroll.step -= data->game_list_scroll.step % data->font_height;
-    data->game_list_scroll.shown = data->layout.notation.h;
+    data->game_list_scroll.shown = data->layout.notation.rect.h;
 }
 
 void
@@ -281,8 +327,65 @@ draw(WindowData* data) {
     SDL_RenderPoint(data->renderer, -1, -1);
 }
 
+SDL_Rect
+draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, int wrap, TextElementIndex eli, const char* fmt_text, ...) {
+    TextElement el = data->conf.text_elements[eli];
+    char buffer[1024] = {'\0'};
+    va_list args;
+    va_start(args, fmt_text);
+    vsnprintf(buffer, 1024, fmt_text, args);
+    va_end(args);
+    pos.w = FC_GetWidth(data->font, buffer) + el.padding.right;
+    pos.h = data->font_height;
+    if (bounds != NULL) {
+        if (!wrap) {
+            pos.w = bounds->rect.w - bounds->padding.right;
+            pos.y += el.padding.top;
+        } else if (pos.x + pos.w >= bounds->rect.x + bounds->rect.w) {
+            pos.x = bounds->rect.x + bounds->padding.left + el.padding.left;
+            pos.y += data->font_height + el.padding.top;
+        }
+    }
+    if (el.bg_color != ColorNone) {
+        draw_background(data, pos, el.bg_color);
+    }
+    //pad this later, so background is drawn on padded space
+    pos.h += el.padding.bottom;
+    pos.w += el.padding.right;
+    pos.x += el.padding.left;
+    SDL_Rect rect = FC_DrawColorSimple(data->font, data->renderer, pos.x, pos.y, data->conf.colors[el.fg_color], buffer);
+    //rect.h = data->font_height - el.padding.top;
+    rect.w += el.padding.right;
+    if (wrap) {
+        rect.x += rect.w;
+    } else {
+        rect.x -= el.padding.left;
+        rect.y += data->font_height - el.padding.top;
+        rect.h = data->font_height - el.padding.top;
+    }
+    return rect;
+}
+
+void
+draw_background(WindowData* data, SDL_Rect rect, ColorIndex color_index)
+{
+    SDL_FRect frect;
+    SDL_RectToFRect(&rect, &frect);
+    SDL_Color c = data->conf.colors[color_index];
+    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
+    SDL_RenderFillRect(data->renderer, &frect);
+}
+
 void
 draw_render(WindowData* data) {
     draw(data);
     SDL_RenderPresent(data->renderer);
+}
+
+SDL_Rect
+pad_layout(LayoutRect *lrect) {
+    SDL_Rect rect = lrect->rect;
+    rect.x += lrect->padding.left;
+    rect.y += lrect->padding.top;
+    return rect;
 }

@@ -22,13 +22,12 @@ extern MoveCoord* nt_move_coords;
 extern int nt_move_coord_len;
 extern int nt_move_coord_index;
 
-void notation_handle_line_break(WindowData* data, int* x, int* y, int word_width, int x_start);
-void comment_draw(WindowData* data, Move* m, int* x, int* y, int x_start);
-void variation_draw(WindowData* data, Variation* v, int* x, int* y, int x_start, int i, int recursive);
+void comment_draw(WindowData* data, Move* m, SDL_Rect* pos);
+void variation_draw(WindowData* data, Variation* v, SDL_Rect* pos, int i, int recursive);
 int notation_click(WindowData* data);
 int notation_coord_index_click(WindowData* data);
 int notation_coord_index_move(WindowData* data, Move* m);
-void notation_draw_tags(WindowData* data, int* x, int* y, int x_start);
+void notation_draw_tags(WindowData* data, SDL_Rect* pos);
 void notation_background_draw(WindowData* data);
 void notation_draw(WindowData* data);
 void mode_annotate(WindowData* data, Move* move);

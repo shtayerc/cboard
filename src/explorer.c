@@ -3,14 +3,9 @@
 void
 explorer_draw(WindowData* data) {
     notation_background_draw(data);
-    int x_start = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    int y = data->layout.notation.y + NOTATION_PADDING_TOP;
-    int i, x;
-    for (i = 0; i < data->explorer.row_count; i++) {
-        x = x_start;
-        FC_DrawColor(data->font, data->renderer, x, y, data->conf.colors[ColorNotationFont],
-                     data->explorer.row_list[i]);
-        y += data->font_height;
+    SDL_Rect rect = pad_layout(&data->layout.notation);
+    for (int i = 0; i < data->explorer.row_count; i++) {
+        rect = draw_text(data, &data->layout.notation, rect, 0, TextElementExplorerRow, data->explorer.row_list[i]);
     }
 }
 

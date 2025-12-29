@@ -380,15 +380,12 @@ game_list_loop(WindowData* data, int* i, int* i_count) {
 
 void
 game_list_draw(WindowData* data) {
-    SDL_FRect game_current;
-    SDL_Color c;
     char title[GAMETITLE_LEN];
     Tag* tag;
     notation_background_draw(data);
     int i, color, i_count;
-    game_current.x = data->layout.notation.x + NOTATION_PADDING_LEFT;
-    game_current.y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
-    game_current.w = data->layout.notation.w;
+    SDL_Rect game_current = pad_layout(&data->layout.notation);
+    game_current.y += data->game_list_scroll.value;
     game_current.h = data->font_height;
     i = -1; //let game_list_loop know that we want pre loop init
 
@@ -397,42 +394,28 @@ game_list_draw(WindowData* data) {
         color = tag != NULL && !strcmp(tag->value, "1");
         tag_list_title(data->game_list.list[i].tag_list, title);
         if (i == data->game_list_current) {
-            c = data->conf.colors[color ? ColorCommentFont : ColorNotationActiveBackground];
-            SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-            SDL_RenderFillRect(data->renderer, &game_current);
-            FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
-                         data->conf.colors[ColorNotationActiveFont], title);
+            game_current = draw_text(data, &data->layout.notation, game_current, 0, color ? TextElementGameListRowColorCurrent : TextElementGameListRowCurrent, title);
         } else {
-            FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
-                         data->conf.colors[color ? ColorCommentFont : ColorNotationFont], title);
+            game_current = draw_text(data, &data->layout.notation, game_current, 0, color ? TextElementGameListRowColor : TextElementGameListRowNormal, title);
         }
-        game_current.y += data->font_height;
         if (game_current.y + data->font_height > game_list_get_max_y(data)) {
             break;
         }
     }
-    c = data->conf.colors[ColorStatusBackground];
-    SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
-    SDL_RenderFillRect(data->renderer, &game_current);
-    FC_Rect rect;
-    rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
-                 data->conf.colors[ColorStatusFont], "#%d", data->game_list.ai.count);
-    game_current.x += rect.w;
+    SDL_Rect rect = draw_text(data, &data->layout.notation, game_current, 0, TextElementGameListStatus, "#%d", data->game_list.ai.count);
+    //hack to draw non wraping line to get background and keep wrap behavior
+    rect.x += rect.w;
+    rect.y -= rect.h;
 
-    rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
-                        data->conf.colors[ColorStatusFont], " [%s sort \"%s\"]",
+    rect = draw_text(data, &data->layout.notation, rect, 1, TextElementGameListStatus, " [%s sort \"%s\"]",
                         data->game_list_sort_tag,
                         data->game_list_sort_direction);
-    game_current.x += rect.w;
     if (data->game_list.filter_list != NULL) {
         for (i = 0; i < data->game_list.filter_list->ai.count; i++) {
-            rect = FC_DrawColor(data->font, data->renderer, game_current.x, game_current.y,
-                                data->conf.colors[ColorStatusFont], " [%s %c \"%s\"]", 
-                                data->game_list.filter_list->list[i].tag.key,
-                                tfo2char(data->game_list.filter_list->list[i].op),
-                                data->game_list.filter_list->list[i].tag.value
-                                );
-            game_current.x += rect.w;
+            rect = draw_text(data, &data->layout.notation, rect, 1, TextElementGameListStatus, " [%s %c \"%s\"]",
+                             data->game_list.filter_list->list[i].tag.key,
+                             tfo2char(data->game_list.filter_list->list[i].op),
+                             data->game_list.filter_list->list[i].tag.value);
         }
     }
     //we set scroll length without scroll_set_length, because game_list length
@@ -443,20 +426,21 @@ game_list_draw(WindowData* data) {
 
 void
 game_list_focus_current_game(WindowData* data) {
-    int y = data->layout.notation.y + NOTATION_PADDING_TOP + data->game_list_scroll.value;
+    SDL_Rect padded = pad_layout(&data->layout.notation);
+    int y = padded.y + data->game_list_scroll.value;
     y += data->font_height * game_list_current_relative(data);
-    int top = data->layout.notation.y + NOTATION_PADDING_TOP;
+    int top = padded.y;
     int bot = game_list_get_max_y(data);
     if (y + data->font_height > bot) {
         data->game_list_scroll.value -= data->font_height;
     } else if (y < top) {
-        data->game_list_scroll.value -= y - NOTATION_PADDING_TOP;
+        data->game_list_scroll.value -= y - data->layout.notation.padding.top;
     }
 }
 
 int
 game_list_get_max_y(WindowData* data) {
-    return data->layout.notation.y + data->layout.notation.h - data->font_height + 1;
+    return data->layout.notation.rect.y + data->layout.notation.rect.h - data->font_height + 1;
 }
 
 void
