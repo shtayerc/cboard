@@ -2427,6 +2427,11 @@ FC_Rect FC_DrawColor(FC_Font* font, FC_Target* dest, float x, float y, SDL_Color
     return FC_RenderLeft(font, dest, x, y, FC_MakeScale(1,1), fc_buffer);
 }
 
+FC_Rect FC_DrawColorSimple(FC_Font* font, FC_Target* dest, float x, float y, SDL_Color color, const char* text)
+{
+    set_color_for_all_caches(font, color);
+    return FC_RenderLeft(font, dest, x, y, FC_MakeScale(1,1), text);
+}
 
 FC_Rect FC_DrawEffect(FC_Font* font, FC_Target* dest, float x, float y, FC_Effect effect, const char* formatted_text, ...)
 {
