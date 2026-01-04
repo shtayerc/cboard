@@ -14,7 +14,7 @@ comment_draw(WindowData* data, Move* m, SDL_Rect* pos) {
     word = strtok_r(comment, " ", &saveptr);
 
     while (word != NULL) {
-        *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementMoveComment, word);
+        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveComment, word);
         word = strtok_r(NULL, " ", &saveptr);
     }
 }
@@ -41,7 +41,7 @@ variation_draw(WindowData* data, Variation* v, SDL_Rect* pos, int i, int recursi
                 pos->y += data->font_height;
                 pos->x = x_start;
             }
-            *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementMoveVariation, "(");
+            *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveVariation, "(");
         }
 
         m = &v->move_list[j];
@@ -60,7 +60,7 @@ variation_draw(WindowData* data, Variation* v, SDL_Rect* pos, int i, int recursi
         } else {
             tei = i ? TextElementMoveVariation : TextElementMoveMainline;
         }
-        *pos = draw_text(data, &data->layout.notation, *pos, 1, tei, san);
+        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, tei, san);
 
         nt_move_coords[nt_move_coord_index].x = pos->x - pos->w; //calculate start of drawn text
         nt_move_coords[nt_move_coord_index].y = pos->y;
@@ -80,7 +80,7 @@ variation_draw(WindowData* data, Variation* v, SDL_Rect* pos, int i, int recursi
         }
 
         if (j + 1 == v->move_count && i) {
-            *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementMoveVariation, ")");
+            *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveVariation, ")");
         }
     }
 }
@@ -124,7 +124,7 @@ void
 notation_draw_tags(WindowData* data, SDL_Rect* pos) {
     int i;
     for (i = 0; i < data->game.tag_list->ai.count; i++) {
-        *pos = draw_text(data, &data->layout.notation, *pos, 1, TextElementGameTag, "[%s \"%s\"]",
+        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTag, "[%s \"%s\"]",
                   data->game.tag_list->list[i].key,
                   data->game.tag_list->list[i].value);
     }
@@ -492,7 +492,7 @@ notation_focus_current_move(WindowData* data) {
 void
 custom_text_draw(WindowData* data) {
     notation_background_draw(data);
-    draw_text(data, &data->layout.notation, data->layout.notation.rect, 1, TextElementCustomText, data->custom_text);
+    draw_text(data, &data->layout.notation, data->layout.notation.rect, TextWrapNewLine, TextElementCustomText, data->custom_text);
 }
 
 void
@@ -512,7 +512,7 @@ game_list_stat_draw(WindowData* data) {
     SDL_Rect rect = data->layout.notation.rect;
     for (int i = 0; i < data->game_list_stat.ai.count; i++) {
         row = &data->game_list_stat.list[i];
-        draw_text(data, &data->layout.notation, rect, 0, TextElementGameStatRow,
+        draw_text(data, &data->layout.notation, rect, TextWrapRow, TextElementGameStatRow,
                 "%s (%d) [%d%% | %d%% | %d%%]", row->san, row->count,
                 row->white_win > 0 ? (int)SDL_round((float)row->white_win / (float)row->count_finished * 100) : 0,
                 row->draw > 0 ? (int)SDL_round((float)row->draw / (float)row->count_finished * 100) : 0,

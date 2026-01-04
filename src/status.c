@@ -111,8 +111,7 @@ mode_confirm(WindowData* data, const char* msg) {
 
 void
 status_draw(WindowData* data) {
-    draw_background(data, data->layout.status.rect, ColorStatusBackground);
-    draw_text(data, NULL, data->layout.status.rect, 1, TextElementStatus, "%s %s[%s] %s",
+    draw_text(data, &data->layout.status, data->layout.status.rect, TextWrapRow, TextElementStatus, "%s %s[%s] %s",
               data->status.mode,
               data->filename,
               data->number, 

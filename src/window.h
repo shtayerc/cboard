@@ -80,7 +80,7 @@ typedef enum {
 } TextElementIndex;
 
 typedef enum {
-    TextWrapLine,
+    TextWrapRow,
     TextWrapNewLine,
     TextWrapCutoff,
 } TextWrapType;
@@ -207,9 +207,10 @@ void font_init(WindowData* data);
 void font_free(WindowData* data);
 void font_resize(WindowData* data, int step);
 void draw(WindowData* data);
-SDL_Rect draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, int wrap, TextElementIndex eli, const char* fmt_text, ...);
+SDL_Rect draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, const char* fmt_text, ...);
 void draw_background(WindowData* data, SDL_Rect rect, ColorIndex color_index);
 void draw_render(WindowData* data);
 SDL_Rect pad_layout(LayoutRect *lrect);
+int is_null_rect(SDL_Rect rect);
 
 #endif

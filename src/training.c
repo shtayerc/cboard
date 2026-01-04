@@ -182,7 +182,7 @@ mode_training(WindowData* data) {
 void
 training_draw(WindowData* data) {
     notation_background_draw(data);
-    draw_text(data, &data->layout.notation, data->layout.notation.rect, 0, TextElementTraining, "%d/%d",
+    draw_text(data, &data->layout.notation, data->layout.notation.rect, TextWrapRow, TextElementTraining, "%d/%d",
               data->ts.vs_current,
               data->ts.vs_count);
 

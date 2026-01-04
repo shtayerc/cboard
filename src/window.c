@@ -12,7 +12,7 @@ file_exists(const char* filename) {
 
 Config
 config_init() {
-    Config config = {
+    return (Config){
         .path_max_len = 512,
         .status_max_len = 200,
         .number_len = 10,
@@ -64,7 +64,7 @@ config_init() {
             [ColorMachineFont] = {255, 255, 255, SDL_ALPHA_OPAQUE},
         },
         .text_elements = {
-            [TextElementStatus] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorStatusFont, ColorNone},
+            [TextElementStatus] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorStatusFont, ColorStatusBackground},
             [TextElementGameTag] = {{.top = 0, .right = 8, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
             [TextElementTraining] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
             [TextElementMoveMainline] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
@@ -78,13 +78,12 @@ config_init() {
             [TextElementGameListRowColor] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorCommentFont, ColorNone},
             [TextElementGameListRowColorCurrent] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationActiveFont, ColorCommentFont},
             [TextElementGameListStatus] = {{.top = 4, .right = 2, .bottom = 0, .left = 2}, ColorStatusFont, ColorStatusBackground},
-            [TextElementMachineRow] = {{0}, ColorMachineFont, ColorNone},
+            [TextElementMachineRow] = {{.top = 0, .right = 5, .bottom = 0, .left = 0}, ColorMachineFont, ColorNone},
             [TextElementMachineComment] = {{0}, ColorCommentFont, ColorNone},
             [TextElementExplorerRow] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
         },
         .explorer_exe_list = {NULL, NULL},
     };
-    return config;
 }
 
 void
@@ -212,7 +211,7 @@ window_data_free(WindowData* data) {
 
 Layout
 layout_init() {
-    Layout layout = {
+    return (Layout){
         .board = {
             .padding = {0},
             .rect = {0}
@@ -234,7 +233,6 @@ layout_init() {
             .rect = {0}
         }
     };
-    return layout;
 }
 
 void
@@ -328,7 +326,7 @@ draw(WindowData* data) {
 }
 
 SDL_Rect
-draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, int wrap, TextElementIndex eli, const char* fmt_text, ...) {
+draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, const char* fmt_text, ...) {
     TextElement el = data->conf.text_elements[eli];
     char buffer[1024] = {'\0'};
     va_list args;
@@ -337,14 +335,23 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, int wrap, TextElem
     va_end(args);
     pos.w = FC_GetWidth(data->font, buffer) + el.padding.right;
     pos.h = data->font_height;
-    if (bounds != NULL) {
-        if (!wrap) {
-            pos.w = bounds->rect.w - bounds->padding.right;
-            pos.y += el.padding.top;
-        } else if (pos.x + pos.w >= bounds->rect.x + bounds->rect.w) {
+    if (wrap == TextWrapRow) {
+        pos.w = bounds->rect.w - bounds->padding.right;
+        pos.y += el.padding.top;
+    } else if (pos.x + pos.w >= bounds->rect.x + bounds->rect.w) {
+        if (wrap == TextWrapNewLine) {
             pos.x = bounds->rect.x + bounds->padding.left + el.padding.left;
             pos.y += data->font_height + el.padding.top;
+        } else if (wrap == TextWrapCutoff) {
+            pos.w = -1;
+            pos.h = -1;
+            return pos;
         }
+    }
+    if (pos.y + pos.h > bounds->rect.y + bounds->rect.h) {
+        pos.w = -1;
+        pos.h = -1;
+        return pos;
     }
     if (el.bg_color != ColorNone) {
         draw_background(data, pos, el.bg_color);
@@ -354,9 +361,8 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, int wrap, TextElem
     pos.w += el.padding.right;
     pos.x += el.padding.left;
     SDL_Rect rect = FC_DrawColorSimple(data->font, data->renderer, pos.x, pos.y, data->conf.colors[el.fg_color], buffer);
-    //rect.h = data->font_height - el.padding.top;
     rect.w += el.padding.right;
-    if (wrap) {
+    if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
         rect.x += rect.w;
     } else {
         rect.x -= el.padding.left;
@@ -388,4 +394,9 @@ pad_layout(LayoutRect *lrect) {
     rect.x += lrect->padding.left;
     rect.y += lrect->padding.top;
     return rect;
+}
+
+int
+is_null_rect(SDL_Rect rect) {
+    return rect.w == -1 && rect.h == -1;
 }

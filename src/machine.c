@@ -4,21 +4,20 @@ void
 machine_draw(WindowData* data) {
     char num[MOVENUM_LEN];
     char move[MOVENUM_LEN + SAN_LEN];
-    int i, j, l, font_width;
+    int i, j, l;
     Machine* mc;
-    int max_len = data->layout.machine.rect.w + data->layout.machine.rect.x;
     SDL_Rect rect = data->layout.machine.rect;
     draw_background(data, rect, ColorMachineBackground);
     char* comment;
     switch (data->machine_mode) {
         case ModeHidden:
-            draw_text(data, NULL, rect, 0, TextElementMachineRow, "Machine data is hidden");
+            draw_text(data, &data->layout.machine, rect, TextWrapRow, TextElementMachineRow, "Machine data is hidden");
             return;
 
         case ModeComment:
             comment = game_move_get(&data->game)->comment;
             if (comment) {
-                draw_text(data, &data->layout.machine, rect, 1, TextElementMachineComment, comment);
+                draw_text(data, &data->layout.machine, rect, TextWrapNewLine, TextElementMachineComment, comment);
             }
             return;
 
@@ -28,7 +27,8 @@ machine_draw(WindowData* data) {
     for (j = 0; j < MACHINE_COUNT; j++) {
         mc = data->machine_list[j];
         if (mc->sp.running) {
-            rect = draw_text(data, &data->layout.machine, data->layout.machine.rect, 0, TextElementMachineRow, data->conf.machine_cmd_list[j][0]);
+            rect.x = data->layout.machine.rect.x;
+            rect = draw_text(data, &data->layout.machine, rect, TextWrapRow, TextElementMachineRow, data->conf.machine_cmd_list[j][0]);
             for (l = 0; l < mc->line_count; l++) {
                 if (mc->type[l] == NoType) {
                     continue;
@@ -44,20 +44,17 @@ machine_draw(WindowData* data) {
                         } else if (mc->type[l] == Mate) {
                             snprintf(move, MOVENUM_LEN + SAN_LEN, "(#%d)[%d]", abs(mc->score[l]), mc->depth[l]);
                         }
-                        font_width = FC_GetWidth(data->font, move);
                     } else {
                         if (!strlen(mc->line[l].move_list[i].san)) {
                             break;
                         }
                         variation_movenumber_export(&mc->line[l], i, -1, num, MOVENUM_LEN);
-                        snprintf(move, MOVENUM_LEN + SAN_LEN, "%s%s ", num, mc->line[l].move_list[i].san);
-                        font_width = FC_GetWidth(data->font, move);
-                        if (rect.x + font_width > max_len) {
-                            break;
-                        }
+                        snprintf(move, MOVENUM_LEN + SAN_LEN, "%s%s", num, mc->line[l].move_list[i].san);
                     }
-                    draw_text(data, NULL, rect, 1, TextElementMachineRow, move);
-                    rect.x += font_width;
+                    rect = draw_text(data, &data->layout.machine, rect, TextWrapCutoff, TextElementMachineRow, move);
+                    if (is_null_rect(rect)) {
+                        break;
+                    }
                 }
                 rect.y += data->font_height;
             }
@@ -316,7 +313,7 @@ machine_set_line_count(WindowData* data, int index) {
 
 void
 machine_resize(WindowData* data, int index) {
-    int i, diff;
+    int i;
     int height = 0;
     Machine* mc;
     for (i = 0; i < MACHINE_COUNT; i++) {
@@ -326,8 +323,7 @@ machine_resize(WindowData* data, int index) {
         }
     }
     if (height > data->layout.machine.rect.h) {
-        diff = height - data->layout.machine.rect.h;
-        data->conf.square_size -= (diff + (diff % 8)) / 8;
+        data->conf.square_size = (data->window_height - data->layout.status.rect.h - height) / 8;
         window_resize(data, data->window_width, data->window_height);
     }
 }

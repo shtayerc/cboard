@@ -5,7 +5,7 @@ explorer_draw(WindowData* data) {
     notation_background_draw(data);
     SDL_Rect rect = pad_layout(&data->layout.notation);
     for (int i = 0; i < data->explorer.row_count; i++) {
-        rect = draw_text(data, &data->layout.notation, rect, 0, TextElementExplorerRow, data->explorer.row_list[i]);
+        rect = draw_text(data, &data->layout.notation, rect, TextWrapRow, TextElementExplorerRow, data->explorer.row_list[i]);
     }
 }
 

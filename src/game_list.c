@@ -384,7 +384,9 @@ game_list_draw(WindowData* data) {
     Tag* tag;
     notation_background_draw(data);
     int i, color, i_count;
-    SDL_Rect game_current = pad_layout(&data->layout.notation);
+    LayoutRect layout = data->layout.notation;
+    layout.rect.h -= data->font_height;
+    SDL_Rect game_current = pad_layout(&layout);
     game_current.y += data->game_list_scroll.value;
     game_current.h = data->font_height;
     i = -1; //let game_list_loop know that we want pre loop init
@@ -394,25 +396,25 @@ game_list_draw(WindowData* data) {
         color = tag != NULL && !strcmp(tag->value, "1");
         tag_list_title(data->game_list.list[i].tag_list, title);
         if (i == data->game_list_current) {
-            game_current = draw_text(data, &data->layout.notation, game_current, 0, color ? TextElementGameListRowColorCurrent : TextElementGameListRowCurrent, title);
+            game_current = draw_text(data, &layout, game_current, TextWrapRow, color ? TextElementGameListRowColorCurrent : TextElementGameListRowCurrent, title);
         } else {
-            game_current = draw_text(data, &data->layout.notation, game_current, 0, color ? TextElementGameListRowColor : TextElementGameListRowNormal, title);
+            game_current = draw_text(data, &layout, game_current, TextWrapRow, color ? TextElementGameListRowColor : TextElementGameListRowNormal, title);
         }
-        if (game_current.y + data->font_height > game_list_get_max_y(data)) {
+        if (is_null_rect(game_current)) {
             break;
         }
     }
-    SDL_Rect rect = draw_text(data, &data->layout.notation, game_current, 0, TextElementGameListStatus, "#%d", data->game_list.ai.count);
+    game_current = draw_text(data, &data->layout.notation, game_current, TextWrapRow, TextElementGameListStatus, "#%d", data->game_list.ai.count);
     //hack to draw non wraping line to get background and keep wrap behavior
-    rect.x += rect.w;
-    rect.y -= rect.h;
+    game_current.x += game_current.w;
+    game_current.y -= game_current.h;
 
-    rect = draw_text(data, &data->layout.notation, rect, 1, TextElementGameListStatus, " [%s sort \"%s\"]",
+    game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s sort \"%s\"]",
                         data->game_list_sort_tag,
                         data->game_list_sort_direction);
     if (data->game_list.filter_list != NULL) {
         for (i = 0; i < data->game_list.filter_list->ai.count; i++) {
-            rect = draw_text(data, &data->layout.notation, rect, 1, TextElementGameListStatus, " [%s %c \"%s\"]",
+            game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s %c \"%s\"]",
                              data->game_list.filter_list->list[i].tag.key,
                              tfo2char(data->game_list.filter_list->list[i].op),
                              data->game_list.filter_list->list[i].tag.value);
