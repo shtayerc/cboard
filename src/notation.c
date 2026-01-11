@@ -14,7 +14,7 @@ comment_draw(WindowData* data, Move* m, SDL_Rect* pos) {
     word = strtok_r(comment, " ", &saveptr);
 
     while (word != NULL) {
-        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveComment, word);
+        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveComment, "%s", word);
         word = strtok_r(NULL, " ", &saveptr);
     }
 }
@@ -60,7 +60,7 @@ variation_draw(WindowData* data, Variation* v, SDL_Rect* pos, int i, int recursi
         } else {
             tei = i ? TextElementMoveVariation : TextElementMoveMainline;
         }
-        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, tei, san);
+        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, tei, "%s", san);
 
         nt_move_coords[nt_move_coord_index].x = pos->x - pos->w; //calculate start of drawn text
         nt_move_coords[nt_move_coord_index].y = pos->y;
@@ -492,7 +492,7 @@ notation_focus_current_move(WindowData* data) {
 void
 custom_text_draw(WindowData* data) {
     notation_background_draw(data);
-    draw_text(data, &data->layout.notation, data->layout.notation.rect, TextWrapNewLine, TextElementCustomText, data->custom_text);
+    draw_text(data, &data->layout.notation, data->layout.notation.rect, TextWrapNewLine, TextElementCustomText, "%s", data->custom_text);
 }
 
 void

@@ -17,7 +17,7 @@ machine_draw(WindowData* data) {
         case ModeComment:
             comment = game_move_get(&data->game)->comment;
             if (comment) {
-                draw_text(data, &data->layout.machine, rect, TextWrapNewLine, TextElementMachineComment, comment);
+                draw_text(data, &data->layout.machine, rect, TextWrapNewLine, TextElementMachineComment, "%s", comment);
             }
             return;
 
@@ -28,7 +28,7 @@ machine_draw(WindowData* data) {
         mc = data->machine_list[j];
         if (mc->sp.running) {
             rect.x = data->layout.machine.rect.x;
-            rect = draw_text(data, &data->layout.machine, rect, TextWrapRow, TextElementMachineRow, data->conf.machine_cmd_list[j][0]);
+            rect = draw_text(data, &data->layout.machine, rect, TextWrapRow, TextElementMachineRow, "%s", data->conf.machine_cmd_list[j][0]);
             for (l = 0; l < mc->line_count; l++) {
                 if (mc->type[l] == NoType) {
                     continue;
@@ -51,7 +51,7 @@ machine_draw(WindowData* data) {
                         variation_movenumber_export(&mc->line[l], i, -1, num, MOVENUM_LEN);
                         snprintf(move, MOVENUM_LEN + SAN_LEN, "%s%s", num, mc->line[l].move_list[i].san);
                     }
-                    rect = draw_text(data, &data->layout.machine, rect, TextWrapCutoff, TextElementMachineRow, move);
+                    rect = draw_text(data, &data->layout.machine, rect, TextWrapCutoff, TextElementMachineRow, "%s", move);
                     if (is_null_rect(rect)) {
                         break;
                     }

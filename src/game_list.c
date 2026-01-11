@@ -396,9 +396,9 @@ game_list_draw(WindowData* data) {
         color = tag != NULL && !strcmp(tag->value, "1");
         tag_list_title(data->game_list.list[i].tag_list, title);
         if (i == data->game_list_current) {
-            game_current = draw_text(data, &layout, game_current, TextWrapRow, color ? TextElementGameListRowColorCurrent : TextElementGameListRowCurrent, title);
+            game_current = draw_text(data, &layout, game_current, TextWrapRow, color ? TextElementGameListRowColorCurrent : TextElementGameListRowCurrent, "%s", title);
         } else {
-            game_current = draw_text(data, &layout, game_current, TextWrapRow, color ? TextElementGameListRowColor : TextElementGameListRowNormal, title);
+            game_current = draw_text(data, &layout, game_current, TextWrapRow, color ? TextElementGameListRowColor : TextElementGameListRowNormal, "%s", title);
         }
         if (is_null_rect(game_current)) {
             break;
