@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.17
+chess_utils v0.9.18
 
 Copyright (c) 2024 David Murko
 
@@ -253,9 +253,10 @@ int isubstr(const char* haystack, const char* needle);
 //append to the end of string - usage is similar to printf functions
 void concate(char* str, int len, const char* fmt, ...);
 
-//remove "+x#=()" characters from string and characters before first dot
+//returns nag value or 0 - end of string could be nag value from 1 - 6
+//remove "+x#=()?!" characters from string and characters before first dot
 //(including first dot)
-void trimmove(char* str);
+int trimmove(char* str);
 
 //remove "\r\n" characters from string
 void trimendl(char* str);
@@ -866,16 +867,29 @@ concate(char* str, int len, const char* fmt, ...) {
     va_end(args);
 }
 
-void
+int
 trimmove(char* str) {
-    int i = 0;
     if (charcount(str, '.') == 1) {
-        while (str[i] != '.') {
-            charremove(str, i);
+        while (str[0] != '.') {
+            charremove(str, 0);
         }
-        charremove(str, i);
-        i = 0;
+        charremove(str, 0);
     }
+    int i = strlen(str) - 1;
+    int nag = 0;
+    while (str[i] == '?' || str[i] == '!') {
+        if (str[i] == '!') {
+            nag = 2 * nag + 1;
+        } else {
+            //fancy mapping for 0 -> 2, 1 -> 6, 2 -> 4
+            //306 is binary representation of values
+            //nag is used as index for shift
+            //mask 7 extracts only last 3 bits
+            nag = (306 >> (nag * 3)) & 7;
+        }
+        charremove(str, i--);
+    }
+    i = 0;
     while (str[i] != '\0') {
         if (strchr("+x#=()", str[i]) != NULL) {
             charremove(str, i);
@@ -883,6 +897,7 @@ trimmove(char* str) {
             i++;
         }
     }
+    return nag;
 }
 
 void
@@ -3285,18 +3300,12 @@ pgn_read_file(FILE* f, Game* g, int index) {
                     snprintf(word, WORD_LEN, "%s", tmp);
                     charremove(word, 0);
                     nag = strtol(word, NULL, 10);
-                    if (nag < 10) {
-                        v->move_list[v->move_current].nag_move = nag;
-                    } else {
-                        v->move_list[v->move_current].nag_position = nag;
-                    }
-                    nags = 0;
                 }
 
                 //parse SAN moves
                 if (comments == 0 && anglebrackets == 0 && charcount(tmp, '.') < 2 && nags == 0) {
                     snprintf(word, WORD_LEN, "%s", tmp);
-                    trimmove(word);
+                    nag = trimmove(word);
                     if (str_is_move(word)) {
 
                         status = board_move_san_status(&b, word, &src, &dst, &prom_piece);
@@ -3307,6 +3316,16 @@ pgn_read_file(FILE* f, Game* g, int index) {
                         board_move_do(&b, src, dst, prom_piece, status);
                         variation_move_add(v, src, dst, prom_piece, &b, san);
                     }
+                }
+
+                if (nag > 0) {
+                    if (nag < 10) {
+                        v->move_list[v->move_current].nag_move = nag;
+                    } else {
+                        v->move_list[v->move_current].nag_position = nag;
+                    }
+                    nag = 0;
+                    nags = 0;
                 }
 
                 //if comment is finished add it to current move
