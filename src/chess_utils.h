@@ -1613,7 +1613,7 @@ board_square_src_guess(Board* b, Square dst) {
     // clang-format on
 
     //dst empty, not attacked, castling
-    Square src, best, tmp_sq = none;
+    Square src = none, best = none, tmp_sq = none;
     Color op_color = b->turn == White ? Black : White; //opposite color
     int de = b->position[dst] == Empty;                //destination_empty
 
