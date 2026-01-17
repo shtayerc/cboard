@@ -1,7 +1,7 @@
 /*
-chess_utils v0.9.18
+chess_utils v0.9.19
 
-Copyright (c) 2024 David Murko
+Copyright (c) 2026 David Murko
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -254,8 +254,8 @@ int isubstr(const char* haystack, const char* needle);
 void concate(char* str, int len, const char* fmt, ...);
 
 //returns nag value or 0 - end of string could be nag value from 1 - 6
-//remove "+x#=()?!" characters from string and characters before first dot
-//(including first dot)
+//remove "+x#=()?!" characters from string and characters before last dot
+//(including last dot)
 int trimmove(char* str);
 
 //remove "\r\n" characters from string
@@ -869,13 +869,14 @@ concate(char* str, int len, const char* fmt, ...) {
 
 int
 trimmove(char* str) {
-    if (charcount(str, '.') == 1) {
-        while (str[0] != '.') {
-            charremove(str, 0);
+    int i = charcount(str, '.');
+    while (i > 0) {
+        if (str[0] == '.') {
+            i--;
         }
         charremove(str, 0);
     }
-    int i = strlen(str) - 1;
+    i = strlen(str) - 1;
     int nag = 0;
     while (str[i] == '?' || str[i] == '!') {
         if (str[i] == '!') {
@@ -3303,11 +3304,10 @@ pgn_read_file(FILE* f, Game* g, int index) {
                 }
 
                 //parse SAN moves
-                if (comments == 0 && anglebrackets == 0 && charcount(tmp, '.') < 2 && nags == 0) {
+                if (comments == 0 && anglebrackets == 0 && charcount(tmp, '.') <= 3 && nags == 0) {
                     snprintf(word, WORD_LEN, "%s", tmp);
                     nag = trimmove(word);
                     if (str_is_move(word)) {
-
                         status = board_move_san_status(&b, word, &src, &dst, &prom_piece);
                         if (status == Invalid) {
                             return 0;
