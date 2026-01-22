@@ -6,6 +6,8 @@ ts_init(TrainingStat* ts) {
     ts->vs_current = 1;
     ts->vs_count = 0;
     ts->gl_index = 0;
+    ts->mistake_count = 0;
+    ts->mistake_sum = 0;
 }
 
 void
@@ -14,6 +16,8 @@ training_repeat(WindowData* data, Variation* v, int move_number) {
     variation_move_current_reset(v);
     game_move_index_set(&data->game, move_number);
     data->ts.vs_index = 0;
+    data->ts.mistake_sum -= data->ts.mistake_count;
+    data->ts.mistake_count = 0;
 }
 
 void
@@ -26,6 +30,8 @@ training_next(WindowData* data, Variation* v, int move_number, Color color) {
     data->game.line_current = v;
     game_move_index_set(&data->game, move_number);
     if (vs_can_generate_next(&data->vs)) {
+        data->ts.mistake_sum += data->ts.mistake_count;
+        data->ts.mistake_count = 0;
         data->ts.vs_index = 0;
         vs_tmp = data->vs;
         vs_init(&data->vs);
@@ -33,6 +39,8 @@ training_next(WindowData* data, Variation* v, int move_number, Color color) {
         vs_free(&vs_tmp);
         data->ts.vs_current++;
     } else if (data->from_game_list && (data->ts.gl_index + 1) < data->game_list.ai.count) {
+        data->ts.mistake_sum += data->ts.mistake_count;
+        data->ts.mistake_count = 0;
         data->ts.vs_index = 0;
         vs_free(&data->vs);
         vs_init(&data->vs);
@@ -43,6 +51,20 @@ training_next(WindowData* data, Variation* v, int move_number, Color color) {
         move_number = data->game.line_current->move_current;
         data->ts.vs_current++;
     }
+}
+
+int
+training_move_try(WindowData* data, Square src, Square dst, Piece prom_piece)
+{
+    int is_present = game_move_is_present(&data->game, src, dst, prom_piece);
+    if (is_present) {
+        chessboard_vs_focus(data, &data->ts.vs_index, src, dst, prom_piece);
+        chessboard_vs_next(data, &data->ts.vs_index);
+    } else {
+        data->ts.mistake_count++;
+        data->ts.mistake_sum++;
+    }
+    return is_present;
 }
 
 void
@@ -87,10 +109,7 @@ mode_training(WindowData* data) {
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         if (data->piece != Empty) {
                             dst = chessboard_mouse_square(data);
-                            if (game_move_is_present(&data->game, data->hidden, dst, Empty)) {
-                                chessboard_vs_focus(data, &data->ts.vs_index, data->hidden, dst, Empty);
-                                chessboard_vs_next(data, &data->ts.vs_index);
-                            }
+                            training_move_try(data, data->hidden, dst, Empty);
                         }
                         data->hidden = none;
                         data->piece = Empty;
@@ -124,6 +143,8 @@ mode_training(WindowData* data) {
                                 data->ts.vs_index = 0;
                                 data->ts.gl_index = 0;
                                 data->ts.vs_current = 1;
+                                data->ts.mistake_count = 0;
+                                data->ts.mistake_sum = 0;
                                 data->game.line_current = v;
                                 variation_move_current_reset(v);
                                 game_move_index_set(&data->game, move_number);
@@ -160,9 +181,7 @@ mode_training(WindowData* data) {
                                 break;
                             }
 
-                            if (game_move_is_present(&data->game, src, dst, prom_piece)) {
-                                chessboard_vs_focus(data, &data->ts.vs_index, src, dst, prom_piece);
-                                chessboard_vs_next(data, &data->ts.vs_index);
+                            if (training_move_try(data, src, dst, prom_piece)) {
                                 data->status.info[0] = '\0';
                                 old_pos = 0;
                             }
@@ -182,14 +201,18 @@ mode_training(WindowData* data) {
 void
 training_draw(WindowData* data) {
     notation_background_draw(data);
-    draw_text(data, &data->layout.notation, data->layout.notation.rect, TextWrapRow, TextElementTraining, "%d/%d",
+    SDL_Rect rect = pad_layout(&data->layout.notation);
+    rect = draw_text(data, &data->layout.notation, rect, TextWrapRow, TextElementTraining, "[Training]");
+    rect = draw_text(data, &data->layout.notation, rect, TextWrapRow, TextElementTraining, "Variation: %d/%d",
               data->ts.vs_current,
               data->ts.vs_count);
+    rect = draw_text(data, &data->layout.notation, rect, TextWrapRow, TextElementTraining, "Mistakes: %d/%d",
+              data->ts.mistake_count,
+              data->ts.mistake_sum);
 
-    SDL_Rect padded = pad_layout(&data->layout.notation);
-    padded.y += data->font_height;
+    rect.y += data->font_height;
     if (game_move_is_last(&data->game)) {
-        variation_draw(data, data->game.line_current, &padded, 0, 0);
+        variation_draw(data, data->game.line_current, &rect, 0, 0);
     }
 }
 
