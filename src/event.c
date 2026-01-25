@@ -136,7 +136,7 @@ handle_non_input_events(SDL_Event* event, WindowData* data, int* loop) {
                     break;
 
                 case SDLK_R:
-                    if (event->key.mod == SDL_KMOD_NONE) {
+                    if (is_keymod_none(*event)) {
                         rotation_toggle(data);
                         draw_render(data);
                     }
@@ -181,11 +181,16 @@ is_keymod(SDL_Event event, int mod) {
 }
 
 int
+is_keymod_none(SDL_Event event) {
+    return (event.key.mod & SUPPORTED_MODS) == SDL_KMOD_NONE;
+}
+
+int
 is_keymod_shift(SDL_Event event) {
-    return !!event.key.mod & (SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT);
+    return !!((event.key.mod & SUPPORTED_MODS) & SDL_KMOD_SHIFT);
 }
 
 int
 is_keymod_ctrl(SDL_Event event) {
-    return !!event.key.mod & (SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT);
+    return !!((event.key.mod & SUPPORTED_MODS) & SDL_KMOD_CTRL);
 }
