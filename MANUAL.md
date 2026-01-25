@@ -78,6 +78,8 @@ Main mode, other modes are entered from here.
   Enter COMMENT mode before current move.
 * **c**  
   Enter CLIPBOARD mode.
+* **C**  
+  Toggle board coordinates.
 * **r**  
   Rotate chessboard.
 * **W**  
@@ -316,9 +318,9 @@ Position annotation.
   Select previous position NAG.
 * **x, Backspace**  
   Delete position NAG.
-* **Space**
+* **Space**  
 Play best move from machine 1.
-* **Shift-Space**
+* **Shift-Space**  
 Play best move from machine 2.
 * **Escape**  
   Return to NORMAL mode.

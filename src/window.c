@@ -81,6 +81,10 @@ config_init() {
             [TextElementMachineRow] = {{.top = 0, .right = 5, .bottom = 0, .left = 0}, ColorMachineFont, ColorNone},
             [TextElementMachineComment] = {{0}, ColorCommentFont, ColorNone},
             [TextElementExplorerRow] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
+            [TextElementBoardCoordRowWhite] = {{.top = 0, .right = 1, .bottom = 0, .left = 0}, ColorSquareBlack, ColorNone},
+            [TextElementBoardCoordRowBlack] = {{.top = 0, .right = 1, .bottom = 0, .left = 0}, ColorSquareWhite, ColorNone},
+            [TextElementBoardCoordFileWhite] = {{.top = 0, .right = 0, .bottom = 0, .left = 1}, ColorSquareBlack, ColorNone},
+            [TextElementBoardCoordFileBlack] = {{.top = 0, .right = 0, .bottom = 0, .left = 1}, ColorSquareWhite, ColorNone},
         },
         .explorer_exe_list = {NULL, NULL},
     };
@@ -121,6 +125,7 @@ window_data_init(WindowData* data) {
     data->piece = Empty;
     data->hidden = none;
     data->font_size = 16;
+    data->board_coord = 0;
     game_list_init(&data->game_list);
     gls_init(&data->game_list_stat);
     explorer_init(&data->explorer);
@@ -360,6 +365,12 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap,
     pos.h += el.padding.bottom;
     pos.w += el.padding.right;
     pos.x += el.padding.left;
+    if (wrap == TextWrapRight) {
+        pos.x += bounds->rect.w - pos.w;
+    }
+    if (wrap == TextWrapBottom) {
+        pos.y += bounds->rect.h - pos.h;
+    }
     SDL_Rect rect = FC_DrawColorSimple(data->font, data->renderer, pos.x, pos.y, data->conf.colors[el.fg_color], buffer);
     rect.w += el.padding.right;
     if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {

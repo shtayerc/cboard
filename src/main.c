@@ -38,6 +38,7 @@ usage() {
                     " -f --font <file>        Font to use\n"
                     "    --FEN-start <fen>    Starting position\n"
                     "    --FEN-find <fen>     Set current move for position\n"
+                    "    --coord              Show board coordiantes by default\n"
                     " -h --help               Print help\n"
                     " -n --number <number>    Game number\n"
                     " -o --output fen|pgn     Output to stdout\n"
@@ -83,6 +84,12 @@ main(int argc, char* argv[]) {
                 return 1;
             }
             snprintf(fen_find, FEN_LEN, "%s", argv[i]);
+        } else if (!strcmp(argv[i], "--coord")) {
+            if (++i == argc) {
+                usage();
+                return 1;
+            }
+            data.board_coord = 1;
         } else if (!strcmp(argv[i], "--font") || !strcmp(argv[i], "-f")) {
             if (++i == argc) {
                 usage();

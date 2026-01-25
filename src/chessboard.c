@@ -89,6 +89,8 @@ background_draw(WindowData* data) {
     Square src = square_rotation(data, game_move_get(&data->game)->src);
     Square dst = square_rotation(data, game_move_get(&data->game)->dst);
     ColorIndex color_index;
+    TextElementIndex row_te_index;
+    TextElementIndex file_te_index;
     for (col = 0; col < 8; col++) {
         data->layout.square.rect.y = col * data->layout.square.rect.w;
         for (row = 0; row < 8; row++) {
@@ -98,6 +100,16 @@ background_draw(WindowData* data) {
             }
             data->layout.square.rect.x = row * data->layout.square.rect.w;
             draw_background(data, data->layout.square.rect, color_index);
+            if (data->board_coord) {
+                file_te_index = ((col + row) % 2) ? TextElementBoardCoordFileBlack : TextElementBoardCoordFileWhite;
+                row_te_index = ((col + row) % 2) ? TextElementBoardCoordRowBlack : TextElementBoardCoordRowWhite;
+                if (col == 7) {
+                    draw_text(data, &data->layout.square, data->layout.square.rect, TextWrapBottom, file_te_index, "%c", file2char((File)row));
+                }
+                if (row == 7) {
+                    draw_text(data, &data->layout.square, data->layout.square.rect, TextWrapRight, row_te_index, "%c", rank2char((Rank)col));
+                }
+            }
         }
     }
 }

@@ -76,6 +76,10 @@ typedef enum {
     TextElementMachineRow,
     TextElementMachineComment,
     TextElementExplorerRow,
+    TextElementBoardCoordRowWhite,
+    TextElementBoardCoordRowBlack,
+    TextElementBoardCoordFileWhite,
+    TextElementBoardCoordFileBlack,
     TextElementCount,  //this should always be the last
 } TextElementIndex;
 
@@ -83,6 +87,8 @@ typedef enum {
     TextWrapRow,
     TextWrapNewLine,
     TextWrapCutoff,
+    TextWrapRight,
+    TextWrapBottom,
 } TextWrapType;
 
 typedef struct {
@@ -184,6 +190,7 @@ struct WindowData {
     Rotation rotation;
     int font_size;
     int message;
+    int board_coord;
     SDL_TimerID message_timer;
     Piece piece;
     Square hidden;

@@ -136,7 +136,14 @@ mode_normal(WindowData* data) {
 
                         case SDLK_F: mode_filename_edit(data); break;
 
-                        case SDLK_C: mode_clipboard(data); break;
+                        case SDLK_C:
+                            if (is_keymod_shift(event)) {
+                                data->board_coord = !data->board_coord;
+                                draw_render(data);
+                            } else if (is_keymod_none(event)) {
+                                mode_clipboard(data);
+                            }
+                            break;
 
                         case SDLK_A:
                             undo_add(data);
