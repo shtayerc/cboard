@@ -226,6 +226,7 @@ void
 mode_position(WindowData* data) {
     int loop = 1;
     SDL_Event event;
+    Machine* mc;
     snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.position_annotation_status);
     draw_render(data);
     while (loop) {
@@ -251,8 +252,37 @@ mode_position(WindowData* data) {
 
                         case SDLK_X:
                         case SDLK_BACKSPACE:
-                            game_move_get(&data->game)->nag_position = 0;
+                            game_move_get(&data->game)->nag_position = NagNone;
                             loop = 0;
+                            break;
+
+                        case SDLK_SPACE:
+                            mc = data->machine_list[is_keymod_shift(event)];
+                            if (mc->sp.running) {
+                                NagIndex nag = NagNone;
+                                int score = *mc->score * (game_move_get(&data->game)->board.turn == White ? 1 : -1);
+                                if (*mc->type == Centipawn) {
+                                    if (score > 10) {
+                                        if (score < 100) {
+                                            nag = NagPosWhiteLowAdv;
+                                        } else {
+                                            nag = NagPosWhiteMidAdv;
+                                        }
+                                    } else if (score > -10){
+                                        nag = NagPosDrawish;
+                                    } else if (score < -10) {
+                                        if (score > -100) {
+                                            nag = NagPosBlackLowAdv;
+                                        } else {
+                                            nag = NagPosBlackMidAdv; 
+                                        }
+                                    }
+                                } else if (*mc->type == Mate) {
+                                     nag = score > 0 ? NagPosWhiteHighAdv : NagPosBlackHighAdv;
+                                }
+                                game_move_get(&data->game)->nag_position = nag;
+                                draw_render(data);
+                            }
                             break;
                     }
             }

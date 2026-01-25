@@ -316,6 +316,10 @@ Position annotation.
   Select previous position NAG.
 * **x, Backspace**  
   Delete position NAG.
+* **Space**
+Play best move from machine 1.
+* **Shift-Space**
+Play best move from machine 2.
 * **Escape**  
   Return to NORMAL mode.
 
