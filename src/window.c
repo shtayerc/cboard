@@ -22,20 +22,22 @@ config_init() {
         .minimal_width = 600,
         .minimal_height = 400,
         .minimal_square = 30,
-        .normal_status = "[NORMAL]",
-        .edit_status = "[EDIT]",
-        .annotate_status = "[COMMENT]",
-        .promotion_status = "[PROMOTION]",
-        .move_annotation_status = "[MOVE ANNOTATION]",
-        .position_annotation_status = "[POSITION ANNOTATION]",
-        .tag_status = "[TAG]",
-        .filename_status = "[FILENAME]",
-        .number_status = "[NUMBER]",
-        .clipboard_status = "[CLIPBOARD]",
-        .san_status = "[SAN]",
-        .training_status = "[TRAINING]",
-        .game_list_status = "[GAME LIST]",
-        .tag_filter_status = "[TAG FILTER]",
+        .status_name = {
+            [ModeNormal] = "[NORMAL]",
+            [ModeGameList] = "[GAME LIST]",
+            [ModeTagFilter] = "[TAG FILTER]",
+            [ModeEdit] = "[EDIT]",
+            [ModeFilename] = "[FILENAME]",
+            [ModeNumber] = "[NUMBER]",
+            [ModeSan] = "[SAN]",
+            [ModeTag] = "[TAG]",
+            [ModeTraining] = "[TRAINING]",
+            [ModeMoveAnnotation] = "[MOVE ANNOTATION]",
+            [ModePositionAnnotation] = "[POSITION ANNOTATION]",
+            [ModeComment] = "[COMMENT]",
+            [ModeClipboard] = "[CLIPBOARD]",
+            [ModePromotion] = "[PROMOTION]",
+        },
         .cursor = "│",
         .piece_path = PIECE_PATH,
         .font_path = FONT_PATH,
@@ -85,6 +87,8 @@ config_init() {
             [TextElementBoardCoordRowBlack] = {{.top = 0, .right = 1, .bottom = 0, .left = 0}, ColorSquareWhite, ColorNone},
             [TextElementBoardCoordFileWhite] = {{.top = 0, .right = 0, .bottom = 0, .left = 1}, ColorSquareBlack, ColorNone},
             [TextElementBoardCoordFileBlack] = {{.top = 0, .right = 0, .bottom = 0, .left = 1}, ColorSquareWhite, ColorNone},
+            [TextElementHelpShortcut] = {{.top = 0, .right = 30, .bottom = 0, .left = 1}, ColorNotationFont, ColorNone},
+            [TextElementHelpText] = {{.top = 0, .right = 0, .bottom = 0, .left = 1}, ColorNotationFont, ColorNone},
         },
         .explorer_exe_list = {NULL, NULL},
     };
@@ -95,9 +99,9 @@ window_data_init(WindowData* data) {
     int i;
     data->conf = config_init();
     data->layout = layout_init();
-    data->status.mode = calloc(data->conf.status_max_len, sizeof(char));
     data->status.info = calloc(data->conf.status_max_len, sizeof(char));
     data->filename = malloc(sizeof(char) * data->conf.status_max_len);
+    data->mode = ModeNormal;
     snprintf(data->filename, data->conf.status_max_len, "%s", data->conf.default_filename);
     data->number = malloc(sizeof(char) * data->conf.number_len);
     snprintf(data->number, data->conf.number_len, "a");
@@ -107,14 +111,14 @@ window_data_init(WindowData* data) {
     data->mouse.x = data->conf.default_width / 2;
     data->mouse.y = data->conf.default_height / 2;
     scroll_init(&data->notation_scroll);
-    data->notation_mode = ModeMoves;
+    data->notation_mode = NotationModeMoves;
     scroll_init(&data->game_list_scroll);
     data->game_list_sort_tag = calloc(TAG_LEN, sizeof(char));
     snprintf(data->game_list_sort_tag, TAG_LEN, "File");
     data->game_list_sort_direction = calloc(TAG_LEN, sizeof(char));
     snprintf(data->game_list_sort_direction, TAG_LEN, "Desc");
     game_list_current_init(data);
-    data->machine_mode = ModeComment;
+    data->machine_mode = MachineModeComment;
     undo_init(data->undo_list);
     data->undo_current = -1;
     undo_init(data->redo_list);
@@ -134,6 +138,7 @@ window_data_init(WindowData* data) {
         data->machine_list[i]->sp.running = 0;
     }
     vs_init(&data->vs);
+    data->help = help_init();
 }
 
 void
@@ -188,7 +193,6 @@ font_resize(WindowData* data, int step) {
 void
 window_data_free(WindowData* data) {
     int i;
-    free(data->status.mode);
     free(data->status.info);
     free(data->filename);
     free(data->number);
@@ -308,17 +312,19 @@ draw(WindowData* data) {
     machine_draw(data);
 
     switch (data->notation_mode) {
-        case ModeMoves: notation_draw(data); break;
+        case NotationModeMoves: notation_draw(data); break;
 
-        case ModeGameList: game_list_draw(data); break;
+        case NotationModeGameList: game_list_draw(data); break;
 
-        case ModeGameListStat: game_list_stat_draw(data); break;
+        case NotationModeGameListStat: game_list_stat_draw(data); break;
 
-        case ModeExplorer: explorer_draw(data); break;
+        case NotationModeExplorer: explorer_draw(data); break;
 
-        case ModeTraining: training_draw(data); break;
+        case NotationModeTraining: training_draw(data); break;
 
-        case ModeCustomText: custom_text_draw(data); break;
+        case NotationModeCustomText: custom_text_draw(data); break;
+
+        case NotationModeHelp: help_draw(data); break;
     }
     status_draw(data);
     if (data->piece != Empty) {
@@ -397,6 +403,38 @@ void
 draw_render(WindowData* data) {
     draw(data);
     SDL_RenderPresent(data->renderer);
+}
+
+void
+help_draw(WindowData* data) {
+    Mode mode = data->mode;
+    notation_background_draw(data);
+    SDL_Rect padded = pad_layout(&data->layout.notation);
+    SDL_Rect rect = padded;
+    char* text;
+    for (int i = 0; data->help.mode[mode][i].shortcut != NULL; i++) {
+        rect = draw_text(
+            data,
+            &data->layout.notation,
+            rect,
+            TextWrapCutoff,
+            TextElementHelpShortcut,
+            "%s",
+            data->help.mode[mode][i].shortcut
+        );
+
+        text = data->help.mode[mode][i].text ?: "";
+        rect = draw_text(
+            data,
+            &data->layout.notation,
+            rect,
+            TextWrapRow,
+            TextElementHelpText,
+            "%s",
+            text
+        );
+        rect.x = padded.x;
+    }
 }
 
 SDL_Rect

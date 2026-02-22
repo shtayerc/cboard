@@ -186,6 +186,7 @@ promotion_draw(WindowData* data, Square sq, Color color) {
 
 int
 mode_promotion(WindowData* data, Color color) {
+    data->mode = ModePromotion;
     data->piece = Empty;
     int piece;
     int loop = 1;
@@ -247,7 +248,7 @@ mode_editor(WindowData* data) {
     int replace = 0;
     SDL_Event event;
     Board b;
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.edit_status);
+    data->mode = ModeEdit;
     machine_stop(data, 0);
     machine_stop(data, 1);
     draw_render(data);
@@ -302,7 +303,7 @@ mode_editor(WindowData* data) {
                             break;
 
                         case SDLK_ESCAPE:
-                            snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
+                            data->mode = ModeNormal;
                             loop = 0;
                             break;
 
@@ -369,7 +370,7 @@ mode_san(WindowData* data) {
     data->message = 0;
     data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.san_status);
+    data->mode = ModeSan;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -449,6 +450,8 @@ chessboard_vs_next(WindowData* data, int* vs_index) {
         return;
     }
 
+    printf("%s %d %d\n", m->san, *vs_index, m->variation_count);
+    vs_print(&data->vs);
     int i = m->variation_count ? data->vs.list[*vs_index].index : 0;
     if (i == 0 && !game_move_is_last(&data->game)) {
         variation_move_next(data->game.line_current);

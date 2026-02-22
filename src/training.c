@@ -75,7 +75,7 @@ mode_training(WindowData* data) {
     SDL_Event event;
 
     ts_init(&data->ts);
-    data->notation_mode = ModeTraining;
+    data->notation_mode = NotationModeTraining;
     Variation* v = data->game.line_current;
     Color color = game_move_get(&data->game)->board.turn;
     vs_free(&data->vs);
@@ -90,7 +90,7 @@ mode_training(WindowData* data) {
     data->message = 0;
     data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.training_status);
+    data->mode = ModeTraining;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -128,7 +128,7 @@ mode_training(WindowData* data) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            data->notation_mode = ModeMoves;
+                            data->notation_mode = NotationModeMoves;
                             data->status.info[0] = '\0';
                             draw_render(data);
                             break;

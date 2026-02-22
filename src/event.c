@@ -2,6 +2,7 @@
 
 void
 handle_global_events(SDL_Event* event, WindowData* data, int* loop, int draw) {
+    NotationMode last = NotationModeMoves;
     switch (event->type) {
         case SDL_EVENT_QUIT:
             data->loop = 0;
@@ -40,6 +41,20 @@ handle_global_events(SDL_Event* event, WindowData* data, int* loop, int draw) {
                 draw_render(data);
             }
             break;
+
+        case SDL_EVENT_KEY_UP:
+            switch (event->key.key) {
+                case SDLK_F1:
+                    if (data->notation_mode != NotationModeHelp) {
+                        last = data->notation_mode;
+                        data->notation_mode = NotationModeHelp;
+                    } else {
+                        data->notation_mode = last;
+                    }
+                    draw_render(data);
+                    break;
+
+            }
     }
 }
 
@@ -51,7 +66,7 @@ handle_input_events(SDL_Event* event, WindowData* data, int* loop, int* pos, cha
                 case SDLK_ESCAPE:
                     *loop = 0;
                     textedit_escape(pos, str);
-                    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
+                    data->mode = ModeNormal;
                     SDL_StopTextInput(data->window);
                     break;
 
@@ -162,7 +177,7 @@ void
 handle_position_change(WindowData* data) {
     machine_position(data);
     explorer_position(data);
-    if (data->notation_mode == ModeGameListStat) {
+    if (data->notation_mode == NotationModeGameListStat) {
         game_list_stat_position(data);
     }
 }

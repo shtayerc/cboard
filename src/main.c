@@ -179,7 +179,6 @@ main(int argc, char* argv[]) {
     }
     SDL_MaximizeWindow(data.window);
     window_calculate_content_size(&data);
-    snprintf(data.status.mode, data.conf.status_max_len, "%s", data.conf.normal_status);
     handle_position_change(&data);
     piece_load(&data);
 

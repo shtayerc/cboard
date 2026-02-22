@@ -10,18 +10,18 @@ machine_draw(WindowData* data) {
     draw_background(data, rect, ColorMachineBackground);
     char* comment;
     switch (data->machine_mode) {
-        case ModeHidden:
+        case MachineModeHidden:
             draw_text(data, &data->layout.machine, rect, TextWrapRow, TextElementMachineRow, "Machine data is hidden");
             return;
 
-        case ModeComment:
+        case MachineModeComment:
             comment = game_move_get(&data->game)->comment;
             if (comment) {
                 draw_text(data, &data->layout.machine, rect, TextWrapNewLine, TextElementMachineComment, "%s", comment);
             }
             return;
 
-        case ModeMachine: break;
+        case MachineModeNormal: break;
     }
 
     for (j = 0; j < MACHINE_COUNT; j++) {

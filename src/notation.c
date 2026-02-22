@@ -87,7 +87,7 @@ variation_draw(WindowData* data, Variation* v, SDL_Rect* pos, int i, int recursi
 
 int
 notation_click(WindowData* data) {
-    return data->notation_mode == ModeMoves && data->mouse.x > data->layout.notation.rect.x
+    return data->notation_mode == NotationModeMoves && data->mouse.x > data->layout.notation.rect.x
            && data->mouse.x < data->layout.notation.rect.w + data->layout.notation.rect.x
            && data->mouse.y > data->layout.notation.rect.y
            && data->mouse.y < data->layout.notation.rect.h + data->layout.notation.rect.y;
@@ -159,7 +159,7 @@ mode_annotate(WindowData* data, Move* move) {
         pos = U8_strlen(move->comment);
     }
     cursor_add(&pos, move->comment, COMMENT_LEN, data);
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.annotate_status);
+    data->mode = ModeComment;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -186,7 +186,7 @@ void
 mode_move(WindowData* data) {
     int loop = 1;
     SDL_Event event;
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.move_annotation_status);
+    data->mode = ModeMoveAnnotation;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -218,7 +218,7 @@ mode_move(WindowData* data) {
             }
         }
     }
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
+    data->mode = ModeNormal;
     draw_render(data);
 }
 
@@ -227,7 +227,7 @@ mode_position(WindowData* data) {
     int loop = 1;
     SDL_Event event;
     Machine* mc;
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.position_annotation_status);
+    data->mode = ModePositionAnnotation;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -288,7 +288,7 @@ mode_position(WindowData* data) {
             }
         }
     }
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
+    data->mode = ModeNormal;
     draw_render(data);
 }
 
@@ -335,7 +335,7 @@ mode_tag(WindowData* data) {
     data->message = 0;
     data->status.info[0] = '\0';
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.tag_status);
+    data->mode = ModeTag;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -372,7 +372,7 @@ mode_clipboard(WindowData* data) {
     int loop = 1;
     char fen[FEN_LEN];
     SDL_Event event;
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.clipboard_status);
+    data->mode = ModeClipboard;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -394,7 +394,7 @@ mode_clipboard(WindowData* data) {
                         case SDLK_ESCAPE:
                         default:
                             data->status.info[0] = '\0';
-                            snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
+                            data->mode = ModeNormal;
                             loop = 0;
                             draw_render(data);
                             break;

@@ -10,6 +10,7 @@
 #include "scroll.h"
 #include "status.h"
 #include "training.h"
+#include "help.h"
 
 typedef enum {
     ColorNone,
@@ -80,6 +81,8 @@ typedef enum {
     TextElementBoardCoordRowBlack,
     TextElementBoardCoordFileWhite,
     TextElementBoardCoordFileBlack,
+    TextElementHelpShortcut,
+    TextElementHelpText,
     TextElementCount,  //this should always be the last
 } TextElementIndex;
 
@@ -103,6 +106,7 @@ typedef struct {
     int minimal_height;
     int minimal_square;
     char window_title[WINDOW_TITLE_LEN];
+    char* status_name[ModeCount];
     char* normal_status;
     char* edit_status;
     char* annotate_status;
@@ -132,25 +136,25 @@ typedef struct {
 } Config;
 
 typedef struct {
-    char* mode;
     char* info;
 } StatusLine;
 
 typedef enum { RotationWhite = 0, RotationBlack = 7 } Rotation;
 
 typedef enum {
-    ModeMoves,
-    ModeGameList,
-    ModeExplorer,
-    ModeGameListStat,
-    ModeTraining,
-    ModeCustomText,
+    NotationModeMoves,
+    NotationModeGameList,
+    NotationModeExplorer,
+    NotationModeGameListStat,
+    NotationModeTraining,
+    NotationModeCustomText,
+    NotationModeHelp,
 } NotationMode;
 
 typedef enum {
-    ModeMachine,
-    ModeHidden,
-    ModeComment,
+    MachineModeNormal,
+    MachineModeHidden,
+    MachineModeComment,
 } MachineMode;
 
 typedef struct WindowData WindowData;
@@ -170,6 +174,7 @@ struct WindowData {
     FC_Font* font;
     int font_height;
     Scroll notation_scroll;
+    Mode mode;
     NotationMode notation_mode;
     Scroll game_list_scroll;
     MachineMode machine_mode;
@@ -198,6 +203,7 @@ struct WindowData {
     Machine* machine_list[MACHINE_COUNT];
     VariationSequence vs;
     TrainingStat ts;
+    Help help;
 };
 
 int file_exists(const char* filename);
@@ -217,6 +223,7 @@ void draw(WindowData* data);
 SDL_Rect draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, const char* fmt_text, ...);
 void draw_background(WindowData* data, SDL_Rect rect, ColorIndex color_index);
 void draw_render(WindowData* data);
+void help_draw(WindowData* data);
 SDL_Rect pad_layout(LayoutRect *lrect);
 int is_null_rect(SDL_Rect rect);
 

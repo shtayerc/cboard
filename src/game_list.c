@@ -53,7 +53,7 @@ mode_game_filter(WindowData* data) {
     char* saveptr;
     char* tmp;
     cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.tag_filter_status);
+    data->mode = ModeTagFilter;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -67,7 +67,7 @@ mode_game_filter(WindowData* data) {
                         case SDLK_ESCAPE:
                             loop = 0;
                             data->status.info[0] = '\0';
-                            snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.game_list_status);
+                            data->mode = ModeGameList;
                             draw_render(data);
                             break;
 
@@ -195,12 +195,12 @@ mode_game_list(WindowData* data) {
     int loop = 1;
     FILE* f;
     GameList new_gl;
-    data->notation_mode = ModeGameList;
+    data->notation_mode = NotationModeGameList;
     int index = 0;
     char* comment;
     SDL_Event event;
     TagFilterList* filter_list = NULL;
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.game_list_status);
+    data->mode = ModeGameList;
     machine_stop(data, 0);
     machine_stop(data, 1);
     game_list_sort(&data->game_list, data->game_list_sort_tag,
@@ -224,8 +224,8 @@ mode_game_list(WindowData* data) {
                         case SDLK_ESCAPE:
                             loop = 0;
                             data->from_game_list = 0;
-                            data->notation_mode = ModeMoves;
-                            snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
+                            data->notation_mode = NotationModeMoves;
+                            data->mode = ModeNormal;
                             draw_render(data);
                             break;
 
@@ -304,7 +304,7 @@ mode_game_list(WindowData* data) {
                             if (is_keymod_shift(event)) {
                                 game_list_game_load(data, 0);
                                 loop = 0;
-                                data->notation_mode = ModeMoves;
+                                data->notation_mode = NotationModeMoves;
                                 data->from_game_list = 1;
                                 mode_training(data);
                             }
@@ -332,8 +332,8 @@ mode_game_list(WindowData* data) {
                         case SDLK_RETURN:
                             game_list_game_load(data, -1);
                             loop = 0;
-                            data->notation_mode = ModeMoves;
-                            snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.normal_status);
+                            data->notation_mode = NotationModeMoves;
+                            data->mode = ModeNormal;
                             draw_render(data);
                             break;
                     }

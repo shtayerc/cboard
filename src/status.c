@@ -8,7 +8,7 @@ mode_filename_edit(WindowData* data) {
     char last[data->conf.status_max_len];
     snprintf(last, data->conf.status_max_len, "%s", data->filename);
     int pos = U8_strlen(data->filename);
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.filename_status);
+    data->mode = ModeFilename;
     cursor_add(&pos, data->filename, data->conf.status_max_len, data);
     draw_render(data);
     while (loop) {
@@ -49,7 +49,7 @@ mode_number_edit(WindowData* data) {
     char* non_int;
     int pos = U8_strlen(data->number);
     snprintf(last, data->conf.number_len, "%s", data->number);
-    snprintf(data->status.mode, data->conf.status_max_len, "%s", data->conf.number_status);
+    data->mode = ModeNumber;
     cursor_add(&pos, data->number, data->conf.number_len, data);
     draw_render(data);
     while (loop) {
@@ -112,7 +112,7 @@ mode_confirm(WindowData* data, const char* msg) {
 void
 status_draw(WindowData* data) {
     draw_text(data, &data->layout.status, data->layout.status.rect, TextWrapRow, TextElementStatus, "%s %s[%s] %s",
-              data->status.mode,
+              data->conf.status_name[data->mode],
               data->filename,
               data->number, 
               data->status.info);

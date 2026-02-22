@@ -33,6 +33,7 @@ mode_normal(WindowData* data) {
     SDL_Event event;
     Machine* mc;
     Board b;
+    data->mode = ModeNormal;
 
     while (data->loop) {
         //WaitEvent is using way less CPU (on PoolEvent was 100%)
@@ -71,17 +72,13 @@ mode_normal(WindowData* data) {
                                 case Invalid: break;
 
                                 case Promotion:
-                                    snprintf(data->status.mode, data->conf.status_max_len, "%s",
-                                             data->conf.promotion_status);
                                     prom_piece = mode_promotion(data, game_move_get(&data->game)->board.turn);
                                     if (prom_piece == Empty) {
-                                        snprintf(data->status.mode, data->conf.status_max_len, "%s",
-                                                 data->conf.normal_status);
+                                        data->mode = ModeNormal;
                                         break;
                                     }
                                     chessboard_move_do(data, data->hidden, square_dst, prom_piece, status);
-                                    snprintf(data->status.mode, data->conf.status_max_len, "%s",
-                                             data->conf.normal_status);
+                                    data->mode = ModeNormal;
                                     break;
 
                                 default: chessboard_move_do(data, data->hidden, square_dst, Empty, status); break;
@@ -347,11 +344,11 @@ mode_normal(WindowData* data) {
                         case SDLK_G:
                             data->hidden = none;
                             if (is_keymod_shift(event)) {
-                                if (data->notation_mode != ModeGameListStat) {
+                                if (data->notation_mode != NotationModeGameListStat) {
                                     game_list_stat_position(data);
-                                    data->notation_mode = ModeGameListStat;
+                                    data->notation_mode = NotationModeGameListStat;
                                 } else {
-                                    data->notation_mode = ModeMoves;
+                                    data->notation_mode = NotationModeMoves;
                                 }
                                 draw_render(data);
                             } else {
@@ -366,14 +363,14 @@ mode_normal(WindowData* data) {
                                 machine_stop(data, tmp);
                                 mc->output[0] = '\0';
                             } else {
-                                if (data->machine_mode == ModeComment) {
-                                    data->machine_mode = ModeMachine;
+                                if (data->machine_mode == MachineModeComment) {
+                                    data->machine_mode = MachineModeNormal;
                                 }
                                 machine_start(data, tmp);
                                 SDL_DisableScreenSaver();
                             }
                             if (!machine_running_count(data)) {
-                                data->machine_mode = ModeComment;
+                                data->machine_mode = MachineModeComment;
                                 SDL_EnableScreenSaver();
                             }
                             draw_render(data);
@@ -398,25 +395,25 @@ mode_normal(WindowData* data) {
                             break;
 
                         case SDLK_B:
-                            if (data->machine_mode == ModeMachine) {
-                                data->machine_mode = ModeHidden;
-                            } else if (data->machine_mode == ModeHidden) {
-                                data->machine_mode = ModeMachine;
+                            if (data->machine_mode == MachineModeNormal) {
+                                data->machine_mode = MachineModeHidden;
+                            } else if (data->machine_mode == MachineModeHidden) {
+                                data->machine_mode = MachineModeNormal;
                             }
                             draw_render(data);
                             break;
 
                         case SDLK_O:
                             tmp = is_keymod_shift(event);
-                            if (data->notation_mode != ModeExplorer) {
+                            if (data->notation_mode != NotationModeExplorer) {
                                 if (data->explorer.sp.running) {
                                     explorer_stop(data);
                                 }
                                 if (explorer_start(data, tmp)) {
-                                    data->notation_mode = ModeExplorer;
+                                    data->notation_mode = NotationModeExplorer;
                                 }
                             } else {
-                                data->notation_mode = ModeMoves;
+                                data->notation_mode = NotationModeMoves;
                                 explorer_stop(data);
                             }
                             draw_render(data);
