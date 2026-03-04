@@ -1,5 +1,6 @@
 #!/bin/sh
 url="https://explorer.lichess.ovh/masters"
+token="$(cat ~/.config/cboard/lichess.txt)"
 mode=0
 
 mode_handle() {
@@ -38,7 +39,7 @@ do
     case "$command" in
         "fen")
             fen="$(echo "$input" | cut -d' ' -f2-)"
-            response="$(curl -sG --data-urlencode "fen=$fen" --data-urlencode "topGames=9" "$url")"
+            response="$(curl -sG -H "Authorization: Bearer $token" --data-urlencode "fen=$fen" --data-urlencode "topGames=9" "$url")"
             mode_handle
             ;;
         "event")
