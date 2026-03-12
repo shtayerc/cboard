@@ -2168,6 +2168,14 @@ FC_Rect FC_DrawBoxColor(FC_Font* font, FC_Target* dest, FC_Rect box, SDL_Color c
     return box;
 }
 
+FC_Rect FC_DrawBoxColorSimple(FC_Font* font, FC_Target* dest, FC_Rect box, SDL_Color color, const char* text)
+{
+    snprintf(fc_buffer, fc_buffer_size, "%s", text);
+    set_color_for_all_caches(font, color);
+    FC_DrawColumnFromBuffer(font, dest, box, NULL, FC_MakeScale(1,1), FC_ALIGN_LEFT);
+    return box;
+}
+
 FC_Rect FC_DrawBoxEffect(FC_Font* font, FC_Target* dest, FC_Rect box, FC_Effect effect, const char* formatted_text, ...)
 {
     Uint8 useClip;
