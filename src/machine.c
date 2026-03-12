@@ -17,7 +17,7 @@ machine_draw(WindowData* data) {
         case MachineModeComment:
             comment = game_move_get(&data->game)->comment;
             if (comment) {
-                draw_text(data, &data->layout.machine, rect, TextWrapNewLine, TextElementMachineComment, "%s", comment);
+                draw_text(data, &data->layout.machine, rect, TextWrapBox, TextElementMachineComment, "%s", comment);
             }
             return;
 

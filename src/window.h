@@ -89,6 +89,7 @@ typedef enum {
 typedef enum {
     TextWrapRow,
     TextWrapNewLine,
+    TextWrapBox,
     TextWrapCutoff,
     TextWrapRight,
     TextWrapBottom,

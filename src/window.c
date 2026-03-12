@@ -377,7 +377,12 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap,
     if (wrap == TextWrapBottom) {
         pos.y += bounds->rect.h - pos.h;
     }
-    SDL_Rect rect = FC_DrawColorSimple(data->font, data->renderer, pos.x, pos.y, data->conf.colors[el.fg_color], buffer);
+    SDL_Rect rect;
+    if (wrap == TextWrapBox) {
+        rect = FC_DrawBoxColorSimple(data->font, data->renderer, (FC_Rect)bounds->rect, data->conf.colors[el.fg_color], buffer);
+    } else {
+        rect = FC_DrawColorSimple(data->font, data->renderer, pos.x, pos.y, data->conf.colors[el.fg_color], buffer);
+    }
     rect.w += el.padding.right;
     if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
         rect.x += rect.w;
