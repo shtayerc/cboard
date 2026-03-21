@@ -21,7 +21,7 @@ response_query() {
 }
 
 games_get() {
-    games="$(response_query '.topGames[].winner |= . + "1/2-1/2" | .topGames[] | .winner |= sub("white1/2-1/2"; "1-0") | .winner |= sub("black1/2-1/2"; "0-1") | "\(.white.name)-\(.black.name)/\(.year) (\(.winner))"')"
+    games="$(response_query '.topGames[].winner |= . + "1/2-1/2" | .topGames[] | .winner |= sub("white1/2-1/2"; "1-0") | .winner |= sub("black1/2-1/2"; "0-1") | "\(.white.name)-\(.black.name)/\(.year) (\(.winner))"' | awk '{print "["NR"] "$0}')"
     echo "${games:-No games found}"
 }
 
