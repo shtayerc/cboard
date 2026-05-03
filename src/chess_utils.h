@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.19
+chess_utils v0.9.21
 
 Copyright (c) 2026 David Murko
 
@@ -1231,7 +1231,10 @@ tag_list_delete(TagList* tl, const char* key) {
 
 int
 tag_list_filter_is_valid(TagList* tl, TagFilterList* tfl) {
+    long row_value, filter_value;
+    char *row_end, *filter_end;
     for (int j = 0; j < tfl->ai.count; j++) {
+        filter_value = strtol(tfl->list[j].tag.value, &filter_end, 10);
         for (int i = 0; i < tl->ai.count; i++) {
             if (strcmp(tl->list[i].key, tfl->list[j].tag.key)) {
                 continue;
@@ -1250,13 +1253,23 @@ tag_list_filter_is_valid(TagList* tl, TagFilterList* tfl) {
                     break;
 
                 case OperatorGreater:
-                    if (strcmp(tl->list[i].value, tfl->list[j].tag.value) <= 0) {
+                    row_value = strtol(tl->list[i].value, &row_end, 10);
+                    if (*row_end == '\0' && *filter_end == '\0') { //if string is valid number
+                        if (row_value < filter_value) {
+                            return 0;
+                        }
+                    } else if (strcmp(tl->list[i].value, tfl->list[j].tag.value) <= 0) {
                         return 0;
                     }
                     break;
 
                 case OperatorLower:
-                    if (strcmp(tl->list[i].value, tfl->list[j].tag.value) >= 0) {
+                    row_value = strtol(tl->list[i].value, &row_end, 10);
+                    if (*row_end == '\0' && *filter_end == '\0') { //if string is valid number
+                        if (row_value >= filter_value) {
+                            return 0;
+                        }
+                    } else if (strcmp(tl->list[i].value, tfl->list[j].tag.value) >= 0) {
                         return 0;
                     }
                     break;
