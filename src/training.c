@@ -60,7 +60,7 @@ training_move_try(WindowData* data, Square src, Square dst, Piece prom_piece)
     if (is_present) {
         chessboard_vs_focus(data, &data->ts.vs_index, src, dst, prom_piece);
         chessboard_vs_next(data, &data->ts.vs_index);
-    } else {
+    } else if (src != dst) {
         data->ts.mistake_count++;
         data->ts.mistake_sum++;
     }
