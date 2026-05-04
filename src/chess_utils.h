@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.21
+chess_utils v0.9.23
 
 Copyright (c) 2026 David Murko
 
@@ -878,7 +878,7 @@ trimmove(char* str) {
     }
     i = strlen(str) - 1;
     int nag = 0;
-    while (str[i] == '?' || str[i] == '!') {
+    while (i >=0 && (str[i] == '?' || str[i] == '!')) {
         if (str[i] == '!') {
             nag = 2 * nag + 1;
         } else {
@@ -3116,8 +3116,12 @@ game_variation_promote(Game* g) {
         }
     }
 
-    //prevent commment duplication on 0 move
-    parent->move_list[i].comment = NULL;
+    //prevent commment duplication on 0 move and smartly decide where to keep comment
+    if (parent->move_list[i].board.turn == White) {
+        parent->move_list[i].comment = NULL;
+    } else {
+        tmp_v->move_list[0].comment = NULL;
+    }
 
     //resize parent variation and add moves from ex sub variation
     parent->move_list = (Move*)realloc(parent->move_list, sizeof(Move) * (i + v->move_count));
