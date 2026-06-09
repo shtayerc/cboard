@@ -1,5 +1,5 @@
 /*
-chess_utils v0.9.23
+chess_utils v0.9.24
 
 Copyright (c) 2026 David Murko
 
@@ -878,7 +878,7 @@ trimmove(char* str) {
     }
     i = strlen(str) - 1;
     int nag = 0;
-    while (i >=0 && (str[i] == '?' || str[i] == '!')) {
+    while (i >= 0 && (str[i] == '?' || str[i] == '!')) {
         if (str[i] == '!') {
             nag = 2 * nag + 1;
         } else {
@@ -1365,6 +1365,8 @@ move_uci_export(Square src, Square dst, Piece prom_piece, char* uci, int len) {
 void
 board_clear(Board* b) {
     memset(b->position, Empty, 128 * sizeof(Piece));
+    memset(b->castling, 0, sizeof(b->castling));
+    b->en_passant = none;
 }
 
 void
