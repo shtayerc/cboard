@@ -17,7 +17,7 @@ piece_load(WindowData* data) {
             snprintf(path, data->conf.path_max_len, path_format, data->conf.piece_path, i / 6 ? 'w' : 'b',
                      piece_str[i % 6]);
         }
-        tmp = IMG_Load(path);
+        tmp = SDL_LoadPNG(path);
         cb_piece_texture[i] = SDL_CreateTextureFromSurface(data->renderer, tmp);
         SDL_DestroySurface(tmp);
         if (cb_piece_texture[i] == NULL) {
