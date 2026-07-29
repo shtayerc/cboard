@@ -118,9 +118,9 @@ mode_training(WindowData* data) {
                     break;
 
                 case SDL_EVENT_MOUSE_WHEEL:
-                    if (event.wheel.y > 0) { //scroll up
+                    if (event.wheel.integer_y > 0) { //scroll up
                         training_repeat(data, v, move_number);
-                    } else if (event.wheel.y < 0) { //scroll down
+                    } else if (event.wheel.integer_y < 0) { //scroll down
                         training_next(data, v, move_number, color);
                     }
                     draw_render(data);
