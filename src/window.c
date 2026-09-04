@@ -162,6 +162,8 @@ window_open(WindowData* data) {
     SDL_SetWindowMinimumSize(data->window, data->conf.minimal_width, data->conf.minimal_height);
     data->renderer = SDL_CreateRenderer(data->window, NULL);
     data->font = NULL;
+    data->font_engine = NULL;
+    data->fontV2 = NULL;
     font_init(data);
 }
 
@@ -174,12 +176,19 @@ font_init(WindowData* data) {
     FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->font_size, data->conf.colors[ColorStatusFont],
                 TTF_STYLE_NORMAL);
     data->font_height = FC_GetLineHeight(data->font);
+    if (data->font_engine == NULL) {
+        data->font_engine = TTF_CreateRendererTextEngine(data->renderer);
+    }
+    data->fontV2 = TTF_OpenFont(data->conf.font_path, data->font_size);
 }
 
 void
 font_free(WindowData* data) {
     if (data->font != NULL) {
         FC_FreeFont(data->font);
+    }
+    if (data->fontV2 != NULL) {
+        TTF_CloseFont(data->fontV2);
     }
 }
 
@@ -206,6 +215,10 @@ window_data_free(WindowData* data) {
     game_list_free(&data->game_list);
     explorer_free(&data->explorer);
     font_free(data);
+    if (data->font_engine != NULL) {
+        TTF_DestroyRendererTextEngine(data->font_engine);
+    }
+
     for (i = 0; i < MACHINE_COUNT; i++) {
         free(data->machine_list[i]);
     }
@@ -340,13 +353,16 @@ SDL_Rect
 draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, const char* fmt_text, ...) {
     TextElement el = data->conf.text_elements[eli];
     char buffer[1024] = {'\0'};
+    int real_w = 0;
     va_list args;
     va_start(args, fmt_text);
     vsnprintf(buffer, 1024, fmt_text, args);
     va_end(args);
-    pos.w = FC_GetWidth(data->font, buffer) + el.padding.right;
-    pos.h = data->font_height;
+    TTF_Text* text = TTF_CreateText(data->font_engine, data->fontV2, buffer, 0);
+    TTF_GetTextSize(text, &pos.w, &pos.h);
+    pos.w += el.padding.right;
     if (wrap == TextWrapRow) {
+        real_w = pos.w; //preserve width to return it later instead of line length
         pos.w = bounds->rect.w - bounds->padding.right;
         pos.y += el.padding.top;
     } else if (pos.x + pos.w >= bounds->rect.x + bounds->rect.w) {
@@ -369,7 +385,6 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap,
     }
     //pad this later, so background is drawn on padded space
     pos.h += el.padding.bottom;
-    pos.w += el.padding.right;
     pos.x += el.padding.left;
     if (wrap == TextWrapRight) {
         pos.x += bounds->rect.w - pos.w;
@@ -378,12 +393,15 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap,
         pos.y += bounds->rect.h - pos.h;
     }
     SDL_Rect rect;
+    TTF_SetTextColor(text, data->conf.colors[el.fg_color].r, data->conf.colors[el.fg_color].g, data->conf.colors[el.fg_color].b, data->conf.colors[el.fg_color].a);
     if (wrap == TextWrapBox) {
-        rect = FC_DrawBoxColorSimple(data->font, data->renderer, (FC_Rect)bounds->rect, data->conf.colors[el.fg_color], buffer);
-    } else {
-        rect = FC_DrawColorSimple(data->font, data->renderer, pos.x, pos.y, data->conf.colors[el.fg_color], buffer);
+        TTF_SetTextWrapWidth(text, bounds->rect.w);
     }
-    rect.w += el.padding.right;
+    rect.w = wrap == TextWrapRow ? real_w : pos.w;
+    rect.x = pos.x;
+    rect.y = pos.y;
+    TTF_DrawRendererText(text, pos.x, pos.y);
+    TTF_DestroyText(text);
     if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
         rect.x += rect.w;
     } else {

@@ -172,6 +172,8 @@ struct WindowData {
     SDL_Renderer* renderer;
     SDL_Point mouse;
     Layout layout;
+    TTF_TextEngine* font_engine;
+    TTF_Font* fontV2;
     FC_Font* font;
     int font_height;
     Scroll notation_scroll;
