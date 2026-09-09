@@ -404,6 +404,7 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap,
     TTF_DestroyText(text);
     if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
         rect.x += rect.w;
+        rect.h = pos.h;
     } else {
         rect.x -= el.padding.left;
         rect.y += data->font_height - el.padding.top;
