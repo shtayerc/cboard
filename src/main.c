@@ -65,7 +65,7 @@ main(int argc, char* argv[]) {
                 usage();
                 return 1;
             }
-            snprintf(data.number, data.conf.number_len, "%s", argv[i]);
+            snprintf(data.number->text, data.conf.number_len, "%s", argv[i]);
         } else if (!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) {
             if (++i == argc) {
                 usage();
@@ -109,7 +109,7 @@ main(int argc, char* argv[]) {
             }
             data.conf.config_path = argv[i];
         } else if (!strcmp(argv[i], "-")) {
-            snprintf(data.filename, data.conf.status_max_len, "-");
+            snprintf(data.filename->text, data.conf.status_max_len, "-");
             file = stdin;
         } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
             fprintf(stdout, "cboard %s\n", VERSION);
@@ -118,7 +118,7 @@ main(int argc, char* argv[]) {
             usage();
             return 0;
         } else if (i == argc - 1) {
-            snprintf(data.filename, data.conf.status_max_len, "%s", argv[i]);
+            snprintf(data.filename->text, data.conf.status_max_len, "%s", argv[i]);
         } else {
             usage();
             return 1;
@@ -129,13 +129,13 @@ main(int argc, char* argv[]) {
     game_init_default(&data.game, &board);
 
     if (file == NULL) {
-        file = fopen(data.filename, "r");
+        file = fopen(data.filename->text, "r");
     }
-    if (isubstr(data.filename, data.conf.rotate_str)) {
+    if (isubstr(data.filename->text, data.conf.rotate_str)) {
         data.rotation = RotationBlack;
     }
-    if (strcmp(data.number, "a") || !strcmp(data.filename, "-")) {
-        number = strtol(data.number, NULL, 10);
+    if (strcmp(data.number->text, "a") || !strcmp(data.filename->text, "-")) {
+        number = strtol(data.number->text, NULL, 10);
         if (file != NULL && !pgn_read_file(file, &data.game, number)) {
             fprintf(stderr, "Invalid pgn\n");
             return 1;
@@ -147,7 +147,7 @@ main(int argc, char* argv[]) {
             game_list_sort(&data.game_list, data.game_list_sort_tag, str2sorting(data.game_list_sort_direction));
             game_list_current_init(&data);
             if (data.game_list.ai.count == 1) {
-                snprintf(data.number, data.conf.number_len, "%s", "0");
+                snprintf(data.number->text, data.conf.number_len, "%s", "0");
                 fseek(file, 0, SEEK_SET);
                 if (!pgn_read_file(file, &data.game, 0)) {
                     fprintf(stderr, "Invalid pgn\n");
@@ -163,7 +163,7 @@ main(int argc, char* argv[]) {
         }
     }
 
-    if (strcmp(data.filename, "-") && file != NULL) {
+    if (strcmp(data.filename->text, "-") && file != NULL) {
         fclose(file);
     }
 

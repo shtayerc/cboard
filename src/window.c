@@ -100,11 +100,9 @@ window_data_init(WindowData* data) {
     data->conf = config_init();
     data->layout = layout_init();
     data->status.info = calloc(data->conf.status_max_len, sizeof(char));
-    data->filename = malloc(sizeof(char) * data->conf.status_max_len);
+    data->filename = TTF_CreateText(data->font_engine, data->fontV2, data->conf.default_filename, data->conf.status_max_len);
+    data->number = TTF_CreateText(data->font_engine, data->fontV2, "a", data->conf.number_len);
     data->mode = ModeNormal;
-    snprintf(data->filename, data->conf.status_max_len, "%s", data->conf.default_filename);
-    data->number = malloc(sizeof(char) * data->conf.number_len);
-    snprintf(data->number, data->conf.number_len, "a");
     data->custom_text = calloc(data->conf.status_max_len, sizeof(char));
     data->loop = 1;
     data->from_game_list = 0;
@@ -203,8 +201,8 @@ void
 window_data_free(WindowData* data) {
     int i;
     free(data->status.info);
-    free(data->filename);
-    free(data->number);
+    TTF_DestroyText(data->filename);
+    TTF_DestroyText(data->number);
     free(data->custom_text);
     free(data->game_list_sort_tag);
     free(data->game_list_sort_direction);
@@ -299,7 +297,7 @@ window_resize(WindowData* data, int width, int height) {
 
 void
 window_set_title(WindowData* data) {
-    snprintf(data->conf.window_title, WINDOW_TITLE_LEN, "%s %s", WINDOW_TITLE_PREFIX, data->filename);
+    snprintf(data->conf.window_title, WINDOW_TITLE_LEN, "%s %s", WINDOW_TITLE_PREFIX, data->filename->text);
 }
 
 void

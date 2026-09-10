@@ -165,8 +165,8 @@ struct WindowData {
     SDL_Window* window;
     int window_width;
     int window_height;
-    char* filename;
-    char* number;
+    TTF_Text* filename;
+    TTF_Text* number;
     char* info;
     char* custom_text;
     SDL_Renderer* renderer;

@@ -257,7 +257,7 @@ mode_game_list(WindowData* data) {
                         case SDLK_RIGHT: break;
 
                         case SDLK_R:
-                            f = fopen(data->filename, "r");
+                            f = fopen(data->filename->text, "r");
                             if (f == NULL) {
                                 message_add(data, "Error reading file");
                                 break;
@@ -278,7 +278,7 @@ mode_game_list(WindowData* data) {
                             break;
 
                         case SDLK_P:
-                            f = fopen(data->filename, "r");
+                            f = fopen(data->filename->text, "r");
                             game_list_search_board(&data->game_list, &new_gl, f, &game_move_get(&data->game)->board);
                             fclose(f);
                             game_list_free(&data->game_list);
@@ -452,8 +452,8 @@ game_list_game_load(WindowData* data, int index) {
     index = data->game_list.list[gl_index].index;
     game_free(&data->game);
     game_init(&data->game, NULL);
-    snprintf(data->number, data->conf.number_len, "%d", index);
-    FILE* f = fopen(data->filename, "r");
+    snprintf(data->number->text, data->conf.number_len, "%d", index);
+    FILE* f = fopen(data->filename->text, "r");
     pgn_read_file(f, &data->game, index);
     fclose(f);
     data->notation_scroll.value = 0;

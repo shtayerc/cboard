@@ -5,23 +5,23 @@ write_game(WindowData* data) {
     FILE* f;
     int number;
 
-    if (!strcmp(data->number, "a")) {
-        f = fopen(data->filename, "a");
+    if (!strcmp(data->number->text, "a")) {
+        f = fopen(data->filename->text, "a");
         if (f == NULL) {
             return 0;
         }
         pgn_write_file(f, &data->game);
         fclose(f);
 
-        f = fopen(data->filename, "r");
+        f = fopen(data->filename->text, "r");
         number = pgn_count_games(f) - 1;
         fclose(f);
         if (number >= 0) {
-            snprintf(data->number, data->conf.number_len, "%d", number);
+            snprintf(data->number->text, data->conf.number_len, "%d", number);
         }
         return 1;
     }
-    return pgn_replace_game(data->filename, &data->game, strtol(data->number, NULL, 10));
+    return pgn_replace_game(data->filename->text, &data->game, strtol(data->number->text, NULL, 10));
 }
 
 void
