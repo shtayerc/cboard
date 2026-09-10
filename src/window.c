@@ -370,12 +370,14 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap,
             pos.x = bounds->rect.x + bounds->padding.left + el.padding.left;
             pos.y += data->font_height + el.padding.top;
         } else if (wrap == TextWrapCutoff) {
+            TTF_DestroyText(text);
             pos.w = -1;
             pos.h = -1;
             return pos;
         }
     }
     if (pos.y + pos.h > bounds->rect.y + bounds->rect.h) {
+        TTF_DestroyText(text);
         pos.w = -1;
         pos.h = -1;
         return pos;
