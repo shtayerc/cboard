@@ -7,6 +7,9 @@ typedef struct WindowData WindowData;
 
 void cursor_remove(int* pos, char* str);
 void cursor_add(int* pos, char* str, int len, WindowData* data);
+void text_cursor_set(TTF_Text* text, int pos);
+void text_cursor_remove(TTF_Text* text);
+int text_cursor_get(TTF_Text* text);
 void textedit_escape(int* pos, char* str);
 void textedit_delete(int* pos, char* str);
 void textedit_backspace(int* pos, char* str, int len, WindowData* data);

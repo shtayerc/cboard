@@ -9,19 +9,20 @@ mode_filename_edit(WindowData* data) {
     snprintf(last, data->conf.status_max_len, "%s", data->filename->text);
     int pos = SDL_utf8strlen(data->filename->text);
     data->mode = ModeFilename;
-    cursor_add(&pos, data->filename->text, data->conf.status_max_len, data);
+    text_cursor_set(data->filename, pos);
+    SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_input_events(&event, data, &loop, &pos, data->filename->text, data->conf.status_max_len);
+            handle_input_events_new(&event, data, &loop, data->filename);
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
                             f = fopen(data->filename->text, "r");
                             if (f == NULL) {
-                                snprintf(data->filename->text, data->conf.status_max_len, "%s", last);
+                                TTF_SetTextString(data->filename, last, 0);
                             } else {
                                 fclose(f);
                                 if (isubstr(data->filename->text, data->conf.rotate_str)) {
@@ -111,9 +112,12 @@ mode_confirm(WindowData* data, const char* msg) {
 
 void
 status_draw(WindowData* data) {
-    draw_text(data, &data->layout.status, data->layout.status.rect, TextWrapRow, TextElementStatus, "%s %s[%s] %s",
-              data->conf.status_name[data->mode],
-              data->filename->text,
-              data->number->text, 
-              data->status.info);
+    SDL_Rect rect;
+    rect = draw_ttf_text(data, &data->layout.status, data->layout.status.rect, TextWrapRow, TextElementStatus, data->conf.status_name[data->mode]);
+    rect.x += rect.w;
+    rect.y -= rect.h;
+    rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->filename);
+    rect = draw_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, "[");
+    rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->number);
+    rect = draw_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, "] %s", data->status.info);
 }

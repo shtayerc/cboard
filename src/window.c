@@ -23,20 +23,20 @@ config_init() {
         .minimal_height = 400,
         .minimal_square = 30,
         .status_name = {
-            [ModeNormal] = "[NORMAL]",
-            [ModeGameList] = "[GAME LIST]",
-            [ModeTagFilter] = "[TAG FILTER]",
-            [ModeEdit] = "[EDIT]",
-            [ModeFilename] = "[FILENAME]",
-            [ModeNumber] = "[NUMBER]",
-            [ModeSan] = "[SAN]",
-            [ModeTag] = "[TAG]",
-            [ModeTraining] = "[TRAINING]",
-            [ModeMoveAnnotation] = "[MOVE ANNOTATION]",
-            [ModePositionAnnotation] = "[POSITION ANNOTATION]",
-            [ModeComment] = "[COMMENT]",
-            [ModeClipboard] = "[CLIPBOARD]",
-            [ModePromotion] = "[PROMOTION]",
+            [ModeNormal] = TTF_CreateText(NULL, NULL, "[NORMAL]", 0),
+            [ModeGameList] = TTF_CreateText(NULL, NULL, "[GAME LIST]", 0),
+            [ModeTagFilter] = TTF_CreateText(NULL, NULL, "[TAG FILTER]", 0),
+            [ModeEdit] = TTF_CreateText(NULL, NULL, "[EDIT]", 0),
+            [ModeFilename] = TTF_CreateText(NULL, NULL, "[FILENAME]", 0),
+            [ModeNumber] = TTF_CreateText(NULL, NULL, "[NUMBER]", 0),
+            [ModeSan] = TTF_CreateText(NULL, NULL, "[SAN]", 0),
+            [ModeTag] = TTF_CreateText(NULL, NULL, "[TAG]", 0),
+            [ModeTraining] = TTF_CreateText(NULL, NULL, "[TRAINING]", 0),
+            [ModeMoveAnnotation] = TTF_CreateText(NULL, NULL, "[MOVE ANNOTATION]", 0),
+            [ModePositionAnnotation] = TTF_CreateText(NULL, NULL, "[POSITION ANNOTATION]", 0),
+            [ModeComment] = TTF_CreateText(NULL, NULL, "[COMMENT]", 0),
+            [ModeClipboard] = TTF_CreateText(NULL, NULL, "[CLIPBOARD]", 0),
+            [ModePromotion] = TTF_CreateText(NULL, NULL, "[PROMOTION]", 0),
         },
         .cursor = "│",
         .piece_path = PIECE_PATH,
@@ -100,8 +100,8 @@ window_data_init(WindowData* data) {
     data->conf = config_init();
     data->layout = layout_init();
     data->status.info = calloc(data->conf.status_max_len, sizeof(char));
-    data->filename = TTF_CreateText(data->font_engine, data->fontV2, data->conf.default_filename, data->conf.status_max_len);
-    data->number = TTF_CreateText(data->font_engine, data->fontV2, "a", data->conf.number_len);
+    data->filename = NULL;
+    data->number = NULL;
     data->mode = ModeNormal;
     data->custom_text = calloc(data->conf.status_max_len, sizeof(char));
     data->loop = 1;
@@ -162,11 +162,23 @@ window_open(WindowData* data) {
     data->font = NULL;
     data->font_engine = NULL;
     data->fontV2 = NULL;
+    font_init_old(data);
     font_init(data);
+    font_set_engine(data);
 }
 
 void
 font_init(WindowData* data) {
+    //data->font_height = FC_GetLineHeight(data->font);
+    if (data->font_engine == NULL) {
+        data->font_engine = TTF_CreateRendererTextEngine(data->renderer);
+    }
+    data->fontV2 = TTF_OpenFont(data->conf.font_path, data->font_size);
+    //TTF_SetFontCharSpacing(data->fontV2, 1);
+}
+
+void
+font_init_old(WindowData* data) {
     data->font = FC_CreateFont();
     if (!file_exists(data->conf.font_path)) {
         data->conf.font_path = FALLBACK_PATH "/DejaVuSansCondensed.ttf";
@@ -174,27 +186,40 @@ font_init(WindowData* data) {
     FC_LoadFont(data->font, data->renderer, data->conf.font_path, data->font_size, data->conf.colors[ColorStatusFont],
                 TTF_STYLE_NORMAL);
     data->font_height = FC_GetLineHeight(data->font);
-    if (data->font_engine == NULL) {
-        data->font_engine = TTF_CreateRendererTextEngine(data->renderer);
-    }
-    data->fontV2 = TTF_OpenFont(data->conf.font_path, data->font_size);
 }
 
 void
 font_free(WindowData* data) {
-    if (data->font != NULL) {
-        FC_FreeFont(data->font);
-    }
     if (data->fontV2 != NULL) {
         TTF_CloseFont(data->fontV2);
     }
 }
 
 void
+font_free_old(WindowData* data) {
+    if (data->font != NULL) {
+        FC_FreeFont(data->font);
+    }
+}
+
+void
 font_resize(WindowData* data, int step) {
     data->font_size += step;
-    font_free(data);
-    font_init(data);
+    font_free_old(data);
+    font_init_old(data);
+    TTF_SetFontSize(data->fontV2, data->font_size);
+}
+
+void
+font_set_engine(WindowData* data) {
+    TTF_SetTextFont(data->filename, data->fontV2);
+    TTF_SetTextEngine(data->filename, data->font_engine);
+    TTF_SetTextFont(data->number, data->fontV2);
+    TTF_SetTextEngine(data->number, data->font_engine);
+    for (int i = 0; i < ModeNumber; i++) {
+        TTF_SetTextFont(data->conf.status_name[i], data->fontV2);
+        TTF_SetTextEngine(data->conf.status_name[i], data->font_engine);
+    }
 }
 
 void
@@ -212,6 +237,7 @@ window_data_free(WindowData* data) {
     game_free(&data->game);
     game_list_free(&data->game_list);
     explorer_free(&data->explorer);
+    font_free_old(data);
     font_free(data);
     if (data->font_engine != NULL) {
         TTF_DestroyRendererTextEngine(data->font_engine);
@@ -402,6 +428,77 @@ draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap,
     rect.y = pos.y;
     TTF_DrawRendererText(text, pos.x, pos.y);
     TTF_DestroyText(text);
+    if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
+        rect.x += rect.w;
+        rect.h = pos.h;
+    } else {
+        rect.x -= el.padding.left;
+        rect.y += data->font_height - el.padding.top;
+        rect.h = data->font_height - el.padding.top;
+    }
+    return rect;
+}
+
+
+SDL_Rect
+draw_ttf_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, TTF_Text* text){
+    TextElement el = data->conf.text_elements[eli];
+    int real_w = 0;
+    TTF_GetTextSize(text, &pos.w, &pos.h);
+    pos.w += el.padding.right;
+    if (wrap == TextWrapRow) {
+        real_w = pos.w; //preserve width to return it later instead of line length
+        pos.w = bounds->rect.w - bounds->padding.right;
+        pos.y += el.padding.top;
+    } else if (pos.x + pos.w >= bounds->rect.x + bounds->rect.w) {
+        if (wrap == TextWrapNewLine) {
+            pos.x = bounds->rect.x + bounds->padding.left + el.padding.left;
+            pos.y += data->font_height + el.padding.top;
+        } else if (wrap == TextWrapCutoff) {
+            pos.w = -1;
+            pos.h = -1;
+            return pos;
+        }
+    }
+    if (pos.y + pos.h > bounds->rect.y + bounds->rect.h) {
+        pos.w = -1;
+        pos.h = -1;
+        return pos;
+    }
+    if (el.bg_color != ColorNone) {
+        draw_background(data, pos, el.bg_color);
+    }
+    //pad this later, so background is drawn on padded space
+    pos.h += el.padding.bottom;
+    pos.x += el.padding.left;
+    if (wrap == TextWrapRight) {
+        pos.x += bounds->rect.w - pos.w;
+    }
+    if (wrap == TextWrapBottom) {
+        pos.y += bounds->rect.h - pos.h;
+    }
+    SDL_Rect rect;
+    TTF_SetTextColor(text, data->conf.colors[el.fg_color].r, data->conf.colors[el.fg_color].g, data->conf.colors[el.fg_color].b, data->conf.colors[el.fg_color].a);
+    if (wrap == TextWrapBox) {
+        TTF_SetTextWrapWidth(text, bounds->rect.w);
+    }
+    rect.w = wrap == TextWrapRow ? real_w : pos.w;
+    rect.x = pos.x;
+    rect.y = pos.y;
+    TTF_DrawRendererText(text, pos.x, pos.y);
+    if (text_cursor_get(text) > -1) {
+        TTF_SubString substr;
+        TTF_GetTextSubString(text, text_cursor_get(text), &substr);
+        substr.rect.x += pos.x;
+        substr.rect.w = 1;
+        substr.rect.h = pos.h;
+        substr.rect.y = pos.y;
+        SDL_FRect cursor_rect;
+        SDL_RectToFRect(&substr.rect, &cursor_rect);
+        SDL_Color c = data->conf.colors[el.fg_color];
+        SDL_SetRenderDrawColor(data->renderer, c.r, c.g, c.b, c.a);
+        SDL_RenderFillRect(data->renderer, &cursor_rect);
+    }
     if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
         rect.x += rect.w;
         rect.h = pos.h;

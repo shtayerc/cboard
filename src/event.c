@@ -107,6 +107,68 @@ handle_input_events(SDL_Event* event, WindowData* data, int* loop, int* pos, cha
 }
 
 void
+handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text* text) {
+    int pos = text_cursor_get(text);
+    size_t start;
+    switch (event->type) {
+        case SDL_EVENT_KEY_UP:
+            switch (event->key.key) {
+                case SDLK_ESCAPE:
+                    *loop = 0;
+                    text_cursor_remove(text);
+                    data->mode = ModeNormal;
+                    SDL_StopTextInput(data->window);
+                    break;
+
+                case SDLK_BACKSPACE:
+                    if (--pos > 0) {
+                        TTF_DeleteTextString(text, pos, 1);
+                        text_cursor_set(text, pos);
+                        draw_render(data);
+                    }
+                    break;
+
+                case SDLK_DELETE:
+
+                    if (pos < SDL_utf8strlen(text->text)) {
+                        TTF_DeleteTextString(text, pos, 1);
+                        draw_render(data);
+                    }
+                    break;
+
+                case SDLK_LEFT:
+                    if (pos > 0) {
+                        text_cursor_set(text, pos - 1);
+                    }
+                    draw_render(data);
+                    break;
+
+                case SDLK_RIGHT:
+                    if (pos < SDL_utf8strlen(text->text)) {
+                        text_cursor_set(text, pos + 1);
+                    }
+                    draw_render(data);
+                    break;
+
+                case SDLK_U:
+                    if (event->key.mod & SDL_KMOD_CTRL) {
+                        TTF_DeleteTextString(text, 0, pos);
+                        text_cursor_set(text, 0);
+                        draw_render(data);
+                    }
+                    break;
+            }
+            break;
+
+        case SDL_EVENT_TEXT_INPUT:
+            TTF_InsertTextString(text, pos, event->text.text, 0);
+            text_cursor_set(text, ++pos);
+            draw_render(data);
+            break;
+    }
+}
+
+void
 handle_resize(WindowData* data, SDL_Event* e) {
     switch (e->type) {
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:

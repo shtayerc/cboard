@@ -15,6 +15,23 @@ cursor_add(int* pos, char* str, int len, WindowData* data) {
 }
 
 void
+text_cursor_set(TTF_Text* text, int pos) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    SDL_SetNumberProperty(props, "cursor", pos);
+}
+
+int
+text_cursor_get(TTF_Text* text) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    return SDL_GetNumberProperty(props, "cursor", -1);
+}
+
+void
+text_cursor_remove(TTF_Text* text) {
+    text_cursor_set(text, -1);
+}
+
+void
 textedit_escape(int* pos, char* str) {
     cursor_remove(pos, str);
 }
