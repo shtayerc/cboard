@@ -31,6 +31,23 @@ text_cursor_remove(TTF_Text* text) {
     text_cursor_set(text, -1);
 }
 
+int
+text_cursor_prev_length(TTF_Text* text, int pos) {
+    const char* start = text->text + pos;
+    const char* next = start;
+    SDL_StepBackUTF8(text->text, &next);
+    return (int)(uintptr_t)(start - next);
+}
+
+int
+text_cursor_next_length(TTF_Text* text, int pos) {
+    const char* start = text->text + pos;
+    const char* next = start;
+    size_t length = SDL_strlen(next);
+    SDL_StepUTF8(&next, &length);
+    return (next - start);
+}
+
 void
 textedit_escape(int* pos, char* str) {
     cursor_remove(pos, str);
