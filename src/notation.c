@@ -296,7 +296,7 @@ void
 mode_tag_edit(WindowData* data, Tag* tag) {
     int loop = 1;
     SDL_Event event;
-    int pos = U8_strlen(tag->value);
+    int pos = SDL_utf8strlen(tag->value);
     data->notation_scroll.value = 0;
     cursor_add(&pos, tag->value, TAG_LEN, data);
     draw_render(data);
@@ -333,32 +333,34 @@ mode_tag(WindowData* data) {
     SDL_Event event;
     Tag* tag;
     data->message = 0;
-    data->status.info[0] = '\0';
-    cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
+    TTF_SetTextString(data->status_info, "", 0);
+    text_cursor_set(data->status_info, pos);
+    SDL_StartTextInput(data->window);
     data->mode = ModeTag;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
+            handle_input_events_new(&event, data, &loop, data->status_info);
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            data->status.info[0] = '\0';
+                            TTF_SetTextString(data->status_info, "", 0);
                             draw_render(data);
                             break;
 
                         case SDLK_RETURN:
-                            cursor_remove(&pos, data->status.info);
-                            tag = tag_list_get(data->game.tag_list, data->status.info);
+                            text_cursor_remove(data->status_info);
+                            tag = tag_list_get(data->game.tag_list, data->status_info->text);
                             if (tag == NULL) {
-                                tag_list_set(data->game.tag_list, data->status.info, "");
-                                tag = tag_list_get(data->game.tag_list, data->status.info);
+                                tag_list_set(data->game.tag_list, data->status_info->text, "");
+                                tag = tag_list_get(data->game.tag_list, data->status_info->text);
                             }
                             mode_tag_edit(data, tag);
                             loop = 0;
-                            data->status.info[0] = '\0';
+                            TTF_SetTextString(data->status_info, "", 0);
+                            draw_render(data);
                             break;
                     }
                     break;
