@@ -183,6 +183,7 @@ struct WindowData {
     MachineMode machine_mode;
     int loop;
     int from_game_list;
+    TTF_Text* status_info;
     StatusLine status;
     Config conf;
     Game game;

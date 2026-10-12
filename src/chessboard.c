@@ -368,33 +368,34 @@ mode_san(WindowData* data) {
     Status status;
     SDL_Event event;
     data->message = 0;
-    data->status.info[0] = '\0';
-    cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
+    TTF_SetTextString(data->status_info, "", 0);
+    text_cursor_set(data->status_info, pos);
+    SDL_StartTextInput(data->window);
     data->mode = ModeSan;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
+            handle_input_events_new(&event, data, &loop, data->status_info);
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            data->status.info[0] = '\0';
+                            TTF_SetTextString(data->status_info, "", 0);
                             draw_render(data);
                             break;
 
                         case SDLK_RETURN:
                             old_pos = pos;
-                            cursor_remove(&pos, data->status.info);
-                            status = game_move_san_status(&data->game, data->status.info, &src, &dst, &prom_piece);
+                            text_cursor_remove(data->status_info);
+                            status = game_move_san_status(&data->game, data->status_info->text, &src, &dst, &prom_piece);
                             if (status != Invalid) {
                                 chessboard_move_do(data, src, dst, prom_piece, status);
-                                data->status.info[0] = '\0';
+                                TTF_SetTextString(data->status_info, "", 0);
                                 old_pos = 0;
                             }
                             pos = old_pos;
-                            cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
+                            text_cursor_set(data->status_info, pos);
                             draw_render(data);
                             break;
                     }

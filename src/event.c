@@ -122,7 +122,7 @@ handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text*
 
                 case SDLK_BACKSPACE:
                     length = text_cursor_prev_length(text, pos);
-                    if (pos - length > 0) {
+                    if (pos - length >= 0) {
                         pos -= length;
                         TTF_DeleteTextString(text, pos, length);
                         text_cursor_set(text, pos);

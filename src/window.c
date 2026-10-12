@@ -100,6 +100,7 @@ window_data_init(WindowData* data) {
     data->conf = config_init();
     data->layout = layout_init();
     data->status.info = calloc(data->conf.status_max_len, sizeof(char));
+    data->status_info = TTF_CreateText(NULL, NULL, "", 0);
     data->filename = NULL;
     data->number = NULL;
     data->mode = ModeNormal;
@@ -216,7 +217,9 @@ font_set_engine(WindowData* data) {
     TTF_SetTextEngine(data->filename, data->font_engine);
     TTF_SetTextFont(data->number, data->fontV2);
     TTF_SetTextEngine(data->number, data->font_engine);
-    for (int i = 0; i < ModeNumber; i++) {
+    TTF_SetTextFont(data->status_info, data->fontV2);
+    TTF_SetTextEngine(data->status_info, data->font_engine);
+    for (int i = 0; i < ModeCount; i++) {
         TTF_SetTextFont(data->conf.status_name[i], data->fontV2);
         TTF_SetTextEngine(data->conf.status_name[i], data->font_engine);
     }
@@ -228,6 +231,7 @@ window_data_free(WindowData* data) {
     free(data->status.info);
     TTF_DestroyText(data->filename);
     TTF_DestroyText(data->number);
+    TTF_DestroyText(data->status_info);
     free(data->custom_text);
     free(data->game_list_sort_tag);
     free(data->game_list_sort_direction);
@@ -491,7 +495,7 @@ draw_ttf_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType w
         TTF_GetTextSubString(text, text_cursor_get(text), &substr);
         substr.rect.x += pos.x;
         substr.rect.w = 1;
-        substr.rect.h = pos.h;
+        substr.rect.h = pos.h ?: data->font_height;
         substr.rect.y = pos.y;
         SDL_FRect cursor_rect;
         SDL_RectToFRect(&substr.rect, &cursor_rect);

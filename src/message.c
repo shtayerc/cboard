@@ -2,7 +2,7 @@
 
 void
 message_add(WindowData* data, char* msg) {
-    snprintf(data->status.info, data->conf.status_max_len, "%s", msg);
+    TTF_SetTextString(data->status_info, msg, 0);
     data->message = 1;
     data->message_timer = SDL_AddTimer(
         data->conf.message_duration,
@@ -16,7 +16,7 @@ message_clear(void* userdata, SDL_TimerID timerID, Uint32 interval) {
     (void)timerID;
     (void)interval;
     WindowData* data = (WindowData*)userdata;
-    data->status.info[0] = '\0';
+    TTF_SetTextString(data->status_info, "", 0);
     data->message = 0;
     draw_render(data);
     return 0;

@@ -8,8 +8,8 @@ mode_filename_edit(WindowData* data) {
     char last[data->conf.status_max_len];
     snprintf(last, data->conf.status_max_len, "%s", data->filename->text);
     int pos = SDL_utf8strlen(data->filename->text);
-    data->mode = ModeFilename;
     text_cursor_set(data->filename, pos);
+    data->mode = ModeFilename;
     SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
@@ -46,19 +46,20 @@ void
 mode_number_edit(WindowData* data) {
     SDL_Event event;
     int loop = 1;
-    char last[data->conf.number_len];
     char* non_int;
-    int pos = SDL_utf8strlen(data->number->text);
+    char last[data->conf.number_len];
     snprintf(last, data->conf.number_len, "%s", data->number->text);
+    int pos = SDL_utf8strlen(data->number->text);
+    text_cursor_set(data->number, pos);
     data->mode = ModeNumber;
-    cursor_add(&pos, data->number->text, data->conf.number_len, data);
+    SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
             //textinput event needs special treatment
             if (event.type != SDL_EVENT_TEXT_INPUT) {
-                handle_input_events(&event, data, &loop, &pos, data->number->text, data->conf.number_len);
+                handle_input_events_new(&event, data, &loop, data->number);
             }
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
@@ -66,7 +67,7 @@ mode_number_edit(WindowData* data) {
                         case SDLK_ESCAPE:
                             strtol(data->number->text, &non_int, 10);
                             if ((strcmp(non_int, "") && strcmp(data->number->text, "a")) || SDL_utf8strlen(data->number->text) == 0) {
-                                snprintf(data->number->text, data->conf.number_len, "%s", last);
+                                TTF_SetTextString(data->number, last, 0);
                             }
                             draw_render(data);
                             break;
@@ -76,7 +77,8 @@ mode_number_edit(WindowData* data) {
                 case SDL_EVENT_TEXT_INPUT:
                     if (strchr("0123456789", event.text.text[0])
                         || (SDL_utf8strlen(data->number->text) == SDL_utf8strlen(data->conf.cursor) && event.text.text[0] == 'a')) {
-                        textedit_input(&pos, data->number->text, data->conf.number_len, data, event.text.text);
+                        TTF_AppendTextString(data->number, event.text.text, 0);
+                        text_cursor_set(data->number, pos + text_cursor_next_length(data->number, pos));
                         draw_render(data);
                     }
                     break;
@@ -89,7 +91,7 @@ int
 mode_confirm(WindowData* data, const char* msg) {
     SDL_Event event;
     int loop = 1;
-    snprintf(data->status.info, data->conf.status_max_len, "%s", msg);
+    TTF_SetTextString(data->status_info, msg, 0);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
@@ -119,5 +121,6 @@ status_draw(WindowData* data) {
     rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->filename);
     rect = draw_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, "[");
     rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->number);
-    rect = draw_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, "] %s", data->status.info);
+    rect = draw_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, "]");
+    rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->status_info);
 }
