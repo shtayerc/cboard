@@ -68,6 +68,9 @@ config_init() {
         .text_elements = {
             [TextElementStatus] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorStatusFont, ColorStatusBackground},
             [TextElementGameTag] = {{.top = 0, .right = 8, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
+            [TextElementGameTagPart] = {{.top = 0, .right = 0, .bottom = 0, .left = 0}, ColorNotationFont, ColorNone},
+            [TextElementGameTagFirstPart] = {{.top = 0, .right = 0, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
+            [TextElementGameTagLastPart] = {{.top = 0, .right = 8, .bottom = 0, .left = 0}, ColorNotationFont, ColorNone},
             [TextElementTraining] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
             [TextElementMoveMainline] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
             [TextElementMoveVariation] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorVariationFont, ColorNone},
@@ -101,8 +104,10 @@ window_data_init(WindowData* data) {
     data->layout = layout_init();
     data->status.info = calloc(data->conf.status_max_len, sizeof(char));
     data->status_info = TTF_CreateText(NULL, NULL, "", 0);
+    data->edit_text = TTF_CreateText(NULL, NULL, "", 0);
     data->filename = NULL;
     data->number = NULL;
+    data->edit_pointer = NULL;
     data->mode = ModeNormal;
     data->custom_text = calloc(data->conf.status_max_len, sizeof(char));
     data->loop = 1;
@@ -219,6 +224,8 @@ font_set_engine(WindowData* data) {
     TTF_SetTextEngine(data->number, data->font_engine);
     TTF_SetTextFont(data->status_info, data->fontV2);
     TTF_SetTextEngine(data->status_info, data->font_engine);
+    TTF_SetTextFont(data->edit_text, data->fontV2);
+    TTF_SetTextEngine(data->edit_text, data->font_engine);
     for (int i = 0; i < ModeCount; i++) {
         TTF_SetTextFont(data->conf.status_name[i], data->fontV2);
         TTF_SetTextEngine(data->conf.status_name[i], data->font_engine);
@@ -232,6 +239,7 @@ window_data_free(WindowData* data) {
     TTF_DestroyText(data->filename);
     TTF_DestroyText(data->number);
     TTF_DestroyText(data->status_info);
+    TTF_DestroyText(data->edit_text);
     free(data->custom_text);
     free(data->game_list_sort_tag);
     free(data->game_list_sort_direction);

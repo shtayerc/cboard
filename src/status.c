@@ -107,7 +107,7 @@ mode_confirm(WindowData* data, const char* msg) {
             }
         }
     }
-    data->status.info[0] = '\0';
+    TTF_SetTextString(data->status_info, "", 0);
     draw_render(data);
     return 0;
 }

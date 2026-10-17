@@ -62,6 +62,9 @@ typedef struct {
 typedef enum {
     TextElementStatus,
     TextElementGameTag,
+    TextElementGameTagPart,
+    TextElementGameTagFirstPart,
+    TextElementGameTagLastPart,
     TextElementTraining,
     TextElementMoveMainline,
     TextElementMoveVariation,
@@ -167,6 +170,8 @@ struct WindowData {
     int window_height;
     TTF_Text* filename;
     TTF_Text* number;
+    TTF_Text* edit_text;
+    char* edit_pointer;
     char* info;
     char* custom_text;
     SDL_Renderer* renderer;
