@@ -227,6 +227,7 @@ void font_free_old(WindowData* data);
 void font_resize(WindowData* data, int step);
 void font_set_engine(WindowData* data);
 void draw(WindowData* data);
+SDL_Rect draw_ttf_text_cursor(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, TTF_Text* text, int cursor);
 SDL_Rect draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, const char* fmt_text, ...);
 SDL_Rect draw_ttf_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, TTF_Text* text);
 void draw_background(WindowData* data, SDL_Rect rect, ColorIndex color_index);

@@ -378,74 +378,7 @@ draw(WindowData* data) {
 }
 
 SDL_Rect
-draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, const char* fmt_text, ...) {
-    TextElement el = data->conf.text_elements[eli];
-    char buffer[1024] = {'\0'};
-    int real_w = 0;
-    va_list args;
-    va_start(args, fmt_text);
-    vsnprintf(buffer, 1024, fmt_text, args);
-    va_end(args);
-    TTF_Text* text = TTF_CreateText(data->font_engine, data->fontV2, buffer, 0);
-    TTF_GetTextSize(text, &pos.w, &pos.h);
-    pos.w += el.padding.right;
-    if (wrap == TextWrapRow) {
-        real_w = pos.w; //preserve width to return it later instead of line length
-        pos.w = bounds->rect.w - bounds->padding.right;
-        pos.y += el.padding.top;
-    } else if (pos.x + pos.w >= bounds->rect.x + bounds->rect.w) {
-        if (wrap == TextWrapNewLine) {
-            pos.x = bounds->rect.x + bounds->padding.left + el.padding.left;
-            pos.y += data->font_height + el.padding.top;
-        } else if (wrap == TextWrapCutoff) {
-            TTF_DestroyText(text);
-            pos.w = -1;
-            pos.h = -1;
-            return pos;
-        }
-    }
-    if (pos.y + pos.h > bounds->rect.y + bounds->rect.h) {
-        TTF_DestroyText(text);
-        pos.w = -1;
-        pos.h = -1;
-        return pos;
-    }
-    if (el.bg_color != ColorNone) {
-        draw_background(data, pos, el.bg_color);
-    }
-    //pad this later, so background is drawn on padded space
-    pos.h += el.padding.bottom;
-    pos.x += el.padding.left;
-    if (wrap == TextWrapRight) {
-        pos.x += bounds->rect.w - pos.w;
-    }
-    if (wrap == TextWrapBottom) {
-        pos.y += bounds->rect.h - pos.h;
-    }
-    SDL_Rect rect;
-    TTF_SetTextColor(text, data->conf.colors[el.fg_color].r, data->conf.colors[el.fg_color].g, data->conf.colors[el.fg_color].b, data->conf.colors[el.fg_color].a);
-    if (wrap == TextWrapBox) {
-        TTF_SetTextWrapWidth(text, bounds->rect.w);
-    }
-    rect.w = wrap == TextWrapRow ? real_w : pos.w;
-    rect.x = pos.x;
-    rect.y = pos.y;
-    TTF_DrawRendererText(text, pos.x, pos.y);
-    TTF_DestroyText(text);
-    if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
-        rect.x += rect.w;
-        rect.h = pos.h;
-    } else {
-        rect.x -= el.padding.left;
-        rect.y += data->font_height - el.padding.top;
-        rect.h = data->font_height - el.padding.top;
-    }
-    return rect;
-}
-
-
-SDL_Rect
-draw_ttf_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, TTF_Text* text){
+draw_ttf_text_cursor(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, TTF_Text* text, int cursor){
     TextElement el = data->conf.text_elements[eli];
     int real_w = 0;
     TTF_GetTextSize(text, &pos.w, &pos.h);
@@ -490,9 +423,9 @@ draw_ttf_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType w
     rect.x = pos.x;
     rect.y = pos.y;
     TTF_DrawRendererText(text, pos.x, pos.y);
-    if (text_cursor_get(text) > -1) {
+    if (cursor > -1) {
         TTF_SubString substr;
-        TTF_GetTextSubString(text, text_cursor_get(text), &substr);
+        TTF_GetTextSubString(text, cursor, &substr);
         substr.rect.x += pos.x;
         substr.rect.w = 1;
         substr.rect.h = pos.h ?: data->font_height;
@@ -512,6 +445,25 @@ draw_ttf_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType w
         rect.h = data->font_height - el.padding.top;
     }
     return rect;
+}
+
+SDL_Rect
+draw_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, const char* fmt_text, ...) {
+    char buffer[1024] = {'\0'};
+    va_list args;
+    va_start(args, fmt_text);
+    vsnprintf(buffer, 1024, fmt_text, args);
+    va_end(args);
+    TTF_Text* text = TTF_CreateText(data->font_engine, data->fontV2, buffer, 0);
+    SDL_Rect rect = draw_ttf_text_cursor(data, bounds, pos, wrap, eli, text, -1);
+    TTF_DestroyText(text);
+    return rect;
+}
+
+
+SDL_Rect
+draw_ttf_text(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, TTF_Text* text){
+    return draw_ttf_text_cursor(data, bounds, pos, wrap, eli, text, text_cursor_get(text));
 }
 
 void
