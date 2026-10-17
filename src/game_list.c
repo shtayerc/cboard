@@ -7,32 +7,32 @@ mode_game_search(WindowData* data) {
     GameList new_gl;
     int pos = 0;
     data->message = 0;
-    data->status.info[0] = '\0';
-    cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
+    text_null(data->status_info);
+    text_cursor_set(data->status_info, pos);
+    SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
             if (event.type != SDL_EVENT_KEY_UP || event.key.key != SDLK_ESCAPE) {
-                handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
+                handle_input_events_new(&event, data, &loop, data->status_info);
             }
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
                             loop = 0;
-                            data->status.info[0] = '\0';
+                            text_null(data->status_info);
                             draw_render(data);
                             break;
 
                         case SDLK_RETURN:
-                            cursor_remove(&pos, data->status.info);
-                            game_list_search_str(&data->game_list, &new_gl, data->status.info);
+                            game_list_search_str(&data->game_list, &new_gl, data->status_info->text);
                             game_list_free(&data->game_list);
                             data->game_list = new_gl;
                             game_list_current_init(data);
                             loop = 0;
-                            data->status.info[0] = '\0';
+                            text_null(data->status_info);
                             draw_render(data);
                             break;
                     }

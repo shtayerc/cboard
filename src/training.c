@@ -87,7 +87,7 @@ mode_training(WindowData* data) {
     int pos = 0;
     int not_move = 0;
     data->message = 0;
-    TTF_SetTextString(data->status_info, "", 0);
+    text_null(data->status_info);
     text_cursor_set(data->status_info, pos);
     SDL_StartTextInput(data->window);
     data->mode = ModeTraining;
@@ -129,7 +129,7 @@ mode_training(WindowData* data) {
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
                             data->notation_mode = NotationModeMoves;
-                            TTF_SetTextString(data->status_info, "", 0);
+                            text_null(data->status_info);
                             draw_render(data);
                             break;
 

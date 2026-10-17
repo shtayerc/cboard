@@ -67,7 +67,6 @@ mode_number_edit(WindowData* data) {
                         case SDLK_ESCAPE:
                             strtol(data->number->text ?: "", &non_int, 10);
                             if ((strcmp(non_int, "") && strcmp(data->number->text, "a")) || data->number->text == NULL) {
-                                printf("here\n");
                                 TTF_SetTextString(data->number, last, 0);
                             }
                             draw_render(data);

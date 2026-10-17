@@ -31,6 +31,12 @@ text_cursor_remove(TTF_Text* text) {
     text_cursor_set(text, -1);
 }
 
+void
+text_null(TTF_Text* text) {
+    TTF_SetTextString(text, "", 0);
+    text_cursor_remove(text);
+}
+
 int
 text_cursor_prev_length(TTF_Text* text, int pos) {
     const char* start = text->text + pos;

@@ -12,6 +12,7 @@ void text_cursor_remove(TTF_Text* text);
 int text_cursor_prev_length(TTF_Text* text, int pos);
 int text_cursor_next_length(TTF_Text* text, int pos);
 int text_cursor_get(TTF_Text* text);
+void text_null(TTF_Text* text);
 void textedit_escape(int* pos, char* str);
 void textedit_delete(int* pos, char* str);
 void textedit_backspace(int* pos, char* str, int len, WindowData* data);

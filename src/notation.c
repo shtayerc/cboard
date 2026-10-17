@@ -305,7 +305,7 @@ mode_tag_edit(WindowData* data, Tag* tag) {
     SDL_Event event;
     int pos = SDL_utf8strlen(tag->value ?: "");
     data->notation_scroll.value = 0;
-    TTF_SetTextString(data->edit_text, tag->value, 0);
+    text_null(data->edit_text);
     data->edit_pointer = tag->value;
     text_cursor_set(data->edit_text, pos);
     SDL_StartTextInput(data->window);
@@ -327,8 +327,8 @@ mode_tag_edit(WindowData* data, Tag* tag) {
                             if (data->edit_text->text == 0 && !strcmp(tag->key, "Date")) {
                                 tag_list_init_date(data->game.tag_list);
                             }
-                            TTF_SetTextString(data->status_info, "", 0);
-                            text_cursor_remove(data->edit_text);
+                            text_null(data->status_info);
+                            text_null(data->edit_text);
                             data->edit_pointer = NULL;
                             draw_render(data);
                             break;
@@ -346,7 +346,7 @@ mode_tag(WindowData* data) {
     SDL_Event event;
     Tag* tag;
     data->message = 0;
-    TTF_SetTextString(data->status_info, "", 0);
+    text_null(data->status_info);
     text_cursor_set(data->status_info, pos);
     SDL_StartTextInput(data->window);
     data->mode = ModeTag;
@@ -359,7 +359,7 @@ mode_tag(WindowData* data) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            TTF_SetTextString(data->status_info, "", 0);
+                            text_null(data->status_info);
                             draw_render(data);
                             break;
 
@@ -408,7 +408,7 @@ mode_clipboard(WindowData* data) {
 
                         case SDLK_ESCAPE:
                         default:
-                            TTF_SetTextString(data->status_info, "", 0);
+                            text_null(data->status_info);
                             data->mode = ModeNormal;
                             loop = 0;
                             draw_render(data);
