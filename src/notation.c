@@ -330,7 +330,6 @@ mode_tag_edit(WindowData* data, Tag* tag) {
                             TTF_SetTextString(data->status_info, "", 0);
                             text_cursor_remove(data->edit_text);
                             data->edit_pointer = NULL;
-                            SDL_StopTextInput(data->window);
                             draw_render(data);
                             break;
                     }

@@ -117,7 +117,6 @@ handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text*
                     *loop = 0;
                     text_cursor_remove(text);
                     data->mode = ModeNormal;
-                    SDL_StopTextInput(data->window);
                     break;
 
                 case SDLK_BACKSPACE:

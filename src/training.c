@@ -85,17 +85,17 @@ mode_training(WindowData* data) {
     int move_number = data->game.line_current->move_current;
     int loop = 1;
     int pos = 0;
-    int old_pos;
     int not_move = 0;
     data->message = 0;
-    data->status.info[0] = '\0';
-    cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
+    TTF_SetTextString(data->status_info, "", 0);
+    text_cursor_set(data->status_info, pos);
+    SDL_StartTextInput(data->window);
     data->mode = ModeTraining;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
+            handle_input_events_new(&event, data, &loop, data->status_info);
             switch (event.type) {
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
@@ -129,14 +129,12 @@ mode_training(WindowData* data) {
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
                             data->notation_mode = NotationModeMoves;
-                            data->status.info[0] = '\0';
+                            TTF_SetTextString(data->status_info, "", 0);
                             draw_render(data);
                             break;
 
                         case SDLK_RETURN:
-                            old_pos = pos;
-                            cursor_remove(&pos, data->status.info);
-                            if (!strcmp(data->status.info, "Restart")) {
+                            if (!strcmp(data->status_info->text, "Restart")) {
                                 not_move = 1;
                                 vs_free(&data->vs);
                                 vs_init(&data->vs);
@@ -156,37 +154,35 @@ mode_training(WindowData* data) {
                                 vs_generate_first(&data->vs, v, color);
                             }
 
-                            if (!strcmp(data->status.info, "Repeat")) {
+                            if (!strcmp(data->status_info->text, "Repeat")) {
                                 not_move = 1;
                                 training_repeat(data, v, move_number);
                             }
 
-                            if (!strcmp(data->status.info, "Next")) {
+                            if (!strcmp(data->status_info->text, "Next")) {
                                 not_move = 1;
                                 training_next(data, v, move_number, color);
                             }
 
                             if (not_move) {
                                 not_move = 0;
-                                data->status.info[0] = '\0';
+                                TTF_SetTextString(data->status_info, "", 0);
                                 pos = 0;
                                 data->hidden = none;
-                                cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
                                 draw_render(data);
                                 break;
                             }
 
-                            status = game_move_san_status(&data->game, data->status.info, &src, &dst, &prom_piece);
+                            status = game_move_san_status(&data->game, data->status_info->text, &src, &dst, &prom_piece);
                             if (status == Invalid) {
                                 break;
                             }
 
                             if (training_move_try(data, src, dst, prom_piece)) {
-                                data->status.info[0] = '\0';
-                                old_pos = 0;
+                                TTF_SetTextString(data->status_info, "", 0);
+                                pos = 0;
+                                text_cursor_set(data->status_info, pos);
                             }
-                            pos = old_pos;
-                            cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
                             draw_render(data);
                             break;
                     }
