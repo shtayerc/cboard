@@ -303,7 +303,7 @@ void
 mode_tag_edit(WindowData* data, Tag* tag) {
     int loop = 1;
     SDL_Event event;
-    int pos = SDL_utf8strlen(tag->value);
+    int pos = SDL_utf8strlen(tag->value ?: "");
     data->notation_scroll.value = 0;
     TTF_SetTextString(data->edit_text, tag->value, 0);
     data->edit_pointer = tag->value;

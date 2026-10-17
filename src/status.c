@@ -7,7 +7,7 @@ mode_filename_edit(WindowData* data) {
     FILE* f;
     char last[data->conf.status_max_len];
     snprintf(last, data->conf.status_max_len, "%s", data->filename->text);
-    int pos = SDL_utf8strlen(data->filename->text);
+    int pos = SDL_utf8strlen(data->filename->text ?: "");
     text_cursor_set(data->filename, pos);
     data->mode = ModeFilename;
     SDL_StartTextInput(data->window);
@@ -49,7 +49,7 @@ mode_number_edit(WindowData* data) {
     char* non_int;
     char last[data->conf.number_len];
     snprintf(last, data->conf.number_len, "%s", data->number->text);
-    int pos = SDL_utf8strlen(data->number->text);
+    int pos = SDL_utf8strlen(data->number->text ?: "");
     text_cursor_set(data->number, pos);
     data->mode = ModeNumber;
     SDL_StartTextInput(data->window);
@@ -65,8 +65,9 @@ mode_number_edit(WindowData* data) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            strtol(data->number->text, &non_int, 10);
-                            if ((strcmp(non_int, "") && strcmp(data->number->text, "a")) || SDL_utf8strlen(data->number->text) == 0) {
+                            strtol(data->number->text ?: "", &non_int, 10);
+                            if ((strcmp(non_int, "") && strcmp(data->number->text, "a")) || data->number->text == NULL) {
+                                printf("here\n");
                                 TTF_SetTextString(data->number, last, 0);
                             }
                             draw_render(data);
@@ -76,7 +77,7 @@ mode_number_edit(WindowData* data) {
 
                 case SDL_EVENT_TEXT_INPUT:
                     if (strchr("0123456789", event.text.text[0])
-                        || (SDL_utf8strlen(data->number->text) == SDL_utf8strlen(data->conf.cursor) && event.text.text[0] == 'a')) {
+                        || (data->number->text == NULL && event.text.text[0] == 'a')) {
                         TTF_AppendTextString(data->number, event.text.text, 0);
                         text_cursor_set(data->number, pos + text_cursor_next_length(data->number, pos));
                         draw_render(data);

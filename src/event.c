@@ -131,7 +131,7 @@ handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text*
                     break;
 
                 case SDLK_DELETE:
-                    if (pos < (int)SDL_utf8strlen(text->text)) {
+                    if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
                         TTF_DeleteTextString(text, pos, text_cursor_next_length(text, pos));
                         draw_render(data);
                     }
@@ -145,7 +145,7 @@ handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text*
                     break;
 
                 case SDLK_RIGHT:
-                    if (pos < (int)SDL_utf8strlen(text->text)) {
+                    if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
                         text_cursor_set(text, pos + text_cursor_next_length(text, pos));
                     }
                     draw_render(data);
