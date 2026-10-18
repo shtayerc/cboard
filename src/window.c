@@ -105,7 +105,6 @@ window_data_init(WindowData* data) {
     int i;
     data->conf = config_init();
     data->layout = layout_init();
-    data->status.info = calloc(data->conf.status_max_len, sizeof(char));
     data->status_info = TTF_CreateText(NULL, NULL, "", 0);
     data->edit_text = TTF_CreateText(NULL, NULL, "", 0);
     data->filename = NULL;
@@ -238,7 +237,6 @@ font_set_engine(WindowData* data) {
 void
 window_data_free(WindowData* data) {
     int i;
-    free(data->status.info);
     TTF_DestroyText(data->filename);
     TTF_DestroyText(data->number);
     TTF_DestroyText(data->status_info);

@@ -142,10 +142,6 @@ typedef struct {
     char* explorer_exe_list[EXPLORER_EXE_COUNT];
 } Config;
 
-typedef struct {
-    char* info;
-} StatusLine;
-
 typedef enum { RotationWhite = 0, RotationBlack = 7 } Rotation;
 
 typedef enum {
@@ -192,7 +188,6 @@ struct WindowData {
     int loop;
     int from_game_list;
     TTF_Text* status_info;
-    StatusLine status;
     Config conf;
     Game game;
     GameList game_list;
