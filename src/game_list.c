@@ -52,28 +52,29 @@ mode_game_filter(WindowData* data) {
     TagFilter* tag_filter;
     char* saveptr;
     char* tmp;
-    cursor_add(&pos, data->status.info, data->conf.status_max_len, data);
+    text_null(data->status_info);
+    text_cursor_set(data->status_info, pos);
+    SDL_StartTextInput(data->window);
     data->mode = ModeTagFilter;
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
             if (event.type != SDL_EVENT_KEY_UP || event.key.key != SDLK_ESCAPE) {
-                handle_input_events(&event, data, &loop, &pos, data->status.info, data->conf.status_max_len);
+                handle_input_events_new(&event, data, &loop, data->status_info);
             }
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
                             loop = 0;
-                            data->status.info[0] = '\0';
+                            text_null(data->status_info);
                             data->mode = ModeGameList;
                             draw_render(data);
                             break;
 
                         case SDLK_RETURN:
-                            cursor_remove(&pos, data->status.info);
-                            snprintf(key, TAG_LEN, "%s", strtok_r(data->status.info, " ", &saveptr));
+                            snprintf(key, TAG_LEN, "%s", strtok_r(data->status_info->text, " ", &saveptr));
                             tmp = strtok_r(NULL, " ", &saveptr);
                             if (tmp != NULL && strcmp(tmp, "sort")) {
                                 op = char2tfo(tmp[0]);
@@ -88,31 +89,27 @@ mode_game_filter(WindowData* data) {
                                             tag_filter = game_list_filter_get(&data->game_list, key, op);
                                         }
                                         mode_game_filter_edit(data, tag_filter);
-                                        data->status.info[0] = '\0';
+                                        text_null(data->status_info);
                                         loop = 0;
                                         break;
 
                                     default:
-                                        snprintf(
-                                            data->status.info,
-                                            data->conf.status_max_len,
-                                            "%s %c",
-                                            key,
-                                            tfo2char(op)
-                                        );
+                                        TTF_SetTextString(data->status_info, key, 0);
+                                        TTF_AppendTextString(data->status_info, " ", 0);
+                                        TTF_AppendTextString(data->status_info, (char[]){ tfo2char(op), '\0' }, 0);
                                         tmp = NULL;
                                         break;
                                 }
                             } else if (tmp != NULL && tmp != NULL && !strcmp(tmp, "sort")) {
                                 snprintf(data->game_list_sort_tag, TAG_LEN, "%s", key);
+                                text_null(data->status_info);
                                 mode_game_sort_edit(data);
-                                data->status.info[0] = '\0';
                                 loop = 0;
                             }
 
                             if (tmp == NULL) {
-                                pos = U8_strlen(data->status.info);
-                                cursor_add(&pos, data->status.info, TAG_LEN, data);
+                                pos = SDL_utf8strlen(data->status_info->text ?: "");
+                                text_cursor_set(data->status_info, pos);
                             }
                             draw_render(data);
                             break;
@@ -129,23 +126,29 @@ mode_game_sort_edit(WindowData* data) {
     SDL_Event event;
     char old[TAG_LEN];
     snprintf(old, TAG_LEN, "%s", data->game_list_sort_direction);
-    int pos = U8_strlen(data->game_list_sort_direction);
-    cursor_add(&pos, data->game_list_sort_direction, TAG_LEN, data);
+    int pos = SDL_utf8strlen(data->game_list_sort_direction);
+    TTF_SetTextString(data->edit_text, data->game_list_sort_direction, 0);
+    data->edit_pointer = data->game_list_sort_direction;
+    text_cursor_set(data->edit_text, pos);
+    SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_input_events(&event, data, &loop, &pos, data->game_list_sort_direction, TAG_LEN);
+            handle_input_events_new(&event, data, &loop, data->edit_text);
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            cursor_remove(&pos, data->game_list_sort_direction);
-                            if (str2sorting(data->game_list_sort_direction) == SortNone) {
-                                snprintf(data->game_list_sort_direction, TAG_LEN, "%s", old);
+                            if (str2sorting(data->edit_text->text ?: "") == SortNone) {
+                                TTF_SetTextString(data->edit_text, old, 0);
                             }
+
+                            snprintf(data->game_list_sort_direction, TAG_LEN, "%s", data->edit_text->text ?: "");
                             game_list_sort(&data->game_list, data->game_list_sort_tag,
                                            str2sorting(data->game_list_sort_direction));
+                            text_null(data->edit_text);
+                            data->edit_pointer = NULL;
                             draw_render(data);
                             break;
                     }
@@ -160,20 +163,24 @@ mode_game_filter_edit(WindowData* data, TagFilter* tag_filter) {
     int loop = 1;
     SDL_Event event;
     GameList new_gl;
-    int pos = U8_strlen(tag_filter->tag.value);
-    cursor_add(&pos, tag_filter->tag.value, TAG_LEN, data);
+    int pos = SDL_utf8strlen(tag_filter->tag.value);
+    TTF_SetTextString(data->edit_text, tag_filter->tag.value, 0);
+    data->edit_pointer = tag_filter->tag.value;
+    text_cursor_set(data->edit_text, pos);
+    SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_input_events(&event, data, &loop, &pos, tag_filter->tag.value, TAG_LEN);
+            handle_input_events_new(&event, data, &loop, data->edit_text);
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            cursor_remove(&pos, tag_filter->tag.value);
-                            if (strlen(tag_filter->tag.value) == 0) {
+                            if (data->edit_text->text == NULL) {
                                 game_list_filter_delete(&data->game_list, tag_filter->tag.key, tag_filter->op);
+                            } else {
+                                snprintf(tag_filter->tag.value, TAG_LEN, "%s", data->edit_text->text);
                             }
                             for (int i = 0; i < data->game_list.filter_list->ai.count; i++) {
                                 game_list_filter(&data->game_list, &new_gl);
@@ -181,6 +188,8 @@ mode_game_filter_edit(WindowData* data, TagFilter* tag_filter) {
                                 data->game_list = new_gl;
                                 game_list_current_init(data);
                             }
+                            text_null(data->edit_text);
+                            data->edit_pointer = NULL;
                             draw_render(data);
                             break;
                     }
@@ -409,15 +418,29 @@ game_list_draw(WindowData* data) {
     game_current.x += game_current.w;
     game_current.y -= game_current.h;
 
-    game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s sort \"%s\"]",
-                        data->game_list_sort_tag,
-                        data->game_list_sort_direction);
+    if (data->edit_pointer == data->game_list_sort_direction) {
+        game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusFirstPart, " [%s sort \"", data->game_list_sort_tag);
+        game_current = draw_ttf_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusPart, data->edit_text);
+        game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusLastPart, "\"]");
+    } else {
+        game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s sort \"%s\"]",
+                                 data->game_list_sort_tag,
+                                 data->game_list_sort_direction);
+    }
     if (data->game_list.filter_list != NULL) {
         for (i = 0; i < data->game_list.filter_list->ai.count; i++) {
-            game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s %c \"%s\"]",
-                             data->game_list.filter_list->list[i].tag.key,
-                             tfo2char(data->game_list.filter_list->list[i].op),
-                             data->game_list.filter_list->list[i].tag.value);
+            if (data->edit_pointer == data->game_list.filter_list->list[i].tag.value) {
+                game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusFirstPart, " [%s %c \"",
+                                         data->game_list.filter_list->list[i].tag.key,
+                                         tfo2char(data->game_list.filter_list->list[i].op));
+                game_current = draw_ttf_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusPart, data->edit_text);
+                game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusLastPart, "\"]");
+            } else {
+                game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s %c \"%s\"]",
+                                         data->game_list.filter_list->list[i].tag.key,
+                                         tfo2char(data->game_list.filter_list->list[i].op),
+                                         data->game_list.filter_list->list[i].tag.value);
+            }
         }
     }
     //we set scroll length without scroll_set_length, because game_list length
