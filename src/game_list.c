@@ -126,10 +126,13 @@ mode_game_sort_edit(WindowData* data) {
     SDL_Event event;
     char old[TAG_LEN];
     snprintf(old, TAG_LEN, "%s", data->game_list_sort_direction);
-    int pos = SDL_utf8strlen(data->game_list_sort_direction);
-    TTF_SetTextString(data->edit_text, data->game_list_sort_direction, 0);
     data->edit_pointer = data->game_list_sort_direction;
-    text_cursor_set(data->edit_text, pos);
+    ttf_text_null(data->edit_text);
+    ttf_text_pre(data->edit_text, "[");
+    ttf_text_pre(data->edit_text, data->game_list_sort_tag);
+    ttf_text_pre(data->edit_text, " sort \"");
+    ttf_text_set(data->edit_text, data->game_list_sort_direction);
+    ttf_text_post(data->edit_text, "\"]");
     SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
@@ -140,14 +143,14 @@ mode_game_sort_edit(WindowData* data) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            if (str2sorting(data->edit_text->text ?: "") == SortNone) {
-                                TTF_SetTextString(data->edit_text, old, 0);
+                            if (str2sorting(ttf_text_get(data->edit_text) ?: "") == SortNone) {
+                                ttf_text_set(data->edit_text, old);
                             }
 
-                            snprintf(data->game_list_sort_direction, TAG_LEN, "%s", data->edit_text->text ?: "");
+                            snprintf(data->game_list_sort_direction, TAG_LEN, "%s", ttf_text_get(data->edit_text));
                             game_list_sort(&data->game_list, data->game_list_sort_tag,
                                            str2sorting(data->game_list_sort_direction));
-                            text_null(data->edit_text);
+                            ttf_text_null(data->edit_text);
                             data->edit_pointer = NULL;
                             draw_render(data);
                             break;
@@ -163,10 +166,15 @@ mode_game_filter_edit(WindowData* data, TagFilter* tag_filter) {
     int loop = 1;
     SDL_Event event;
     GameList new_gl;
-    int pos = SDL_utf8strlen(tag_filter->tag.value);
-    TTF_SetTextString(data->edit_text, tag_filter->tag.value, 0);
     data->edit_pointer = tag_filter->tag.value;
-    text_cursor_set(data->edit_text, pos);
+    ttf_text_null(data->edit_text);
+    ttf_text_pre(data->edit_text, "[");
+    ttf_text_pre(data->edit_text, tag_filter->tag.key);
+    ttf_text_pre(data->edit_text, " ");
+    ttf_text_pre(data->edit_text, (char[]){ tfo2char(tag_filter->op), '\0' });
+    ttf_text_pre(data->edit_text, " \"");
+    ttf_text_set(data->edit_text, tag_filter->tag.value);
+    ttf_text_post(data->edit_text, "\"]");
     SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
@@ -177,10 +185,10 @@ mode_game_filter_edit(WindowData* data, TagFilter* tag_filter) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            if (data->edit_text->text == NULL) {
+                            if (ttf_text_get(data->edit_text) == NULL) {
                                 game_list_filter_delete(&data->game_list, tag_filter->tag.key, tag_filter->op);
                             } else {
-                                snprintf(tag_filter->tag.value, TAG_LEN, "%s", data->edit_text->text);
+                                snprintf(tag_filter->tag.value, TAG_LEN, "%s", ttf_text_get(data->edit_text));
                             }
                             for (int i = 0; i < data->game_list.filter_list->ai.count; i++) {
                                 game_list_filter(&data->game_list, &new_gl);
@@ -188,7 +196,7 @@ mode_game_filter_edit(WindowData* data, TagFilter* tag_filter) {
                                 data->game_list = new_gl;
                                 game_list_current_init(data);
                             }
-                            text_null(data->edit_text);
+                            ttf_text_null(data->edit_text);
                             data->edit_pointer = NULL;
                             draw_render(data);
                             break;
@@ -419,9 +427,7 @@ game_list_draw(WindowData* data) {
     game_current.y -= game_current.h;
 
     if (data->edit_pointer == data->game_list_sort_direction) {
-        game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusFirstPart, " [%s sort \"", data->game_list_sort_tag);
-        game_current = draw_ttf_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusPart, data->edit_text);
-        game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusLastPart, "\"]");
+        game_current = draw_ttf_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, data->edit_text);
     } else {
         game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s sort \"%s\"]",
                                  data->game_list_sort_tag,
@@ -430,11 +436,7 @@ game_list_draw(WindowData* data) {
     if (data->game_list.filter_list != NULL) {
         for (i = 0; i < data->game_list.filter_list->ai.count; i++) {
             if (data->edit_pointer == data->game_list.filter_list->list[i].tag.value) {
-                game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusFirstPart, " [%s %c \"",
-                                         data->game_list.filter_list->list[i].tag.key,
-                                         tfo2char(data->game_list.filter_list->list[i].op));
-                game_current = draw_ttf_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusPart, data->edit_text);
-                game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatusLastPart, "\"]");
+                game_current = draw_ttf_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, data->edit_text);
             } else {
                 game_current = draw_text(data, &data->layout.notation, game_current, TextWrapNewLine, TextElementGameListStatus, " [%s %c \"%s\"]",
                                          data->game_list.filter_list->list[i].tag.key,

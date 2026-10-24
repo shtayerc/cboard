@@ -50,8 +50,8 @@ text_null(TTF_Text* text) {
 void
 ttf_text_pre(TTF_Text* text, const char* str) {
     SDL_PropertiesID props = TTF_GetTextProperties(text);
-    //int start = SDL_GetNumberProperty(props, "start", 0);
-    TTF_AppendTextString(text, str, 0);
+    int start = SDL_GetNumberProperty(props, "start", 0);
+    TTF_InsertTextString(text, start, str, 0);
     SDL_SetNumberProperty(props, "start", SDL_strlen(text->text));
 }
 
@@ -70,6 +70,7 @@ ttf_text_set(TTF_Text* text, const char* str) {
         TTF_DeleteTextString(text, start, end - start);
     }
     TTF_InsertTextString(text, start, str, 0);
+    SDL_SetStringProperty(props, "value", str);
     SDL_SetNumberProperty(props, "end", start + SDL_strlen(str));
     SDL_SetNumberProperty(props, "cursor", start + SDL_strlen(str));
 }
@@ -130,6 +131,7 @@ ttf_text_delete(TTF_Text* text) {
     if (cursor + length <= end) {
         TTF_DeleteTextString(text, cursor, length);
         SDL_SetNumberProperty(props, "end", end - length);
+        SDL_SetStringProperty(props, "value", NULL);
     }
 }
 
@@ -144,6 +146,7 @@ ttf_text_backspace(TTF_Text* text) {
         TTF_DeleteTextString(text, cursor - length, length);
         SDL_SetNumberProperty(props, "cursor", cursor - length);
         SDL_SetNumberProperty(props, "end", end - length);
+        SDL_SetStringProperty(props, "value", NULL);
     }
 }
 
@@ -156,6 +159,7 @@ ttf_text_insert(TTF_Text* text, const char* str) {
     TTF_InsertTextString(text, cursor, str, 0);
     SDL_SetNumberProperty(props, "cursor", cursor + length);
     SDL_SetNumberProperty(props, "end", end + length);
+    SDL_SetStringProperty(props, "value", NULL);
 }
 
 int
