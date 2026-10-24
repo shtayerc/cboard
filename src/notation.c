@@ -125,10 +125,10 @@ notation_draw_tags(WindowData* data, SDL_Rect* pos) {
     int i;
     for (i = 0; i < data->game.tag_list->ai.count; i++) {
         if (data->edit_pointer == data->game.tag_list->list[i].value) {
-            *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTagFirstPart, "[%s \"",
-                             data->game.tag_list->list[i].key);
-            *pos = draw_ttf_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTagPart, data->edit_text);
-            *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTagLastPart, "\"]");
+            //*pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTagFirstPart, "[%s \"",
+            //                 data->game.tag_list->list[i].key);
+            *pos = draw_ttf_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTag, data->edit_text);
+            //*pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTagLastPart, "\"]");
         } else {
             *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTag, "[%s \"%s\"]",
                              data->game.tag_list->list[i].key,
@@ -303,11 +303,16 @@ void
 mode_tag_edit(WindowData* data, Tag* tag) {
     int loop = 1;
     SDL_Event event;
-    int pos = SDL_utf8strlen(tag->value ?: "");
+    //int pos = SDL_utf8strlen(tag->value ?: "");
     data->notation_scroll.value = 0;
-    text_null(data->edit_text);
+    ttf_text_null(data->edit_text);
+    ttf_text_pre(data->edit_text, "[");
+    ttf_text_pre(data->edit_text, tag->key);
+    ttf_text_pre(data->edit_text, " \"");
+    ttf_text_set(data->edit_text, tag->value);
+    ttf_text_post(data->edit_text, "\"]");
     data->edit_pointer = tag->value;
-    text_cursor_set(data->edit_text, pos);
+    //text_cursor_set(data->edit_text, pos);
     SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
@@ -318,7 +323,7 @@ mode_tag_edit(WindowData* data, Tag* tag) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            snprintf(tag->value, TAG_LEN, "%s", data->edit_text->text ?: "");
+                            snprintf(tag->value, TAG_LEN, "%s", ttf_text_get(data->edit_text));
                             if (data->edit_text->text == 0 && strcmp(tag->key, "Event") && strcmp(tag->key, "Site")
                                 && strcmp(tag->key, "Date") && strcmp(tag->key, "Round") && strcmp(tag->key, "White")
                                 && strcmp(tag->key, "Black") && strcmp(tag->key, "Result")) {

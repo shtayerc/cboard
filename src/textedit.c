@@ -16,14 +16,24 @@ cursor_add(int* pos, char* str, int len, WindowData* data) {
 
 void
 text_cursor_set(TTF_Text* text, int pos) {
+    text_set(text, "cursor", pos);
+}
+
+void
+text_set(TTF_Text* text, const char* key, int value) {
     SDL_PropertiesID props = TTF_GetTextProperties(text);
-    SDL_SetNumberProperty(props, "cursor", pos);
+    SDL_SetNumberProperty(props, key, value);
+}
+
+int
+text_get(TTF_Text* text, const char* key) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    return SDL_GetNumberProperty(props, key, -1);
 }
 
 int
 text_cursor_get(TTF_Text* text) {
-    SDL_PropertiesID props = TTF_GetTextProperties(text);
-    return SDL_GetNumberProperty(props, "cursor", -1);
+    return text_get(text, "cursor");
 }
 
 void
@@ -35,6 +45,119 @@ void
 text_null(TTF_Text* text) {
     TTF_SetTextString(text, "", 0);
     text_cursor_remove(text);
+}
+
+void
+ttf_text_pre(TTF_Text* text, const char* str) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    //int start = SDL_GetNumberProperty(props, "start", 0);
+    TTF_AppendTextString(text, str, 0);
+    SDL_SetNumberProperty(props, "start", SDL_strlen(text->text));
+}
+
+void ttf_text_post(TTF_Text* text, const char* str) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    SDL_SetNumberProperty(props, "end", SDL_strlen(text->text));
+    TTF_AppendTextString(text, str, 0);
+}
+
+void
+ttf_text_set(TTF_Text* text, const char* str) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    int start = SDL_GetNumberProperty(props, "start", 0);
+    int end = SDL_GetNumberProperty(props, "end", start);
+    if (end != start) {
+        TTF_DeleteTextString(text, start, end - start);
+    }
+    //TTF_InsertTextString(text, start, str, 0);
+    TTF_AppendTextString(text, str, 0);
+    SDL_SetNumberProperty(props, "end", start + SDL_strlen(str));
+    SDL_SetNumberProperty(props, "cursor", start + SDL_strlen(str));
+}
+
+const char*
+ttf_text_get(TTF_Text* text) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    const char* str = SDL_GetStringProperty(props, "value", NULL);
+    if (str == NULL) {
+        int start = SDL_GetNumberProperty(props, "start", 0);
+        int end = SDL_GetNumberProperty(props, "end", start);
+        char* tmp = SDL_strndup(text->text + start, end - start);
+        SDL_SetStringProperty(props, "value", tmp);
+        SDL_free(tmp);
+        str = SDL_GetStringProperty(props, "value", NULL);
+    }
+    return str;
+}
+
+void
+ttf_text_null(TTF_Text* text) {
+    TTF_SetTextString(text, "", 0);
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    SDL_SetNumberProperty(props, "cursor", -1);
+    SDL_SetNumberProperty(props, "start", 0);
+    SDL_SetNumberProperty(props, "end", 0);
+    SDL_SetStringProperty(props, "value", NULL);
+}
+
+void
+ttf_text_left(TTF_Text* text) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    int cursor = SDL_GetNumberProperty(props, "cursor", -1);
+    int start = SDL_GetNumberProperty(props, "start", 0);
+    const char* text_start = text->text + (cursor ?: 0);
+    const char* next = text_start;
+    SDL_StepBackUTF8(text->text, &next);
+    int length = (int)(uintptr_t)(text_start - next);
+    if (cursor - length >= start) {
+        SDL_SetNumberProperty(props, "cursor", cursor - length);
+    }
+}
+
+void
+ttf_text_right(TTF_Text* text) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    int cursor = SDL_GetNumberProperty(props, "cursor", -1);
+    int end = SDL_GetNumberProperty(props, "end", SDL_strlen(text->text));
+    const char* text_start = text->text + (cursor ?: 0);
+    const char* next = text_start;
+    size_t length = SDL_strlen(next);
+    SDL_StepUTF8(&next, &length);
+    length = (next - text_start);
+    if (cursor + length <= end) {
+        SDL_SetNumberProperty(props, "cursor", cursor + length);
+    }
+}
+
+void
+ttf_text_delete(TTF_Text* text) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    int cursor = SDL_GetNumberProperty(props, "cursor", -1);
+    int end = SDL_GetNumberProperty(props, "end", SDL_strlen(text->text));
+    const char* text_start = text->text + (cursor ?: 0);
+    const char* next = text_start;
+    size_t length = SDL_strlen(next);
+    SDL_StepUTF8(&next, &length);
+    length = (next - text_start);
+    if (cursor + length <= end) {
+        TTF_DeleteTextString(text, cursor, (int)length);
+        //SDL_SetNumberProperty(props, "cursor", cursor + length);
+    }
+}
+
+void
+ttf_text_backspace(TTF_Text* text) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    int cursor = SDL_GetNumberProperty(props, "cursor", -1);
+    int start = SDL_GetNumberProperty(props, "start", 0);
+    const char* text_start = text->text + (cursor ?: 0);
+    const char* next = text_start;
+    SDL_StepBackUTF8(text->text, &next);
+    int length = (int)(uintptr_t)(text_start - next);
+    if (cursor - length >= start) {
+        TTF_DeleteTextString(text, cursor - length, length);
+        SDL_SetNumberProperty(props, "cursor", cursor - length);
+    }
 }
 
 int

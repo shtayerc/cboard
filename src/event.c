@@ -120,33 +120,37 @@ handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text*
                     break;
 
                 case SDLK_BACKSPACE:
-                    length = text_cursor_prev_length(text, pos);
-                    if (pos - length >= 0) {
-                        pos -= length;
-                        TTF_DeleteTextString(text, pos, length);
-                        text_cursor_set(text, pos);
-                        draw_render(data);
-                    }
+                    ttf_text_backspace(text);
+                    //length = text_cursor_prev_length(text, pos);
+                    //if (pos - length >= 0) {
+                    //    pos -= length;
+                    //    TTF_DeleteTextString(text, pos, length);
+                    //    text_cursor_set(text, pos);
+                    //    draw_render(data);
+                    //}
                     break;
 
                 case SDLK_DELETE:
-                    if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
-                        TTF_DeleteTextString(text, pos, text_cursor_next_length(text, pos));
-                        draw_render(data);
-                    }
+                    ttf_text_delete(text);
+                    //if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
+                    //    TTF_DeleteTextString(text, pos, text_cursor_next_length(text, pos));
+                    //}
+                    draw_render(data);
                     break;
 
                 case SDLK_LEFT:
-                    if (pos > 0) {
-                        text_cursor_set(text, pos - text_cursor_prev_length(text, pos));
-                    }
+                    ttf_text_left(text);
+                    //if (pos > 0) {
+                    //    text_cursor_set(text, pos - text_cursor_prev_length(text, pos));
+                    //}
                     draw_render(data);
                     break;
 
                 case SDLK_RIGHT:
-                    if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
-                        text_cursor_set(text, pos + text_cursor_next_length(text, pos));
-                    }
+                    ttf_text_right(text);
+                    //if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
+                    //    text_cursor_set(text, pos + text_cursor_next_length(text, pos));
+                    //}
                     draw_render(data);
                     break;
 
