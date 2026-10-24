@@ -125,10 +125,7 @@ notation_draw_tags(WindowData* data, SDL_Rect* pos) {
     int i;
     for (i = 0; i < data->game.tag_list->ai.count; i++) {
         if (data->edit_pointer == data->game.tag_list->list[i].value) {
-            //*pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTagFirstPart, "[%s \"",
-            //                 data->game.tag_list->list[i].key);
             *pos = draw_ttf_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTag, data->edit_text);
-            //*pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTagLastPart, "\"]");
         } else {
             *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementGameTag, "[%s \"%s\"]",
                              data->game.tag_list->list[i].key,

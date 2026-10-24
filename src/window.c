@@ -68,9 +68,6 @@ config_init() {
         .text_elements = {
             [TextElementStatus] = {{.top = 0, .right = 0, .bottom = 0, .left = 4}, ColorStatusFont, ColorStatusBackground},
             [TextElementGameTag] = {{.top = 0, .right = 8, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
-            [TextElementGameTagPart] = {{.top = 0, .right = 0, .bottom = 0, .left = 0}, ColorNotationFont, ColorNone},
-            [TextElementGameTagFirstPart] = {{.top = 0, .right = 0, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
-            [TextElementGameTagLastPart] = {{.top = 0, .right = 8, .bottom = 0, .left = 0}, ColorNotationFont, ColorNone},
             [TextElementTraining] = {{.top = 4, .right = 0, .bottom = 0, .left = 4}, ColorNotationFont, ColorNone},
             [TextElementMoveMainline] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorNotationFont, ColorNone},
             [TextElementMoveVariation] = {{.top = 0, .right = 5, .bottom = 0, .left = 2}, ColorVariationFont, ColorNone},

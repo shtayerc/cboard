@@ -25,6 +25,7 @@ void ttf_text_left(TTF_Text* text);
 void ttf_text_right(TTF_Text* text);
 void ttf_text_delete(TTF_Text* text);
 void ttf_text_backspace(TTF_Text* text);
+void ttf_text_insert(TTF_Text* text, const char* str);
 
 void textedit_escape(int* pos, char* str);
 void textedit_delete(int* pos, char* str);

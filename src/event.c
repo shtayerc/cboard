@@ -108,8 +108,6 @@ handle_input_events(SDL_Event* event, WindowData* data, int* loop, int* pos, cha
 
 void
 handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text* text) {
-    int pos = text_cursor_get(text);
-    int length = 0;
     switch (event->type) {
         case SDL_EVENT_KEY_UP:
             switch (event->key.key) {
@@ -121,43 +119,27 @@ handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text*
 
                 case SDLK_BACKSPACE:
                     ttf_text_backspace(text);
-                    //length = text_cursor_prev_length(text, pos);
-                    //if (pos - length >= 0) {
-                    //    pos -= length;
-                    //    TTF_DeleteTextString(text, pos, length);
-                    //    text_cursor_set(text, pos);
-                    //    draw_render(data);
-                    //}
+                    draw_render(data);
                     break;
 
                 case SDLK_DELETE:
                     ttf_text_delete(text);
-                    //if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
-                    //    TTF_DeleteTextString(text, pos, text_cursor_next_length(text, pos));
-                    //}
                     draw_render(data);
                     break;
 
                 case SDLK_LEFT:
                     ttf_text_left(text);
-                    //if (pos > 0) {
-                    //    text_cursor_set(text, pos - text_cursor_prev_length(text, pos));
-                    //}
                     draw_render(data);
                     break;
 
                 case SDLK_RIGHT:
                     ttf_text_right(text);
-                    //if (pos < (int)SDL_utf8strlen(text->text ?: "")) {
-                    //    text_cursor_set(text, pos + text_cursor_next_length(text, pos));
-                    //}
                     draw_render(data);
                     break;
 
                 case SDLK_U:
                     if (event->key.mod & SDL_KMOD_CTRL) {
-                        TTF_DeleteTextString(text, 0, pos);
-                        text_cursor_set(text, 0);
+                        ttf_text_set(text, "");
                         draw_render(data);
                     }
                     break;
@@ -165,8 +147,7 @@ handle_input_events_new(SDL_Event* event, WindowData* data, int* loop, TTF_Text*
             break;
 
         case SDL_EVENT_TEXT_INPUT:
-            TTF_InsertTextString(text, pos, event->text.text, 0);
-            text_cursor_set(text, pos + text_cursor_next_length(text, pos));
+            ttf_text_insert(text, event->text.text);
             draw_render(data);
             break;
     }
