@@ -11,7 +11,7 @@ comment_draw(WindowData* data, Move* m, SDL_Rect* pos) {
     char* saveptr;
 
     if (m->comment == data->edit_pointer) {
-        *pos = draw_ttf_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveComment, data->edit_text);
+        *pos = draw_ttf_text(data, &data->layout.notation, *pos, TextWrapBox, TextElementMoveComment, data->edit_text);
     } else {
         snprintf(comment, COMMENT_LEN, "%s", m->comment);
         word = strtok_r(comment, " ", &saveptr);
