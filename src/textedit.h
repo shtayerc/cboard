@@ -27,6 +27,7 @@ void ttf_text_delete(TTF_Text* text);
 void ttf_text_backspace(TTF_Text* text);
 void ttf_text_insert(TTF_Text* text, const char* str);
 void ttf_text_cursor(TTF_Text* text, int pos);
+void ttf_box_pre(TTF_Text* text, SDL_Rect* bounds, SDL_Rect* pos);
 
 void textedit_escape(int* pos, char* str);
 void textedit_delete(int* pos, char* str);

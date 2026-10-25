@@ -387,6 +387,9 @@ SDL_Rect
 draw_ttf_text_cursor(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWrapType wrap, TextElementIndex eli, TTF_Text* text, int cursor){
     TextElement el = data->conf.text_elements[eli];
     int real_w = 0;
+    if (wrap == TextWrapBox) {
+        TTF_SetTextWrapWidth(text, bounds->rect.w);
+    }
     TTF_GetTextSize(text, &pos.w, &pos.h);
     pos.w += el.padding.right;
     if (wrap == TextWrapRow) {
@@ -422,9 +425,6 @@ draw_ttf_text_cursor(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWra
     }
     SDL_Rect rect;
     TTF_SetTextColor(text, data->conf.colors[el.fg_color].r, data->conf.colors[el.fg_color].g, data->conf.colors[el.fg_color].b, data->conf.colors[el.fg_color].a);
-    if (wrap == TextWrapBox) {
-        TTF_SetTextWrapWidth(text, bounds->rect.w);
-    }
     rect.w = wrap == TextWrapRow ? real_w : pos.w;
     rect.x = pos.x;
     rect.y = pos.y;
@@ -445,6 +445,9 @@ draw_ttf_text_cursor(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWra
     if (wrap == TextWrapNewLine || wrap == TextWrapCutoff) {
         rect.x += rect.w;
         rect.h = pos.h;
+    } else if (wrap == TextWrapBox) {
+        rect.h = pos.h;
+        rect.y += pos.h;
     } else {
         rect.x -= el.padding.left;
         rect.y += data->font_height - el.padding.top;

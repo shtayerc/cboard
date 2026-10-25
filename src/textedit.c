@@ -176,6 +176,24 @@ ttf_text_cursor(TTF_Text* text, int pos) {
     SDL_SetNumberProperty(props, "cursor", pos);
 }
 
+void
+ttf_box_pre(TTF_Text* text, SDL_Rect* bounds, SDL_Rect* pos) {
+    int h;
+    TTF_GetTextSize(text, NULL, &h);
+    if (h <= TTF_GetFontLineSkip(TTF_GetTextFont(text))) {
+        return;
+    }
+    int w = pos->x - bounds->x;
+    pos->x = bounds->x;
+    int space;
+    TTF_GetGlyphMetrics(TTF_GetTextFont(text), ' ', NULL, NULL, NULL, NULL, &space);
+    int n = w / space;
+    char tmp[n + 1];
+    memset(tmp, ' ', n);
+    tmp[n] = '\0';
+    ttf_text_pre(text, tmp);
+}
+
 int
 text_cursor_prev_length(TTF_Text* text, int pos) {
     const char* start = text->text + pos;
