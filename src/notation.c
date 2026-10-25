@@ -10,12 +10,16 @@ comment_draw(WindowData* data, Move* m, SDL_Rect* pos) {
     char* word = NULL;
     char* saveptr;
 
-    snprintf(comment, COMMENT_LEN, "%s", m->comment);
-    word = strtok_r(comment, " ", &saveptr);
+    if (m->comment == data->edit_pointer) {
+        *pos = draw_ttf_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveComment, data->edit_text);
+    } else {
+        snprintf(comment, COMMENT_LEN, "%s", m->comment);
+        word = strtok_r(comment, " ", &saveptr);
 
-    while (word != NULL) {
-        *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveComment, "%s", word);
-        word = strtok_r(NULL, " ", &saveptr);
+        while (word != NULL) {
+            *pos = draw_text(data, &data->layout.notation, *pos, TextWrapNewLine, TextElementMoveComment, "%s", word);
+            word = strtok_r(NULL, " ", &saveptr);
+        }
     }
 }
 
@@ -155,28 +159,30 @@ void
 mode_annotate(WindowData* data, Move* move) {
     int loop = 1;
     SDL_Event event;
-    int pos;
     if (move->comment == NULL) {
         move->comment = calloc(COMMENT_LEN, sizeof(char));
-        pos = 0;
-    } else {
-        pos = U8_strlen(move->comment);
     }
-    cursor_add(&pos, move->comment, COMMENT_LEN, data);
+    ttf_text_set(data->edit_text, move->comment);
+    data->edit_pointer = move->comment;
     data->mode = ModeComment;
+    SDL_StartTextInput(data->window);
     draw_render(data);
     while (loop) {
         if (SDL_WaitEvent(&event)) {
             handle_global_events(&event, data, &loop, 1);
-            handle_input_events(&event, data, &loop, &pos, move->comment, COMMENT_LEN);
+            handle_input_events_new(&event, data, &loop, data->edit_text);
             switch (event.type) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            if (U8_strlen(move->comment) == 0) {
+                            if (SDL_strlen(ttf_text_get(data->edit_text)) == 0) {
                                 free(move->comment);
                                 move->comment = NULL;
+                            } else {
+                                snprintf(move->comment, COMMENT_LEN, "%s", ttf_text_get(data->edit_text));
                             }
+                            ttf_text_null(data->edit_text);
+                            data->edit_pointer = NULL;
                             draw_render(data);
                             break;
                     }
