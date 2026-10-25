@@ -179,6 +179,7 @@ ttf_text_cursor(TTF_Text* text, int pos) {
 void
 ttf_box_pre(TTF_Text* text, SDL_Rect* bounds, SDL_Rect* pos) {
     int h;
+    TTF_SetTextWrapWidth(text, bounds->w); //width has to be set before calculating
     TTF_GetTextSize(text, NULL, &h);
     if (h <= TTF_GetFontLineSkip(TTF_GetTextFont(text))) {
         return;

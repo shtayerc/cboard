@@ -434,7 +434,7 @@ draw_ttf_text_cursor(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWra
         TTF_GetTextSubString(text, cursor, &substr);
         substr.rect.x += pos.x;
         substr.rect.w = 1;
-        substr.rect.h = pos.h ?: data->font_height;
+        substr.rect.h = data->font_height;
         substr.rect.y = pos.y;
         SDL_FRect cursor_rect;
         SDL_RectToFRect(&substr.rect, &cursor_rect);
@@ -446,8 +446,12 @@ draw_ttf_text_cursor(WindowData* data, LayoutRect* bounds, SDL_Rect pos, TextWra
         rect.x += rect.w;
         rect.h = pos.h;
     } else if (wrap == TextWrapBox) {
-        rect.h = pos.h;
-        rect.y += pos.h;
+        TTF_SubString last;
+        TTF_GetTextSubString(text, SDL_strlen(text->text ?: ""), &last);
+        rect.w = last.rect.x;
+        rect.x += rect.w;
+        rect.y += last.rect.y;
+        rect.h = pos.h - last.rect.y;
     } else {
         rect.x -= el.padding.left;
         rect.y += data->font_height - el.padding.top;
