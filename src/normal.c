@@ -4,8 +4,10 @@ int
 write_game(WindowData* data) {
     FILE* f;
     int number;
+    char tmp[data->conf.number_len];
+    tmp[0] = '\0';
 
-    if (!strcmp(data->number->text, "a")) {
+    if (!strcmp(ttf_text_get(data->number), "a")) {
         f = fopen(data->filename->text, "a");
         if (f == NULL) {
             return 0;
@@ -17,11 +19,12 @@ write_game(WindowData* data) {
         number = pgn_count_games(f) - 1;
         fclose(f);
         if (number >= 0) {
-            snprintf(data->number->text, data->conf.number_len, "%d", number);
+            snprintf(tmp, data->conf.number_len, "%d", number);
+            ttf_text_set(data->number, tmp);
         }
         return 1;
     }
-    return pgn_replace_game(data->filename->text, &data->game, strtol(data->number->text, NULL, 10));
+    return pgn_replace_game(data->filename->text, &data->game, strtol(ttf_text_get(data->number), NULL, 10));
 }
 
 void

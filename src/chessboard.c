@@ -352,7 +352,7 @@ mode_editor(WindowData* data) {
         game_free(&data->game);
         game_init_default(&data->game, &b);
         handle_position_change(data);
-        snprintf(data->number->text, data->conf.number_len, "a");
+        ttf_text_set(data->number, "a");
     }
     data->piece = Empty;
     draw_render(data);

@@ -72,7 +72,9 @@ ttf_text_set(TTF_Text* text, const char* str) {
     TTF_InsertTextString(text, start, str, 0);
     SDL_SetStringProperty(props, "value", str);
     SDL_SetNumberProperty(props, "end", start + SDL_strlen(str));
-    SDL_SetNumberProperty(props, "cursor", start + SDL_strlen(str));
+    if (!SDL_GetNumberProperty(props, "start", 0)) {
+        SDL_SetNumberProperty(props, "cursor", start + SDL_strlen(str));
+    }
 }
 
 const char*
@@ -160,6 +162,18 @@ ttf_text_insert(TTF_Text* text, const char* str) {
     SDL_SetNumberProperty(props, "cursor", cursor + length);
     SDL_SetNumberProperty(props, "end", end + length);
     SDL_SetStringProperty(props, "value", NULL);
+}
+
+void
+ttf_text_cursor(TTF_Text* text, int pos) {
+    SDL_PropertiesID props = TTF_GetTextProperties(text);
+    if (pos == -1) {
+        SDL_SetNumberProperty(props, "manual_cursor", 1);
+    }
+    if (pos == -2) {
+        pos = SDL_GetNumberProperty(props, "end", SDL_strlen(text->text));
+    }
+    SDL_SetNumberProperty(props, "cursor", pos);
 }
 
 int

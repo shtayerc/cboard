@@ -477,7 +477,10 @@ game_list_game_load(WindowData* data, int index) {
     index = data->game_list.list[gl_index].index;
     game_free(&data->game);
     game_init(&data->game, NULL);
-    snprintf(data->number->text, data->conf.number_len, "%d", index);
+    char tmp[data->conf.number_len];
+    tmp[0] = '\0';
+    snprintf(tmp, data->conf.number_len, "%d", index);
+    ttf_text_set(data->number, tmp);
     FILE* f = fopen(data->filename->text, "r");
     pgn_read_file(f, &data->game, index);
     fclose(f);

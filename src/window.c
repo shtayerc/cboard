@@ -102,7 +102,10 @@ window_data_init(WindowData* data) {
     data->status_info = TTF_CreateText(NULL, NULL, "", 0);
     data->edit_text = TTF_CreateText(NULL, NULL, "", 0);
     data->filename = NULL;
-    data->number = NULL;
+    data->number = TTF_CreateText(NULL, NULL, "", 0);
+    ttf_text_pre(data->number, "[");
+    ttf_text_post(data->number, "]");
+    ttf_text_cursor(data->number, -1);
     data->edit_pointer = NULL;
     data->mode = ModeNormal;
     data->custom_text = calloc(data->conf.status_max_len, sizeof(char));

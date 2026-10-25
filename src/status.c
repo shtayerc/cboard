@@ -48,9 +48,9 @@ mode_number_edit(WindowData* data) {
     int loop = 1;
     char* non_int;
     char last[data->conf.number_len];
-    snprintf(last, data->conf.number_len, "%s", data->number->text);
-    int pos = SDL_utf8strlen(data->number->text ?: "");
-    text_cursor_set(data->number, pos);
+    snprintf(last, data->conf.number_len, "%s", ttf_text_get(data->number));
+    //ttf_text_set(data->number, last);
+    ttf_text_cursor(data->number, -2);
     data->mode = ModeNumber;
     SDL_StartTextInput(data->window);
     draw_render(data);
@@ -65,10 +65,11 @@ mode_number_edit(WindowData* data) {
                 case SDL_EVENT_KEY_UP:
                     switch (event.key.key) {
                         case SDLK_ESCAPE:
-                            strtol(data->number->text ?: "", &non_int, 10);
-                            if ((strcmp(non_int, "") && strcmp(data->number->text, "a")) || data->number->text == NULL) {
-                                TTF_SetTextString(data->number, last, 0);
+                            strtol(ttf_text_get(data->number), &non_int, 10);
+                            if ((strcmp(non_int, "") && strcmp(ttf_text_get(data->number), "a")) || SDL_strlen(ttf_text_get(data->number)) == 0) {
+                                ttf_text_set(data->number, last);
                             }
+                            ttf_text_cursor(data->number, -1);
                             draw_render(data);
                             break;
                     }
@@ -76,9 +77,8 @@ mode_number_edit(WindowData* data) {
 
                 case SDL_EVENT_TEXT_INPUT:
                     if (strchr("0123456789", event.text.text[0])
-                        || (data->number->text == NULL && event.text.text[0] == 'a')) {
-                        TTF_AppendTextString(data->number, event.text.text, 0);
-                        text_cursor_set(data->number, pos + text_cursor_next_length(data->number, pos));
+                        || (SDL_strlen(ttf_text_get(data->number)) == 0 && event.text.text[0] == 'a')) {
+                        ttf_text_insert(data->number, event.text.text);
                         draw_render(data);
                     }
                     break;
@@ -119,8 +119,6 @@ status_draw(WindowData* data) {
     rect.x += rect.w;
     rect.y -= rect.h;
     rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->filename);
-    rect = draw_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, "[");
     rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->number);
-    rect = draw_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, "]");
     rect = draw_ttf_text(data, &data->layout.status, rect, TextWrapNewLine, TextElementStatus, data->status_info);
 }

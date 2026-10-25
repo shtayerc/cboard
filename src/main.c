@@ -65,7 +65,7 @@ main(int argc, char* argv[]) {
                 usage();
                 return 1;
             }
-            data.number = TTF_CreateText(data.font_engine, data.fontV2, argv[i], 0);
+            ttf_text_set(data.number, argv[i]);
         } else if (!strcmp(argv[i], "--output") || !strcmp(argv[i], "-o")) {
             if (++i == argc) {
                 usage();
@@ -134,8 +134,8 @@ main(int argc, char* argv[]) {
     if (isubstr(data.filename->text, data.conf.rotate_str)) {
         data.rotation = RotationBlack;
     }
-    if (strcmp(data.number->text, "a") || !strcmp(data.filename->text, "-")) {
-        number = strtol(data.number->text, NULL, 10);
+    if (strcmp(ttf_text_get(data.number), "a") || !strcmp(data.filename->text, "-")) {
+        number = strtol(ttf_text_get(data.number), NULL, 10);
         if (file != NULL && !pgn_read_file(file, &data.game, number)) {
             fprintf(stderr, "Invalid pgn\n");
             return 1;
@@ -147,7 +147,7 @@ main(int argc, char* argv[]) {
             game_list_sort(&data.game_list, data.game_list_sort_tag, str2sorting(data.game_list_sort_direction));
             game_list_current_init(&data);
             if (data.game_list.ai.count == 1) {
-                data.number = TTF_CreateText(data.font_engine, data.fontV2, "0", 0);
+                ttf_text_set(data.number, "0");
                 fseek(file, 0, SEEK_SET);
                 if (!pgn_read_file(file, &data.game, 0)) {
                     fprintf(stderr, "Invalid pgn\n");
